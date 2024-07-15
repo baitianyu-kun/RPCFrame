@@ -37,13 +37,10 @@ namespace rocket {
         }
 
     private:
-
         T& m_mutex;
-
         bool m_is_lock {false};
 
     };
-
 
     class Mutex {
     public:

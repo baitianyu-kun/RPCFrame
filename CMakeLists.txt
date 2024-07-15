@@ -20,4 +20,6 @@ add_executable(log_test ./testcases/log_test.cpp
         rocket/include/common/mutex.h
         rocket/common/util.cpp
         rocket/include/common/util.h
+        rocket/include/net/FDEvent.h
+        rocket/net/FDEvent.cpp
 )

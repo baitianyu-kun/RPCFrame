@@ -1,9 +1,5 @@
-//
-// Created by baitianyu on 7/14/24.
-//
-
-#ifndef RPCFRAME_LOG_H
-#define RPCFRAME_LOG_H
+#ifndef ROCKET_COMMON_LOG_H
+#define ROCKET_COMMON_LOG_H
 
 #include <string>
 #include <queue>
@@ -14,9 +10,8 @@
 
 namespace rocket {
 
-
     template<typename... Args>
-    std::string formatString(const char* str, Args&&... args) {
+    std::string formatString(const char *str, Args &&... args) {
 
         int size = snprintf(nullptr, 0, str, args...);
 
@@ -29,7 +24,6 @@ namespace rocket {
         return result;
     }
 
-
 #define DEBUGLOG(str, ...) \
   if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Debug) \
   { \
@@ -38,8 +32,7 @@ namespace rocket {
     rocket::Logger::GetGlobalLogger()->log();                                                                                \
   } \
 
-// 自定义打印时，用到可变参数，用...即可表示可变参数
-// __VA_ARGS__就是将...的值复制到这里
+
 #define INFOLOG(str, ...) \
   if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Info) \
   { \
@@ -56,8 +49,6 @@ namespace rocket {
     rocket::Logger::GetGlobalLogger()->log();                                                                                 \
   } \
 
-
-
     enum LogLevel {
         Unknown = 0,
         Debug = 1,
@@ -65,15 +56,13 @@ namespace rocket {
         Error = 3
     };
 
-
-
     class Logger {
     public:
         typedef std::shared_ptr<Logger> s_ptr;
 
         Logger(LogLevel level) : m_set_level(level) {}
 
-        void pushLog(const std::string& msg);
+        void pushLog(const std::string &msg);
 
         void log();
 
@@ -82,7 +71,7 @@ namespace rocket {
         }
 
     public:
-        static Logger* GetGlobalLogger();
+        static Logger *GetGlobalLogger();
 
         static void InitGlobalLogger();
 
@@ -94,11 +83,9 @@ namespace rocket {
 
     };
 
-
-
     std::string LogLevelToString(LogLevel level);
 
-    LogLevel StringToLogLevel(const std::string& log_level);
+    LogLevel StringToLogLevel(const std::string &log_level);
 
     class LogEvent {
     public:
@@ -115,7 +102,6 @@ namespace rocket {
 
         std::string toString();
 
-
     private:
         std::string m_file_name;  // 文件名
         int32_t m_file_line;  // 行号
@@ -125,8 +111,6 @@ namespace rocket {
         LogLevel m_level;     //日志级别
 
     };
-
-
 }
 
-#endif //RPCFRAME_LOG_H
+#endif

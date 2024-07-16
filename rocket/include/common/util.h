@@ -14,6 +14,8 @@ namespace rocket {
 
     pid_t getThreadId();
 
+    int64_t getNowMs();
+
 }
 
 #endif //RPCFRAME_UTIL_H

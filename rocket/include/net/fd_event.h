@@ -52,6 +52,7 @@ namespace rocket {
         }
 
     protected: // 因为要继承给WakeUpFDEvent
+        // 要监听的描述符
         int m_fd{-1};
         // 要监听的epoll event
         epoll_event m_listen_event;
@@ -60,17 +61,6 @@ namespace rocket {
         std::function<void()> m_write_callback{nullptr};
         std::function<void()> m_error_callback{nullptr};
     };
-
-    // 这个是唤醒epoll的event，实际上就是写入8个字节，来使epoll唤醒去处理event loop里面的任务
-    class WakeUpFDEvent : public FDEvent {
-    public:
-        explicit WakeUpFDEvent(int fd);
-
-        ~WakeUpFDEvent();
-
-        void wakeup();
-    };
-
 }
 
 #endif //RPCFRAME_FD_EVENT_H

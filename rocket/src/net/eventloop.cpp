@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <cstring>
+#include <utility>
 #include <sys/eventfd.h>
 #include "net/eventloop.h"
 #include "common/log.h"
@@ -66,6 +67,8 @@ namespace rocket {
         }
         // 初始化唤醒fd
         initWakeUpFDEevent();
+        // 初始化定时任务
+        initTimer();
 
         INFOLOG("succeed create event loop in thread %d", m_pid);
         t_current_event_loop = this;
@@ -235,7 +238,7 @@ namespace rocket {
         }
     }
 
-// 判断是否是当前进程在loop中
+    // 判断是否是当前进程在loop中
     bool EventLoop::isInLoopThread() {
         return m_pid == getThreadId();
     }
@@ -249,5 +252,14 @@ namespace rocket {
         return m_stop_flag;
     }
 
+    void EventLoop::initTimer() {
+        m_timer = std::move(std::unique_ptr<TimerFDEvent>(new TimerFDEvent()));
+        addEpollEvent(m_timer.get());
+    }
+
+
+    void EventLoop::addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+        m_timer->addTimerEvent(std::move(time_event));
+    }
 }
 

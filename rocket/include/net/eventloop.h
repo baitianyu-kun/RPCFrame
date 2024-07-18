@@ -12,7 +12,8 @@
 #include <memory>
 #include "common/mutex.h"
 #include "net/fd_event.h"
-#include "net/timer_event.h"
+#include "net/wake_up_fd_event.h"
+#include "net/timer_fd_event.h"
 
 namespace rocket {
 
@@ -41,10 +42,14 @@ namespace rocket {
 
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 
+        void addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+
     private:
         void dealWakeup();
 
         void initWakeUpFDEevent();
+
+        void initTimer();
 
     private:
         // event loop每个线程只能有一个，线程号
@@ -66,6 +71,7 @@ namespace rocket {
         // 需要加锁
         Mutex m_mutex;
         // time定时任务
+        std::unique_ptr<TimerFDEvent> m_timer {nullptr};
     };
 
 }

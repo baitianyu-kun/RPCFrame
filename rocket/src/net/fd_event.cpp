@@ -3,9 +3,7 @@
 //
 #include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
 #include "net/fd_event.h"
-#include "common/log.h"
 
 namespace rocket {
 
@@ -64,22 +62,6 @@ namespace rocket {
     void FDEvent::cancel_listen(FDEvent::TriggerEventType event_type) {
         event_type == TriggerEventType::IN_EVENT ? m_listen_event.events &= (~EPOLLIN)
                                                  : m_listen_event.events &= (~EPOLLOUT);
-    }
-
-    WakeUpFDEvent::WakeUpFDEvent(int fd) : FDEvent(fd) {
-
-    }
-
-    WakeUpFDEvent::~WakeUpFDEvent() {
-
-    }
-
-    void WakeUpFDEvent::wakeup() {
-        char buf[WAKE_UP_BUFF_LEN] = {'a'};
-        int ret = write(m_fd, buf, WAKE_UP_BUFF_LEN);
-        if (ret != WAKE_UP_BUFF_LEN) {
-            ERRORLOG("write to wakeup fd less than 8 bytes, fd[%d]", m_fd);
-        }
     }
 }
 

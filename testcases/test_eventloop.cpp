@@ -39,7 +39,7 @@ int main() {
         // 如果发生in事件的话，那么应该执行该event的回调函数
         // 这里就是执行接收连接并打印client的地址
         sockaddr_in client_address;
-        memset(&client_address,0, sizeof(client_address));
+        memset(&client_address, 0, sizeof(client_address));
         socklen_t client_addr_len = sizeof(client_address);
         int client_fd = accept(listenfd, (sockaddr *) &client_address, &client_addr_len);
         DEBUGLOG("success get client fd[%d], peer addr: [%s:%d]", client_fd, inet_ntoa(client_address.sin_addr),
@@ -51,7 +51,18 @@ int main() {
     auto *eventloop = new rocket::EventLoop();
     // 添加该事件
     eventloop->addEpollEvent(&event);
-    // 执行loop
+
+    // 添加定时事件
+    int i = 0;
+    rocket::TimerEventInfo::time_event_info_sptr_t_ time_event = std::make_shared<rocket::TimerEventInfo>(
+            1000, true, [&i]() {
+                INFOLOG("trigger timer event, count=%d", i++);
+            }
+    );
+    eventloop->addTimerEvent(time_event);
     eventloop->loop();
+
+    // 执行loop
+    // eventloop->loop();
 
 }

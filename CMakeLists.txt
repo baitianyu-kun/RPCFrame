@@ -12,7 +12,7 @@ include_directories(${PROJECT_SOURCE_DIR}/rocket/include) # 头文件搜索
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST) # 读取所有源文件并放到SRC_LIST中，但是不会对子目录进行递归调用
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 
-add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} testcases/test_eventloop.cpp )
+add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} testcases/test_eventloop.cpp)
 
 target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST})
 

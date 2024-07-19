@@ -13,6 +13,7 @@
 #include "../rocket/include/net/fd_event.h"
 #include "../rocket/include/net/eventloop.h"
 #include "../rocket/include/net/io_thread.h"
+#include "../rocket/include/net/io_thread_pool.h"
 
 void iothread_test() {
     int port = 22224;
@@ -50,8 +51,15 @@ void iothread_test() {
     // 添加定时事件
     int i = 0;
     rocket::TimerEventInfo::time_event_info_sptr_t_ time_event = std::make_shared<rocket::TimerEventInfo>(
-            5000, true, [&i]() {
+            1000, true, [&i]() {
                 INFOLOG("trigger timer event, count=%d", i++);
+            }
+    );
+
+    int x = 0;
+    rocket::TimerEventInfo::time_event_info_sptr_t_ time_event2 = std::make_shared<rocket::TimerEventInfo>(
+            1000, true, [&x]() {
+                INFOLOG("trigger timer event2, count=%d", x++);
             }
     );
 
@@ -59,11 +67,22 @@ void iothread_test() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
 
-    rocket::IOThread io_thread;
-    io_thread.getEventLoop()->addEpollEvent(&event); // 添加监听事件
-    io_thread.getEventLoop()->addTimerEvent(time_event); // 添加定时事件
-    io_thread.start(); // 启动
-    io_thread.join(); // 等待执行完成
+//    rocket::IOThread io_thread;
+//    io_thread.getEventLoop()->addEpollEvent(&event); // 添加监听事件
+//    io_thread.getEventLoop()->addTimerEvent(time_event); // 添加定时事件
+//    io_thread.start(); // 启动
+//    io_thread.join(); // 等待执行完成
+
+    // 测试线程池
+    rocket::IOThreadPool io_thread_pool(2);
+    auto &io_thread1 = io_thread_pool.getIOThread();
+    io_thread1->getEventLoop()->addTimerEvent(time_event);
+
+    auto &io_thread2 = io_thread_pool.getIOThread();
+    io_thread2->getEventLoop()->addTimerEvent(time_event2);
+    io_thread_pool.start();
+    io_thread_pool.join();
+
 }
 
 int main() {

@@ -42,6 +42,7 @@ namespace rocket {
     void IOThread::start() {
         // 信号量++，执行完之后，runner中监听启动的停止阻塞，开始执行loop方法
         // 在这里直接让thread启动loop的话，应该也可以，但是应该是在runner中启动，比较符合每个线程启动自己的方法的逻辑
+        // 在这里m_event_loop->loop()确实是可以的，已经做过了测试
         DEBUGLOG("Now invoke IOThread %d", m_thread_id);
         sem_post(&m_start_semaphore);
     }

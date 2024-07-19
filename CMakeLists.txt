@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(RPCFrame VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE "Debug") # 设置为debug即-g编译选项
 
 link_libraries("/usr/lib/libprotobuf.a")
 link_libraries("/usr/lib/libtinyxml.a") # 添加第三方库
@@ -15,6 +16,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} testcases/test_eventloop.cpp)
 
 target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST})
+target_link_libraries(test_eventloop pthread)
 
 
 

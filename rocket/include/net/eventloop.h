@@ -5,11 +5,11 @@
 #ifndef RPCFRAME_EVENTLOOP_H
 #define RPCFRAME_EVENTLOOP_H
 
-#include <pthread.h>
 #include <set>
 #include <functional>
 #include <queue>
 #include <memory>
+#include <cassert>
 #include "common/mutex.h"
 #include "net/fd_event.h"
 #include "net/wake_up_fd_event.h"

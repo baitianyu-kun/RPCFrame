@@ -40,7 +40,7 @@ namespace rocket {
         std::unique_ptr<IOThreadPool> m_io_thread_pool{nullptr};
 
         // 应该都改成timer event info那样的shared ptr声明方式
-        std::shared_ptr<FDEvent> m_listen_fd_event;
+        FDEvent::fd_event_sptr_t_ m_listen_fd_event;
         TimerEventInfo::time_event_info_sptr_t_ m_clear_client_timer_event;
 
         int m_client_counts{0};

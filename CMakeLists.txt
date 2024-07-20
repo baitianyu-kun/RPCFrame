@@ -24,7 +24,11 @@ add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} t
         rocket/src/net/tcp/tcp_acceptor.cpp
         rocket/include/net/tcp/tcp_acceptor.h
         rocket/src/net/tcp/tcp_server.cpp
-        rocket/include/net/tcp/tcp_server.h)
+        rocket/include/net/tcp/tcp_server.h
+        rocket/src/net/tcp/tcp_connection.cpp
+        rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/fd_event_pool.h
+        rocket/src/net/fd_event_pool.cpp)
 target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
 target_link_libraries(test_tcp pthread)
 

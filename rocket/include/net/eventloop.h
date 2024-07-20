@@ -32,9 +32,9 @@ namespace rocket {
 
         void stop();
 
-        void addEpollEvent(FDEvent *fd_event);
+        void addEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr);
 
-        void deleteEpollEvent(FDEvent *fd_event);
+        void deleteEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr);
 
         bool isInLoopThread();
 
@@ -57,7 +57,7 @@ namespace rocket {
         // 唤醒epoll wait的wake up fd
         int m_wakeup_fd{0};
         // wake up event
-        std::unique_ptr<WakeUpFDEvent> m_wakeup_fd_event{nullptr};
+        WakeUpFDEvent::wake_up_fd_event_sptr_t_ m_wakeup_fd_event{nullptr};
         // epoll的fd
         int m_epoll_fd{0};
         // 当前epoll监听的所有fds
@@ -71,7 +71,7 @@ namespace rocket {
         // 需要加锁
         Mutex m_mutex;
         // time定时任务
-        std::unique_ptr<TimerFDEvent> m_timer{nullptr};
+        TimerFDEvent::timer_fd_event_sptr_t_ m_timer{nullptr};
     };
 
 }

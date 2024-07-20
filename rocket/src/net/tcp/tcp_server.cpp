@@ -33,7 +33,7 @@ namespace rocket {
         // 必须显式地指定&Base::diplay_sum，因为编译器不会将对象的成员函数隐式转换成函数指针，所以必须在Base::display_sum前添加&；
         // 使用对象成员函数的指针时，必须要知道该指针属于哪个对象，因此第二个参数为对象的地址 &base或者this；
         m_listen_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPServer::onAccept, this));
-        m_main_event_loop->addEpollEvent(m_listen_fd_event.get());
+        m_main_event_loop->addEpollEvent(m_listen_fd_event);
 
         m_clear_client_timer_event = std::make_shared<TimerEventInfo>(TIMER_EVENT_INTERVAL, true,
                                                                       std::bind(&TCPServer::clearClientTimerFunc,

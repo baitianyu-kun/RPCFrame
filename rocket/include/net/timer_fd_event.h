@@ -59,6 +59,9 @@ namespace rocket {
 
     class TimerFDEvent : public FDEvent {
     public:
+
+        using timer_fd_event_sptr_t_ = std::shared_ptr<TimerFDEvent>;
+
         TimerFDEvent();
 
         ~TimerFDEvent();
@@ -78,6 +81,7 @@ namespace rocket {
         // 也就是隔interval时间后，就可以准确执行到这个方法。
         // 如果time event时间比现在小，是个过期的任务，加到队列的时候需要立即执行(例如设置为100ms后执行)
         void resetTimerEventArriveTime();
+
     private:
         // 存储当前的所有定时任务，根据到达时间进行排序
         std::multimap<int64_t, TimerEventInfo::time_event_info_sptr_t_> m_pending_events;

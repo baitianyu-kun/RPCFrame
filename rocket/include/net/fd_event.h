@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <sys/epoll.h>
+#include <memory>
 
 #define WAKE_UP_BUFF_LEN 8
 
@@ -15,6 +16,8 @@ namespace rocket {
 
     class FDEvent {
     public:
+        using fd_event_sptr_t_ = std::shared_ptr<FDEvent>;
+
         // 事件类型，使用和epoll相同
         enum TriggerEventType {
             IN_EVENT = EPOLLIN,

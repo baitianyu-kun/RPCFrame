@@ -11,6 +11,7 @@ namespace rocket{
     // 这个是唤醒epoll的event，实际上就是写入8个字节，来使epoll唤醒去处理event loop里面的任务
     class WakeUpFDEvent : public FDEvent {
     public:
+        using wake_up_fd_event_sptr_t_ = std::shared_ptr<WakeUpFDEvent>;
 
         explicit WakeUpFDEvent(int fd);
 

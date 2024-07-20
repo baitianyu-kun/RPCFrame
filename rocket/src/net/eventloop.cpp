@@ -125,7 +125,7 @@ namespace rocket {
                     if (trigger_event.events & EPOLLERR) {
                         DEBUGLOG("fd %d trigger EPOLLERROR event", fd_event->getFD());
                         // 需要删除出错的fd
-                        deleteEpollEvent(fd_event);
+                        deleteEpollEvent(std::shared_ptr<FDEvent>(fd_event));
                         auto error_callback = fd_event->handler(FDEvent::ERROR_EVENT);
                         if (error_callback != nullptr) {
                             DEBUGLOG("fd %d add error callback", fd_event->getFD());
@@ -170,7 +170,7 @@ namespace rocket {
         }
         INFOLOG("wakeup fd = %d", m_wakeup_fd);
         // 创建wake up event事件，确定监听类型，并使用lambda固定回调函数
-        m_wakeup_fd_event = std::move(std::unique_ptr<WakeUpFDEvent>(new WakeUpFDEvent(m_wakeup_fd)));
+        m_wakeup_fd_event = std::make_shared<WakeUpFDEvent>(m_wakeup_fd);
         // 通过“函数体”后面的‘()’传入参数 auto x = [](int a){cout << a << endl;}(123);
         // 所以lambda表达式括号内的参数就是这么传入的，即123
         m_wakeup_fd_event->listen(FDEvent::IN_EVENT, [this]() {
@@ -183,7 +183,7 @@ namespace rocket {
             DEBUGLOG("wake up succeed! read full bytes from wakeup fd[%d]", m_wakeup_fd);
         });
         // 添加到epoll event中
-        addEpollEvent(m_wakeup_fd_event.get());
+        addEpollEvent(m_wakeup_fd_event);
     }
 
     void EventLoop::addTask(std::function<void()> callback, bool is_wake_up /* false */) {
@@ -196,8 +196,8 @@ namespace rocket {
         }
     }
 
-    void EventLoop::addEpollEvent(FDEvent *fd_event) {
-
+    void EventLoop::addEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr) {
+        auto fd_event = fd_event_s_ptr.get();
         // 创建epoll event去监听wakeup的读取事件
         // epoll_event tmp_event;
         // tmp_event.events = EPOLLIN; // 读取事件
@@ -206,7 +206,6 @@ namespace rocket {
         // 在epoll_ctl函数调用期间，它会将tmp_event的内容从用户空间拷贝到内核空间，以便在内核中进行相应的操作。
         // 确保内核能够访问和使用这个事件结构体的内容，而不依赖于用户空间的内存。
         // int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, m_wakeup_fd, &tmp_event);
-
         if (isInLoopThread()) {
             ADD_OR_MODIFY_TO_EPOLL();
         } else {
@@ -226,7 +225,8 @@ namespace rocket {
         }
     }
 
-    void EventLoop::deleteEpollEvent(FDEvent *fd_event) {
+    void EventLoop::deleteEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr) {
+        auto fd_event = fd_event_s_ptr.get();
         if (isInLoopThread()) {
             DELETE_FROM_EPOLL();
         } else {
@@ -252,8 +252,8 @@ namespace rocket {
     }
 
     void EventLoop::initTimer() {
-        m_timer = std::move(std::unique_ptr<TimerFDEvent>(new TimerFDEvent()));
-        addEpollEvent(m_timer.get());
+        m_timer = std::make_shared<TimerFDEvent>();
+        addEpollEvent(m_timer);
     }
 
 

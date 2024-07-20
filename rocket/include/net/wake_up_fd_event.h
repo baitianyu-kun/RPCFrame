@@ -11,6 +11,7 @@ namespace rocket{
     // 这个是唤醒epoll的event，实际上就是写入8个字节，来使epoll唤醒去处理event loop里面的任务
     class WakeUpFDEvent : public FDEvent {
     public:
+
         explicit WakeUpFDEvent(int fd);
 
         ~WakeUpFDEvent();

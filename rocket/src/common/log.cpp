@@ -1,6 +1,6 @@
 #include <sys/time.h>
 #include <sstream>
-#include <stdio.h>
+#include <cstdio>
 #include "common/log.h"
 #include "common/util.h"
 #include "common/config.h"

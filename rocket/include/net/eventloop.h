@@ -71,7 +71,7 @@ namespace rocket {
         // 需要加锁
         Mutex m_mutex;
         // time定时任务
-        std::unique_ptr<TimerFDEvent> m_timer {nullptr};
+        std::unique_ptr<TimerFDEvent> m_timer{nullptr};
     };
 
 }

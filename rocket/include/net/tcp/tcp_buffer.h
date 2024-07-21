@@ -9,6 +9,8 @@
 #include <vector>
 #include <cstring>
 
+#define MAX_TCP_BUFFER_SIZE 128
+
 namespace rocket {
 
     // 主要是封装了流的读取写入等，包括inbuffer和outbuffer
@@ -47,9 +49,18 @@ namespace rocket {
             return m_write_index;
         }
 
-        std::vector<char> getBuffer() const {
+        // 返回buff的引用，方便对其进行操作
+        std::vector<char> &getRefBuffer() {
+            return m_buffer;
+        }
+
+        std::vector<char> getCopiedBuffer() const {
             return m_buffer;
         };
+
+        size_t getBufferSize() const {
+            return m_buffer.size();
+        }
 
 
     private:

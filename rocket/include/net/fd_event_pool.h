@@ -9,10 +9,12 @@
 #include "common/mutex.h"
 #include "net/fd_event.h"
 
+#define MAX_FD_EVENT_POOL_SIZE 128
+
 namespace rocket {
     class FDEventPool {
     public:
-        static std::unique_ptr<FDEventPool> GetFDEventPool();
+        static std::unique_ptr<FDEventPool> &GetFDEventPool();
 
     public:
         explicit FDEventPool(int size);

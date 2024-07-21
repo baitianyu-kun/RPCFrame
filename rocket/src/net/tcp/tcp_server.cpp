@@ -47,8 +47,19 @@ namespace rocket {
         auto peer_addr = ret.second;
         m_client_counts++; // 已经连接的子线程个数
 
+        // 轮询插入io thread中
+        auto &io_thread = m_io_thread_pool->getIOThread();
+        // 创建connection处理读写
+        auto connection = std::make_shared<TCPConnection>(
+                io_thread->getEventLoop(),
+                client_fd,
+                MAX_TCP_BUFFER_SIZE,
+                peer_addr,
+                m_local_addr
+        );
+        connection->setState(Connected);
+        m_client_connection.insert(connection);
         // 轮询添加到线程池中的线程中
-        // auto &io_thread = m_io_thread_pool->getIOThread();
         INFOLOG("TcpServer succ get client, fd: %d, peer addr: %s, now client counts: %d", client_fd,
                 peer_addr->toString().c_str(), m_client_counts);
     }

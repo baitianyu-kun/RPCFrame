@@ -11,6 +11,7 @@
 #include "net/tcp/tcp_buffer.h"
 #include "net/eventloop.h"
 #include "net/io_thread_pool.h"
+#include "net/tcp/tcp_connection.h"
 
 #define MAX_THREAD_POOL_SIZE 20
 #define TIMER_EVENT_INTERVAL 5000
@@ -42,6 +43,8 @@ namespace rocket {
         // 应该都改成timer event info那样的shared ptr声明方式
         FDEvent::fd_event_sptr_t_ m_listen_fd_event;
         TimerEventInfo::time_event_info_sptr_t_ m_clear_client_timer_event;
+
+        std::set<TCPConnection::tcp_connection_sptr_t_> m_client_connection;
 
         int m_client_counts{0};
     };

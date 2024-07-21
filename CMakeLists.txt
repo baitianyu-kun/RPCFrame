@@ -20,17 +20,14 @@ target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NE
 target_link_libraries(test_eventloop pthread)
 
 # test tcp
-add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_tcp.cpp
-        rocket/src/net/tcp/tcp_acceptor.cpp
-        rocket/include/net/tcp/tcp_acceptor.h
-        rocket/src/net/tcp/tcp_server.cpp
-        rocket/include/net/tcp/tcp_server.h
-        rocket/src/net/tcp/tcp_connection.cpp
-        rocket/include/net/tcp/tcp_connection.h
-        rocket/include/net/fd_event_pool.h
-        rocket/src/net/fd_event_pool.cpp)
+add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_tcp.cpp)
 target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
 target_link_libraries(test_tcp pthread)
+
+# test client
+add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_client.cpp)
+target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
+target_link_libraries(test_client pthread)
 
 
 # 可执行文件的存放路径

@@ -209,6 +209,9 @@ namespace rocket {
         if (isInLoopThread()) {
             ADD_OR_MODIFY_TO_EPOLL();
         } else {
+            // TCP connection是主线程中的建立连接，但是此时eventloop在io thread中
+            // 所以出现主线程和子线程同时访问一个eventloop的情况，所以需要进行处理
+
             // 当前thread不在当前loop中，是其他线程要往进添加
             // 因为epoll的操作必须在所属线程中进行，不能直接在当前线程中调用ADD_TO_EPOLL()函数
             // 通过调用addTask函数将这个lambda表达式封装成任务，并设置is_wake_up参数为true，以确保事件循环在添加任务后被唤醒。

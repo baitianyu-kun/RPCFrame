@@ -15,6 +15,15 @@
 #include "common/config.h"
 #include "common/log.h"
 #include "net/tcp/net_addr.h"
+#include "net/tcp/tcp_client.h"
+
+void test_connect_client() {
+    rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    rocket::TCPClient client(addr);
+    client.connect([addr]() {
+        DEBUGLOG("connect to [%s] success", addr->toString().c_str());
+    });
+}
 
 void test_connect() {
     // 调用 conenct 连接 server
@@ -43,5 +52,6 @@ void test_connect() {
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
-    test_connect();
+    // test_connect();
+    test_connect_client();
 }

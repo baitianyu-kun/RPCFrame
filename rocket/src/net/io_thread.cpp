@@ -54,7 +54,7 @@ namespace rocket {
     void *IOThread::runner(void *arg) {
         // 前置任务
         auto thread = reinterpret_cast<IOThread *>(arg);
-        thread->m_event_loop = std::move(std::unique_ptr<EventLoop>(new EventLoop()));
+        thread->m_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
         thread->m_thread_id = getThreadId();
         // 初始化完成，等待开启信号
         sem_post(&thread->m_init_semaphore);

@@ -97,7 +97,7 @@ namespace rocket {
         INFOLOG("success get from client[%s], data[%s]", m_peer_addr->toString().c_str(), tmp_msg.c_str());
         // EPOLLOUT三种应用场景
         // 客户端连接场景
-        // 触发条件：客户端connect上服务端后，得到fd，这时候把fd添加到epoll 事件池里面后，因为连接可写，会触发EPOLLOUT事件，所以一connect就会触发EPOLLOUT但是我们只希望
+        // 触发条件：客户端connect上服务端后，服务端得到fd，这时候把fd添加到epoll 事件池里面后，因为连接可写，会触发EPOLLOUT事件，所以一connect就会触发EPOLLOUT但是我们只希望
         // 执行完成RPC之后再去触发，所以需要在这里进行添加事件，写完后立即取消EPOLLOUT，否则会因为客户端还连着，连接可写，导致再次无限次触发EPOLLOUT事件
 
         // 客户端发包场景

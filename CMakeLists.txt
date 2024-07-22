@@ -13,20 +13,22 @@ include_directories(${PROJECT_SOURCE_DIR}/rocket/include) # 头文件搜索
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST) # 读取所有源文件并放到SRC_LIST中，但是不会对子目录进行递归调用
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/tcp SRC_NET_TCP_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder SRC_NET_CODER_LIST)
+
 
 # test event loop
-add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_eventloop.cpp)
-target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
+add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_eventloop.cpp)
+target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
 target_link_libraries(test_eventloop pthread)
 
 # test tcp
-add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_tcp.cpp)
-target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
+add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_tcp.cpp)
+target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
 target_link_libraries(test_tcp pthread)
 
 # test client
-add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} testcases/test_client.cpp)
-target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST})
+add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_client.cpp)
+target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
 target_link_libraries(test_client pthread)
 
 

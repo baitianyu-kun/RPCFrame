@@ -247,10 +247,12 @@ namespace rocket {
 
 
     EventLoop *EventLoop::GetCurrentEventLoop() {
+        // 在new的时候已经给current eventloop赋值过了，所以不需要了
+        // 并且加了thread local，已经线程安全了
         return t_current_event_loop ? t_current_event_loop : new EventLoop();
     }
 
-    bool EventLoop::isLoopStop() {
+    bool EventLoop::LoopStopFlag() {
         return m_stop_flag;
     }
 

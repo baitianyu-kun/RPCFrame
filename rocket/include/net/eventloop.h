@@ -38,7 +38,7 @@ namespace rocket {
 
         bool isInLoopThread();
 
-        bool isLoopStop();
+        bool LoopStopFlag();
 
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 

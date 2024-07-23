@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
+#include <cstring>
+#include <arpa/inet.h>
 #include "common/util.h"
 
 namespace rocket {
@@ -31,6 +33,12 @@ namespace rocket {
         timeval val;
         gettimeofday(&val, NULL);
         return val.tv_sec * 1000 + val.tv_usec / 1000;
+    }
+
+    int32_t getInt32FromNetByte(const char *buff) {
+        int32_t ret;
+        memcpy(&ret, buff, sizeof(ret));
+        return ntohl(ret); // net to host long
     }
 
 

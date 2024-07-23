@@ -16,6 +16,11 @@ namespace rocket {
 
     int64_t getNowMs();
 
+    // 范围：由于 int32_t 是带符号的整数类型，它的范围是 -2147483648 到 2147483647，与普通的 int 类型相同。
+    // 使用 int32_t 类型可以确保在不同平台上具有相同的宽度和范围，增强了代码的可移植性。
+    // 当需要精确控制整数宽度和范围时，或者与其他系统进行交互时，使用 int32_t 是一个好的选择。
+    int32_t getInt32FromNetByte(const char *buff);
+
 }
 
 #endif //RPCFRAME_UTIL_H

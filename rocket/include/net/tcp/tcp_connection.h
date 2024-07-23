@@ -6,12 +6,14 @@
 #define RPCFRAME_TCP_CONNECTION_H
 
 #include <memory>
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_buffer.h"
 #include "net/io_thread.h"
 #include "net/fd_event_pool.h"
+#include "net/coder/abstract_protocol.h"
+#include "net/coder/abstract_coder.h"
 
 namespace rocket {
     enum TCPState {
@@ -44,6 +46,14 @@ namespace rocket {
         void execute();
 
         void onWrite();
+
+        // 往connection中写入message，然后放入到m write dones中，因为emplace时候会复制，所以没必要调用时候再复制一遍
+        // 直接标记为const和引用传递就可以
+        void pushSendMessage(const AbstractProtocol::abstract_pro_sptr_t_ &message,
+                             const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done);
+
+        void pushReadMessage(const std::string &msg_id,
+                             const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done);
 
         void setState(const TCPState new_state);
 
@@ -84,6 +94,18 @@ namespace rocket {
         TCPState m_state;
         int m_client_fd{0};
         TCPConnectionType m_connection_type{TCPConnectionByServer};
+
+        // coder，使用多态
+        AbstractCoder::abstract_coder_sptr_t_ m_coder;
+
+        // 按顺序进行写入，需要存上智能指针，因为回调传入的也是个abstract_pro_sptr_t_的智能指针
+        std::vector<std::pair<AbstractProtocol::abstract_pro_sptr_t_,
+                std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>>> m_write_dones;
+
+        // key为msg id
+        std::unordered_map<std::string,
+                std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
+
     };
 
 }

@@ -29,10 +29,14 @@ namespace rocket {
         void connect(std::function<void()> done);
 
         // 异步的发送message，发送message成功的话，会调用done函数，done函数的入参就是message对象
-        void writeMessage(AbstractProtocol::abstract_pro_sptr_t_ message,
-                          std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> done);
+        // 将message对象写入到tcp connection中的out buffer中，同时done函数也要写入进去，发送完后就可以找到对应的回调函数去执行
+        // 然后启动connection可写事件就可以
+        void writeMessage(const AbstractProtocol::abstract_pro_sptr_t_& message,
+                          const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>& done);
 
-        void readMessage();
+        // 异步的读取message，如果读取成果，会调用done函数，函数的入参就是message对象
+        void readMessage(const std::string &msg_id,
+                         const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>& done);
 
         void stop();
 

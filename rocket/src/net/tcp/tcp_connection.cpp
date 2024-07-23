@@ -3,6 +3,7 @@
 //
 #include <unistd.h>
 #include "net/tcp/tcp_connection.h"
+#include "net/coder/string_coder.h"
 
 namespace rocket {
     rocket::TCPConnection::TCPConnection(const std::unique_ptr<EventLoop> &event_loop,
@@ -24,6 +25,7 @@ namespace rocket {
         if (m_connection_type == TCPConnectionByServer) {
             listenRead(); // 本方是服务器的话，监听读
         }
+        m_coder = std::make_shared<StringCode>();
     }
 
     TCPConnection::~TCPConnection() {
@@ -81,7 +83,7 @@ namespace rocket {
         execute();
     }
 
-    void TCPConnection::execute() {
+    /* void TCPConnection::execute() {
         // 将rpc请求执行业务逻辑，获取rpc响应，再把rpc响应发送回去
         std::vector<char> tmp;
         auto size = m_in_buffer->readAbleSize();
@@ -115,13 +117,60 @@ namespace rocket {
 
         // 注册写事件，写完之后记得立即取消，否则会一直触发
         listenWrite();
+    } */
+
+    void TCPConnection::execute() {
+        // 1. 作为服务端使用
+        //    将RPC请求执行业务逻辑，获取RPC响应，再把RPC响应发送回去
+        // 2. 作为客户端使用
+        //    从接收缓冲区in buffer中接收数据，decode为message对象，如果有其回调函数的话，执行其回调
+        //    (作为客户端的写事件回调在onWrite中执行，这里是执行其读取的回调read dones)
+        if (m_connection_type == TCPConnectionByServer) {
+            // 这里只是简单的把接收到的再写入回去
+            std::vector<char> tmp;
+            auto size = m_in_buffer->readAbleSize();
+            tmp.resize(size);
+            m_in_buffer->readFromBuffer(tmp, size);
+
+            std::string tmp_msg;
+            for (const auto &item: tmp) {
+                tmp_msg += item;
+            }
+            tmp_msg += '\0'; // 需要加一个结束符，否则会输出其他字符
+            m_out_buffer->writeToBuffer(tmp_msg.c_str(), tmp_msg.length());
+            INFOLOG("success get from client[%s], data[%s]", m_peer_addr->toString().c_str(), tmp_msg.c_str());
+            listenWrite();
+        } else {
+            std::vector<AbstractProtocol::abstract_pro_sptr_t_> results;
+            m_coder->decode(results, m_in_buffer);
+            for (const auto &result: results) {
+                auto iter = m_read_dones.find(result->m_msg_id);
+                if (iter != m_read_dones.end()) {
+                    iter->second(result); // 执行msg id对应的回调函数
+                    m_read_dones.erase(iter);
+                }
+            }
+        }
     }
+
 
     void TCPConnection::onWrite() {
         if (m_state != Connected) {
             ERRORLOG("onRead error, client has already disconneced, addr[%s], clientfd[%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
             return;
+        }
+        // 当前作为客户端的情况下
+        if (m_connection_type == TCPConnectionByClient) {
+            // 将数据写入到buffer里面，然后全部发送
+            // 1. 将msg encode得到字节流
+            // 2. 将字节流写入到buffer里面然后全部发送
+            std::vector<AbstractProtocol::abstract_pro_sptr_t_> messages;
+            messages.reserve(m_write_dones.size());
+            for (const auto &write_done: m_write_dones) {
+                messages.emplace_back(write_done.first);
+            }
+            m_coder->encode(messages, m_out_buffer);
         }
         // 是否从outbuffer中全部读取并发送给socket
         bool is_read_and_write_all = false;
@@ -150,6 +199,25 @@ namespace rocket {
             m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
             m_event_loop->addEpollEvent(m_fd_event);
         }
+
+        // 作为客户端
+        // 发送完成后，需要调用m write dones的回调
+        if (m_connection_type == TCPConnectionByClient) {
+            for (const auto &write_done: m_write_dones) {
+                write_done.second(write_done.first);
+            }
+            m_write_dones.clear(); // 清空回调函数
+        }
+    }
+
+    void TCPConnection::pushSendMessage(const AbstractProtocol::abstract_pro_sptr_t_ &message,
+                                        const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done) {
+        m_write_dones.emplace_back(message, done);
+    }
+
+    void TCPConnection::pushReadMessage(const std::string &msg_id,
+                                        const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done) {
+        m_read_dones.emplace(msg_id, done);
     }
 
     void TCPConnection::setState(const TCPState new_state) {
@@ -222,6 +290,8 @@ namespace rocket {
     NetAddr::net_addr_sptr_t_ TCPConnection::getPeerAddr() {
         return m_peer_addr;
     }
+
+
 }
 
 

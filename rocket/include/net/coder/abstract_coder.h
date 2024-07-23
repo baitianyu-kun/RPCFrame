@@ -13,6 +13,8 @@ namespace rocket {
 
     class AbstractCoder {
     public:
+        using abstract_coder_sptr_t_ = std::shared_ptr<AbstractCoder>;
+
         // 将message对象转换为字节流，写入到buffer
         virtual void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
                             TCPBuffer::tcp_buffer_sptr_t_ out_buffer) = 0;
@@ -20,6 +22,8 @@ namespace rocket {
         // 读取buffer，并转换为message对象
         virtual void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
                             TCPBuffer::tcp_buffer_sptr_t_ in_buffer) = 0;
+
+        virtual ~AbstractCoder() {}
     };
 
 }

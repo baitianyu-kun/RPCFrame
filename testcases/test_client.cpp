@@ -29,6 +29,9 @@ void test_connect_client_tinypb() {
         auto message = std::make_shared<rocket::TinyPBProtocol>();
         message->m_msg_id = "123456789";
         message->m_pb_data = "test pb data";
+        message->m_err_info="no error";
+        message->m_method_name="call back method";
+        message->m_err_code = 123;
         client.writeMessage(message, [](rocket::AbstractProtocol::abstract_pro_sptr_t_ msg_ptr) {
             DEBUGLOG("send message success");
         });
@@ -116,5 +119,6 @@ int main() {
     // test_connect_client_and_write();
     // test_connect_client();
 
-    test_connect_client_and_write_and_read();
+    test_connect_client_tinypb();
+    // test_connect_client_and_write_and_read();
 }

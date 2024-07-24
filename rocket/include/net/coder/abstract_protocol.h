@@ -19,9 +19,11 @@ namespace rocket {
     // 当一个类被共享智能指针 share_ptr 管理，且在类的成员函数里需要把当前类对象作为参数传给其他函数时，这时就需要传递一个指向自身的 share_ptr。
     // struct AbstractProtocol : public std::enable_shared_from_this<AbstractProtocol> {
 
-    struct AbstractProtocol{
+    struct AbstractProtocol {
     public:
         using abstract_pro_sptr_t_ = std::shared_ptr<AbstractProtocol>;
+
+        AbstractProtocol() {}
 
         virtual ~AbstractProtocol() {}
 

@@ -12,6 +12,8 @@ namespace rocket {
 
     class StringProtocol : public AbstractProtocol {
     public:
+        StringProtocol() {}
+
         ~StringProtocol() {}
 
         std::string info;
@@ -19,6 +21,8 @@ namespace rocket {
 
     class StringCode : public AbstractCoder {
     public:
+        StringCode() {}
+
         ~StringCode() {}
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,

@@ -98,13 +98,13 @@ namespace rocket {
     // 1. 监听可读事件
     // 2. 从buffer里面读取，并decode得到message对象，如果msg id相等的话则读取成功，执行其回调done
     void TCPClient::readMessage(const std::string &msg_id,
-                                const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>& done) {
-        m_connection->pushReadMessage(msg_id,done);
+                                const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done) {
+        m_connection->pushReadMessage(msg_id, done);
         m_connection->listenRead(); // 去监听可读事件
     }
 
     void TCPClient::stop() {
-
+        m_event_loop->stop();
     }
 
     NetAddr::net_addr_sptr_t_ TCPClient::getPeerAddr() {

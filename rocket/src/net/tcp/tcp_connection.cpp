@@ -3,7 +3,7 @@
 //
 #include <unistd.h>
 #include "net/tcp/tcp_connection.h"
-#include "net/coder/string_coder.h"
+#include "net/coder/tinypb_coder.h"
 
 namespace rocket {
     rocket::TCPConnection::TCPConnection(const std::unique_ptr<EventLoop> &event_loop,
@@ -25,7 +25,8 @@ namespace rocket {
         if (m_connection_type == TCPConnectionByServer) {
             listenRead(); // 本方是服务器的话，监听读
         }
-        m_coder = std::make_shared<StringCode>();
+        m_coder = std::make_shared<TinyPBCoder>();
+        // m_coder = std::make_shared<StringCode>();
     }
 
     TCPConnection::~TCPConnection() {
@@ -126,19 +127,18 @@ namespace rocket {
         //    从接收缓冲区in buffer中接收数据，decode为message对象，如果有其回调函数的话，执行其回调
         //    (作为客户端的写事件回调在onWrite中执行，这里是执行其读取的回调read dones)
         if (m_connection_type == TCPConnectionByServer) {
-            // 这里只是简单的把接收到的再写入回去
-            std::vector<char> tmp;
-            auto size = m_in_buffer->readAbleSize();
-            tmp.resize(size);
-            m_in_buffer->readFromBuffer(tmp, size);
-
-            std::string tmp_msg;
-            for (const auto &item: tmp) {
-                tmp_msg += item;
+            std::vector<AbstractProtocol::abstract_pro_sptr_t_> results;
+            std::vector<AbstractProtocol::abstract_pro_sptr_t_> reply_messages;
+            m_coder->decode(results, m_in_buffer);
+            for (const auto &result: results) {
+                INFOLOG("success get request[%s] from client[%s]", result->m_msg_id.c_str(),
+                        m_peer_addr->toString().c_str());
+                auto message = std::make_shared<TinyPBProtocol>();
+                message->m_pb_data = "hello, server return rpc test data";
+                message->m_msg_id = result->m_msg_id;
+                reply_messages.emplace_back(message);
             }
-            tmp_msg += '\0'; // 需要加一个结束符，否则会输出其他字符
-            m_out_buffer->writeToBuffer(tmp_msg.c_str(), tmp_msg.length());
-            INFOLOG("success get from client[%s], data[%s]", m_peer_addr->toString().c_str(), tmp_msg.c_str());
+            m_coder->encode(reply_messages, m_out_buffer);
             listenWrite();
         } else {
             std::vector<AbstractProtocol::abstract_pro_sptr_t_> results;

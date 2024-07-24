@@ -18,6 +18,27 @@
 #include "net/tcp/tcp_client.h"
 #include "net/coder/string_coder.h"
 #include "net/coder/abstract_protocol.h"
+#include "net/coder/tinypb_protocol.h"
+#include "net/coder/tinypb_coder.h"
+
+void test_connect_client_tinypb() {
+    rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    rocket::TCPClient client(addr);
+    client.connect([addr, &client]() {
+        DEBUGLOG("connect to [%s] success", addr->toString().c_str());
+        auto message = std::make_shared<rocket::TinyPBProtocol>();
+        message->m_msg_id = "123456789";
+        message->m_pb_data = "test pb data";
+        client.writeMessage(message, [](rocket::AbstractProtocol::abstract_pro_sptr_t_ msg_ptr) {
+            DEBUGLOG("send message success");
+        });
+        client.readMessage("123456789", [](rocket::AbstractProtocol::abstract_pro_sptr_t_ msg_ptr) {
+            std::shared_ptr<rocket::TinyPBProtocol> message = std::dynamic_pointer_cast<rocket::TinyPBProtocol>(
+                    msg_ptr);
+            DEBUGLOG("msg_id[%s], get response %s", message->m_msg_id.c_str(), message->m_pb_data.c_str());
+        });
+    });
+}
 
 void test_connect_client_and_write_and_read() {
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);

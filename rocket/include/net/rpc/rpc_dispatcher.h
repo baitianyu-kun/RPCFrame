@@ -5,13 +5,14 @@
 #ifndef RPCFRAME_RPC_DISPATCHER_H
 #define RPCFRAME_RPC_DISPATCHER_H
 
-#include <map>
+#include <unordered_map>
 #include <memory>
+#include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
 #include "net/coder/abstract_protocol.h"
 #include "net/coder/tinypb_protocol.h"
-#include "google/protobuf/service.h"
-#include "google/protobuf/descriptor.h"
-#include "google/protobuf/message.h"
+#include "net/tcp/tcp_connection.h"
 
 namespace rocket {
 
@@ -30,16 +31,17 @@ namespace rocket {
         using protobuf_service_sptr_t_ = std::shared_ptr<google::protobuf::Service>;
 
         void dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
-                      const AbstractProtocol::abstract_pro_sptr_t_ &response);
+                      const AbstractProtocol::abstract_pro_sptr_t_ &response,
+                      const TCPConnection::tcp_connection_sptr_t_ &connection);
 
-        void registerService(protobuf_service_sptr_t_ service);
+        void registerService(const protobuf_service_sptr_t_ &service);
 
     private:
         static bool
         parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
     private:
-        std::map<std::string, protobuf_service_sptr_t_> m_service_map;
+        std::unordered_map<std::string, protobuf_service_sptr_t_> m_service_map;
     };
 
 }

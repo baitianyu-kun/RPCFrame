@@ -29,29 +29,22 @@ target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_
 target_link_libraries(test_tcp pthread)
 
 # test client
-add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_client.cpp)
+add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_client.cpp
+        rocket/include/net/rpc/rpc_controller.h
+        rocket/include/net/rpc/rpc_closure.h)
 target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_client pthread)
 
+# test rpc client
+add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_client.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
+target_link_libraries(test_rpc_client pthread)
 
-# 可执行文件的存放路径
-#set(EXECUTABLE_OUTPUT_PATH ./bin)
-## 头文件搜索目录
-#set(RPCFrame_SRC_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/rocket/include)
-#
-#include_directories(${RPCFrame_SRC_INCLUDE_DIR})
-#add_executable(log_test ./testcases/log_test.cpp
-#        rocket/include/net/eventloop.h
-#        rocket/net/eventloop.cpp
-#        rocket/include/common/config.h
-#        rocket/common/config.cpp
-#        rocket/include/common/log.h
-#        rocket/common/log.cpp
-#        rocket/include/common/mutex.h
-#        rocket/common/util.cpp
-#        rocket/include/common/util.h
-#        rocket/include/net/fd_event.h
-#        rocket/net/fd_event.cpp
-#        rocket/include/net/timer_event.h
-#        rocket/net/timer_event.cpp
-#)
+# test rpc server
+add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_server.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
+target_link_libraries(test_rpc_server pthread)

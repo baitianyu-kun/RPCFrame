@@ -2,10 +2,10 @@
 // Created by baitianyu on 7/20/24.
 //
 #include <unistd.h>
-
 #include <utility>
 #include "net/tcp/tcp_connection.h"
 #include "net/coder/tinypb_coder.h"
+#include "net/rpc/rpc_dispatcher.h"
 
 namespace rocket {
     // auto ret = m_acceptor->accept();
@@ -23,6 +23,10 @@ namespace rocket {
     // 这种延长生命周期的特性是为了支持移动语义。
     // 当一个临时对象（右值）被传递给一个函数的参数时，如果这个参数是常量左值引用，编译器会允许这个右值绑定到常量左值引用上。
     // 在这种情况下，编译器保证临时对象的生命周期会延长到包含它的作用域结束。
+
+    // 但是NetAddr::net_addr_sptr_t_ local_addr这里传入的是一个右值，如果拿常量左值引用const NetAddr::net_addr_sptr_t_ &local_addr
+    // 来接收，并赋值给一个常量左值引用const NetAddr::net_addr_sptr_t_ &m_local_addr，那么m_local_addr实际上
+    // 接收到的是一个即将销毁的右值，此时访问其空间就访问到了野指针，所以就会出问题。为了方便以后shared ptr都用值传递得了
     rocket::TCPConnection::TCPConnection(const std::unique_ptr<EventLoop> &event_loop,
                                          int client_fd,
                                          int buffer_size,
@@ -151,8 +155,10 @@ namespace rocket {
                 INFOLOG("success get request[%s] from client[%s]", result->m_msg_id.c_str(),
                         m_peer_addr->toString().c_str());
                 auto message = std::make_shared<TinyPBProtocol>();
-                message->m_pb_data = "hello, server return rpc test data";
-                message->m_msg_id = result->m_msg_id;
+                // message->m_pb_data = "hello, server return rpc test data";
+                // message->m_msg_id = result->m_msg_id;
+                // 当一个类被共享智能指针 share_ptr 管理，且在类的成员函数里需要把当前类对象作为参数传给其他函数时，这时就需要传递一个指向自身的 share_ptr。
+                RPCDispatcher::GetRPCDispatcher()->dispatch(result, message, shared_from_this());
                 reply_messages.emplace_back(message);
             }
             m_coder->encode(reply_messages, m_out_buffer);

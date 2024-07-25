@@ -30,8 +30,8 @@ namespace rocket {
                                          NetAddr::net_addr_sptr_t_ local_addr,
                                          TCPConnectionType type /*TCPConnectionByServer*/) :
             m_event_loop(event_loop),
-            m_local_addr(std::move(local_addr)),
-            m_peer_addr(std::move(peer_addr)),
+            m_local_addr(local_addr),
+            m_peer_addr(peer_addr),
             m_state(NotConnected),
             m_client_fd(client_fd),
             m_connection_type(type) {

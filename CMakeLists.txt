@@ -31,7 +31,10 @@ target_link_libraries(test_tcp pthread)
 add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_client.cpp
         rocket/include/net/coder/string_coder.h
         rocket/include/net/coder/tinypb_coder.h
-        rocket/include/net/coder/tinypb_protocol.h)
+        rocket/include/net/coder/tinypb_protocol.h
+        rocket/include/net/rpc/rpc_dispatcher.h
+        rocket/src/net/rpc/rpc_dispatcher.cpp
+        rocket/include/common/error_code.h)
 target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
 target_link_libraries(test_client pthread)
 

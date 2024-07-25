@@ -14,28 +14,23 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST) # 
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/tcp SRC_NET_TCP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder SRC_NET_CODER_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/rpc SRC_NET_RPC_LIST)
 
 
 # test event loop
-add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_eventloop.cpp)
-target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
+add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_eventloop.cpp)
+target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_eventloop pthread)
 
 # test tcp
-add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_tcp.cpp
+add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_tcp.cpp
         rocket/include/net/coder/abstract_coder.h)
-target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
+target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_tcp pthread)
 
 # test client
-add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} testcases/test_client.cpp
-        rocket/include/net/coder/string_coder.h
-        rocket/include/net/coder/tinypb_coder.h
-        rocket/include/net/coder/tinypb_protocol.h
-        rocket/include/net/rpc/rpc_dispatcher.h
-        rocket/src/net/rpc/rpc_dispatcher.cpp
-        rocket/include/common/error_code.h)
-target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST})
+add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_client.cpp)
+target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_client pthread)
 
 

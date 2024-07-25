@@ -55,7 +55,7 @@ namespace rocket {
         void pushReadMessage(const std::string &msg_id,
                              const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done);
 
-        void setState(const TCPState new_state);
+        void setState(TCPState new_state);
 
         TCPState getState();
 
@@ -105,6 +105,9 @@ namespace rocket {
         // key为msg id
         std::unordered_map<std::string,
                 std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
+
+        // rpc dispatcher，用来解析rpc方法并进行执行，并返回结果
+
 
     };
 

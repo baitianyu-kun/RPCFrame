@@ -1,12 +1,23 @@
 //
 // Created by baitianyu on 7/24/24.
 //
+#include <memory>
 #include "net/rpc/rpc_dispatcher.h"
 #include "common/log.h"
 #include "common/error_code.h"
 
 namespace rocket {
 
+    static std::unique_ptr<RPCDispatcher> g_rpc_dispatcher
+            = std::move(std::unique_ptr<RPCDispatcher>(new RPCDispatcher()));
+
+    // 单例模式，返回引用
+    std::unique_ptr<RPCDispatcher> &RPCDispatcher::GetRPCDispatcher() {
+        return g_rpc_dispatcher;
+    }
+
+    // 当函数参数声明为 const 引用时，这意味着在函数调用时可以传入常量或者非常量的值。const 修饰的参数表示函数在处理这些参数时不会修改它们的值。
+    // 入参为常量时候，代表该函数不会修改它，调用的时候传入常量或者非常量都可以
     void rocket::RPCDispatcher::dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
                                          const AbstractProtocol::abstract_pro_sptr_t_ &response) {
         auto req_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(request);
@@ -52,6 +63,11 @@ namespace rocket {
 
         auto rsp_msg = std::shared_ptr<google::protobuf::Message>(service->GetResponsePrototype(method).New());
 
+        service->CallMethod(method, nullptr, req_msg.get(), rsp_msg.get(), nullptr);
+
+        rsp_protocol->m_err_code = 0;
+        // 将response message写入到pb data里面
+        rsp_msg->SerializeToString(&(rsp_protocol->m_pb_data));
 
     }
 

@@ -23,7 +23,9 @@ namespace rocket {
         virtual void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
                             TCPBuffer::tcp_buffer_sptr_t_ in_buffer) = 0;
 
-        virtual ~AbstractCoder() {}
+        AbstractCoder() = default;
+
+        virtual ~AbstractCoder() = default;
     };
 
 }

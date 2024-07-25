@@ -23,9 +23,9 @@ namespace rocket {
     public:
         using abstract_pro_sptr_t_ = std::shared_ptr<AbstractProtocol>;
 
-        AbstractProtocol() {}
+        AbstractProtocol() = default;
 
-        virtual ~AbstractProtocol() {}
+        virtual ~AbstractProtocol() = default;
 
     public:
         std::string m_msg_id; // 请求号，唯一标识一个请求或者响应

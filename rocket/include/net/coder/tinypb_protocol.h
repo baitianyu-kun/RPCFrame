@@ -11,9 +11,9 @@
 namespace rocket {
     struct TinyPBProtocol : public AbstractProtocol {
     public:
-        TinyPBProtocol() {}
+        TinyPBProtocol() = default;
 
-        ~TinyPBProtocol() {}
+        ~TinyPBProtocol() override = default;
 
     public:
         static char PB_START; // pb协议开始处

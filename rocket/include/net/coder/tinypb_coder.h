@@ -17,9 +17,9 @@ namespace rocket {
     class TinyPBCoder : public AbstractCoder {
     public:
 
-        TinyPBCoder(){}
+        TinyPBCoder() = default;
 
-        ~TinyPBCoder(){}
+        ~TinyPBCoder() override = default;
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
                     TCPBuffer::tcp_buffer_sptr_t_ out_buffer) override;

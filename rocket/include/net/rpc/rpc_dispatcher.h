@@ -17,6 +17,16 @@ namespace rocket {
 
     class RPCDispatcher {
     public:
+
+        RPCDispatcher() = default;
+
+        ~RPCDispatcher() = default;
+
+        static std::unique_ptr<RPCDispatcher> &GetRPCDispatcher();
+
+        static void setTinyPBError(std::shared_ptr<TinyPBProtocol> &msg, int32_t err_code, const std::string &err_info);
+
+    public:
         using protobuf_service_sptr_t_ = std::shared_ptr<google::protobuf::Service>;
 
         void dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
@@ -24,10 +34,9 @@ namespace rocket {
 
         void registerService(protobuf_service_sptr_t_ service);
 
-        void setTinyPBError(std::shared_ptr<TinyPBProtocol> &msg, int32_t err_code, const std::string &err_info);
-
     private:
-        bool parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
+        static bool
+        parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
     private:
         std::map<std::string, protobuf_service_sptr_t_> m_service_map;

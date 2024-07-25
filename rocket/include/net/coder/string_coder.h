@@ -12,18 +12,18 @@ namespace rocket {
 
     class StringProtocol : public AbstractProtocol {
     public:
-        StringProtocol() {}
+        StringProtocol() = default;
 
-        ~StringProtocol() {}
+        ~StringProtocol() override = default;
 
         std::string info;
     };
 
     class StringCode : public AbstractCoder {
     public:
-        StringCode() {}
+        StringCode() = default;
 
-        ~StringCode() {}
+        ~StringCode() override = default;
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
                     TCPBuffer::tcp_buffer_sptr_t_ out_buffer) override {

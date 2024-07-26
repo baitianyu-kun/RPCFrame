@@ -37,10 +37,14 @@ namespace rocket {
         if (ret == 0) {
             DEBUGLOG("connect [%s] sussess", m_peer_addr->toString().c_str());
             m_connection->setState(Connected);
+            initLocalAddr();
             if (done) {
                 done();
             }
         } else if (ret == -1) {
+            // TODO CHANGE HERE, ADD CONNECT METHOD
+            // TODO AND initLocalAddr
+
             // epoll监听可写事件，就是证明已经连接成功了，此时缓冲区可写，为什么不是可读事件呢？因为此时没有可读的
             // 正在建立连接，可以在epoll中继续建立连接，并判断继续建立的这个连接的错误码做出相应的回复
 
@@ -62,6 +66,7 @@ namespace rocket {
                     getsockopt(m_client_fd, SOL_SOCKET, SO_ERROR, &error, &error_len);
                     bool is_connect_success = false;
                     if (error == 0) {
+                        initLocalAddr();
                         DEBUGLOG("connect [%s] sussess", m_peer_addr->toString().c_str());
                         is_connect_success = true;
                     } else {
@@ -113,6 +118,18 @@ namespace rocket {
 
     NetAddr::net_addr_sptr_t_ TCPClient::getLocalAddr() {
         return m_local_addr;
+    }
+
+    void TCPClient::initLocalAddr() {
+        // 由于是client，其地址是系统随机分配的，所以可以读取sockfd来读取到其分配到的地址
+        sockaddr_in local_addr;
+        socklen_t len = sizeof(local_addr);
+        int ret = getsockname(m_client_fd, (sockaddr *) (&local_addr), &len);
+        if (ret != 0) {
+            ERRORLOG("initLocalAddr error, getsockname error. errno=%d, error=%s", errno, strerror(errno));
+            return;
+        }
+        m_local_addr = std::make_shared<IPNetAddr>(local_addr);
     }
 
 }

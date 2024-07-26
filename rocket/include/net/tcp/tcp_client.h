@@ -26,23 +26,26 @@ namespace rocket {
         ~TCPClient();
 
         // 异步的进行connect，如果connect完成则done会被执行
+        // 具体连接成功还是失败应该根据错误码来进行判断
         void connect(std::function<void()> done);
 
         // 异步的发送message，发送message成功的话，会调用done函数，done函数的入参就是message对象
         // 将message对象写入到tcp connection中的out buffer中，同时done函数也要写入进去，发送完后就可以找到对应的回调函数去执行
         // 然后启动connection可写事件就可以
-        void writeMessage(const AbstractProtocol::abstract_pro_sptr_t_& message,
-                          const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>& done);
+        void writeMessage(const AbstractProtocol::abstract_pro_sptr_t_ &message,
+                          const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done);
 
         // 异步的读取message，如果读取成果，会调用done函数，函数的入参就是message对象
         void readMessage(const std::string &msg_id,
-                         const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>& done);
+                         const std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> &done);
 
         void stop();
 
         NetAddr::net_addr_sptr_t_ getPeerAddr();
 
         NetAddr::net_addr_sptr_t_ getLocalAddr();
+
+        void initLocalAddr();
 
     private:
         NetAddr::net_addr_sptr_t_ m_peer_addr;
@@ -51,6 +54,9 @@ namespace rocket {
         int m_client_fd{-1};
         FDEvent::fd_event_sptr_t_ m_fd_event;
         TCPConnection::tcp_connection_sptr_t_ m_connection;
+        // TODO CHANGE HERE
+        int m_connect_err_code{0};
+        std::string m_connect_err_info;
     };
 
 }

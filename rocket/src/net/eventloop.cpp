@@ -98,6 +98,10 @@ namespace rocket {
             // 处理完队列之后，开始开启epoll
             auto timeout = g_epoll_max_timeout;
             epoll_event result_events[g_epoll_max_events];
+            // 每次while的时候，都会开始将这几个event和epollfd进行监听，
+            // 当要退出时候，while循环结束，等epoll wait结束阻塞后，下一次就不在继续监听了
+            // 实现了退出。所以这里while循环结束后，epoll wait可能还在阻塞，所以
+            // 需要在stop的时候给epoll wait进行wake up
             auto ret = epoll_wait(m_epoll_fd, result_events, g_epoll_max_events, g_epoll_max_timeout);
             if (ret < 0) {
                 ERRORLOG("epoll_wait error, errno=%d, error=%s", errno, strerror(errno));
@@ -150,6 +154,7 @@ namespace rocket {
     }
 
     // 如果要停止，此时阻塞在epoll wait中，需要打破阻塞，然后while检测到stop flag，所以可以直接退出
+    // 要记得wakeup，否则会暂时阻塞在event loop里面没人唤醒
     void rocket::EventLoop::stop() {
         m_stop_flag = true;
         wakeup();

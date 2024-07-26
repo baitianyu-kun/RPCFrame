@@ -76,7 +76,7 @@ namespace rocket {
         rsp_protocol->m_err_code = 0;
         // 将response message写入到pb data里面
         rsp_msg->SerializeToString(&(rsp_protocol->m_pb_data));
-        INFOLOG("%s | dispatch success, requesut[%s], response[%s]",
+        INFOLOG("%s | dispatch success, request[%s], response[%s]",
                 req_protocol->m_msg_id.c_str(), req_msg->ShortDebugString().c_str(),
                 rsp_msg->ShortDebugString().c_str());
     }

@@ -12,6 +12,8 @@
 namespace rocket {
     class RPCClosure : public google::protobuf::Closure {
     public:
+        RPCClosure(std::function<void()> callback) : m_callback(callback) {}
+
         void Run() override {
             if (m_callback) {
                 m_callback();

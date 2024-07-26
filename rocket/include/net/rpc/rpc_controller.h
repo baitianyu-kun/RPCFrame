@@ -44,7 +44,7 @@ namespace rocket {
 
         void SetMsgId(const std::string &msg_id);
 
-        std::string GetMsgId();
+        std::string GetMSGID() const;
 
         void SetLocalAddr(NetAddr::net_addr_sptr_t_ addr);
 

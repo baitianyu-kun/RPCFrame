@@ -59,7 +59,7 @@ namespace rocket {
         m_msg_id = msg_id;
     }
 
-    std::string RPCController::GetMsgId() {
+    std::string RPCController::GetMSGID() const {
         return m_msg_id;
     }
 

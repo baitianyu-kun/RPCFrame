@@ -44,9 +44,6 @@ namespace rocket {
                 done();
             }
         } else if (ret == -1) {
-            // TODO CHANGE HERE, ADD CONNECT METHOD
-            // TODO AND initLocalAddr
-
             // epoll监听可写事件，就是证明已经连接成功了，此时缓冲区可写，为什么不是可读事件呢？因为此时没有可读的
             // 正在建立连接，可以在epoll中继续建立连接，并判断继续建立的这个连接的错误码做出相应的回复
 
@@ -61,25 +58,44 @@ namespace rocket {
             // 取消，防止一直触发，然后根据这个状态，如果是成功的话就应该调用done，即去注册listenWrite，否则
             // 什么也不干
 
+            // errno = EINPROGRESS的时候可以用getsockopt，也可以再调用一遍connect方法
+            // 并处理连接出错的情况，例如服务端没有开监听，客户端就去连接的情况
             if (errno == EINPROGRESS) {
                 m_fd_event->listen(FDEvent::OUT_EVENT, [this, done]() {
-                    int error = 0;
-                    socklen_t error_len = sizeof(error);
-                    getsockopt(m_client_fd, SOL_SOCKET, SO_ERROR, &error, &error_len);
-                    bool is_connect_success = false;
-                    if (error == 0) {
-                        initLocalAddr();
+                    int ret = ::connect(m_client_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockAddrLen());
+                    if ((ret == 0) || (ret < 0 && errno == EISCONN)) {
+                        // 连接成功
                         DEBUGLOG("connect [%s] success", m_peer_addr->toString().c_str());
-                        is_connect_success = true;
-                    } else {
-                        ERRORLOG("connect error, errno=%d, error=%s", errno, strerror(errno));
-                    }
-                    // 处理完后需要取消监听写事件，否则会一直触发
-                    m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
-                    m_event_loop->addEpollEvent(m_fd_event);
-                    if (is_connect_success && done) {
-                        // 还得设置已经连接，或者是在上面设置都行，否则客户端会一直报错说connection的状态不是Connected
                         m_connection->setState(Connected);
+                        initLocalAddr();
+                    } else {
+                        if (errno == ECONNREFUSED) {
+                            m_connect_err_code = ERROR_PEER_CLOSED;
+                            m_connect_err_info = "connect refused, sys error = " + std::string(strerror(errno));
+                        } else {
+                            m_connect_err_code = ERROR_FAILED_CONNECT;
+                            m_connect_err_info = "connect unknown error, sys error = " + std::string(strerror(errno));
+                        }
+                        ERRORLOG("connect error, errno = %d, error = %s", errno, strerror(errno));
+                        // 出错了，关闭该套接字并重新申请一个
+                        // 通过关闭旧的套接字并重新申请一个新的套接字，可以清理之前连接时可能存在的问题，如连接状态、缓冲区等，从而在重新连接时避免潜在的影响
+                        // 旧的套接字可能处于错误状态，包含之前连接尝试的残留信息，这可能导致后续的连接尝试出现意外行为
+                        // 新的连接尝试可能会受到之前连接错误的影响
+
+                        // 若connect失败则该套接字不再可用，必须关闭，我们不能对这样的套接字再次调用connect函数。
+                        // 在每次connect失败后，都必须close当前套接字描述符并重新调用socket。
+
+                        // 网络连接断开后，客户端尝试直接使用connect()函数重连，无论重复多少次connect()函数都只会返回-1（无论服务器端本身是否已经可以被重新连接）
+                        close(m_client_fd);
+                        m_client_fd = socket(m_peer_addr->getFamily(), SOCK_STREAM, 0);
+                    }
+                    // 连接完成后去掉可写时间的监听，不然会一直触发
+                    // m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
+                    // m_event_loop->addEpollEvent(m_fd_event);
+                    // 或者m_event_loop->deleteEpollEvent(m_fd_event);这两种办法都可以
+                    m_event_loop->deleteEpollEvent(m_fd_event);
+                    // 无论成功失败都得调用回调，否则外面无法获取出错的状态，即无法调用获取出错，或者获取成功的状态
+                    if (done) {
                         done();
                     }
                 });
@@ -93,7 +109,7 @@ namespace rocket {
                 // 需要返回具体的错误码
                 m_connect_err_code = ERROR_FAILED_CONNECT;
                 m_connect_err_info = "connect error, sys error = " + std::string(strerror(errno));
-                // 失败了也需要执行回调函数
+                // 无论成功失败都得调用回调，否则外面无法获取出错的状态，即无法调用获取出错，或者获取成功的状态
                 if (done) {
                     done();
                 }
@@ -135,7 +151,7 @@ namespace rocket {
         socklen_t len = sizeof(local_addr);
         int ret = getsockname(m_client_fd, (sockaddr *) (&local_addr), &len);
         if (ret != 0) {
-            ERRORLOG("initLocalAddr error, getsockname error. errno=%d, error=%s", errno, strerror(errno));
+            ERRORLOG("initLocalAddr error, getsockname error. errno = %d, error = %s", errno, strerror(errno));
             return;
         }
         m_local_addr = std::make_shared<IPNetAddr>(local_addr);

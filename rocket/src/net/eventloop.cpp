@@ -102,9 +102,9 @@ namespace rocket {
             // 当要退出时候，while循环结束，等epoll wait结束阻塞后，下一次就不在继续监听了
             // 实现了退出。所以这里while循环结束后，epoll wait可能还在阻塞，所以
             // 需要在stop的时候给epoll wait进行wake up
-            auto ret = epoll_wait(m_epoll_fd, result_events, g_epoll_max_events, g_epoll_max_timeout);
+            auto ret = epoll_wait(m_epoll_fd, result_events, g_epoll_max_events, timeout);
             if (ret < 0) {
-                ERRORLOG("epoll_wait error, errno=%d, error=%s", errno, strerror(errno));
+                ERRORLOG("epoll_wait error, errno = %d, error = %s", errno, strerror(errno));
             } else {
                 // 处理就绪时间，由于epoll wait就绪时候会复制到result events中，ret就是就绪的数量
                 // 就绪了实际上就是把callback注册到task中，方便loop下一次进行处理
@@ -127,9 +127,12 @@ namespace rocket {
                         addTask(fd_event->handler(FDEvent::OUT_EVENT));
                     }
                     if (trigger_event.events & EPOLLERR) {
-                        DEBUGLOG("fd %d trigger EPOLLERROR event", fd_event->getFD());
-                        // 需要删除出错的fd
-                        deleteEpollEvent(std::shared_ptr<FDEvent>(fd_event));
+                        DEBUGLOG("fd %d trigger EPOLLERR event", fd_event->getFD());
+                        // important
+                        // 需要删除出错的fd，由于此处的fd event不是new出来的
+                        // 所以需要给智能指针指定一个空的删除器，即shared ptr析构的时候
+                        // 不去delete这个不是new出来的东西。这里用lambda表达式实现
+                        deleteEpollEvent(std::shared_ptr<FDEvent>(fd_event,[](FDEvent*){}));
                         auto error_callback = fd_event->handler(FDEvent::ERROR_EVENT);
                         if (error_callback != nullptr) {
                             DEBUGLOG("fd %d add error callback", fd_event->getFD());
@@ -138,7 +141,6 @@ namespace rocket {
                     }
                 }
             }
-
         }
     }
 

@@ -45,6 +45,10 @@ namespace rocket {
 
         NetAddr::net_addr_sptr_t_ getLocalAddr();
 
+        int getConnectErrorCode() const;
+
+        std::string getConnectErrorInfo();
+
         void initLocalAddr();
 
     private:
@@ -54,7 +58,6 @@ namespace rocket {
         int m_client_fd{-1};
         FDEvent::fd_event_sptr_t_ m_fd_event;
         TCPConnection::tcp_connection_sptr_t_ m_connection;
-        // TODO CHANGE HERE
         int m_connect_err_code{0};
         std::string m_connect_err_info;
     };

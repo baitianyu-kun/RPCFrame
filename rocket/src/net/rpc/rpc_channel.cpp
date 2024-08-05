@@ -18,7 +18,7 @@ namespace rocket {
     }
 
     RPCChannel::~RPCChannel() {
-
+        DEBUGLOG("~RPCChannel");
     }
 
     void RPCChannel::Init(RPCChannel::google_rpc_controller_sptr_t_ controller,
@@ -74,28 +74,42 @@ namespace rocket {
         }
 
         // 在client中进行connect，write和read操作
+        // 这里如果client的connect返回错误了需要直接return，所以需要在client的connect中来
+        // 设置connect的error code来判断是否连接成功，不能只打印一个error
         m_client->connect([req_protocol, this_channel]() {
+            // 在这里设置连接失败，并将失败信息放到rpc controller中进行返回
+            auto rpc_controller = dynamic_cast<RPCController *>(this_channel->GetController());
+            if (this_channel->GetClient()->getConnectErrorCode() != 0) {
+                rpc_controller->SetError(this_channel->GetClient()->getConnectErrorCode(),
+                                         this_channel->GetClient()->getConnectErrorInfo());
+                ERRORLOG("%s | connect error, error code[%d], error info[%s], peer addr[%s]",
+                         req_protocol->m_msg_id.c_str(), rpc_controller->GetErrorCode(),
+                         rpc_controller->GetErrorInfo().c_str(),
+                         this_channel->GetClient()->getPeerAddr()->toString().c_str());
+                return;
+            }
             // 写入
-            this_channel->GetClient()->writeMessage(req_protocol, [req_protocol, this_channel](
+            this_channel->GetClient()->writeMessage(req_protocol, [req_protocol, this_channel, rpc_controller](
                     AbstractProtocol::abstract_pro_sptr_t_ msg) {
-                INFOLOG("%s | send rpc request success. call method name [%s], peer addr [%s]",
+                INFOLOG("%s | send rpc request success. call method name [%s], peer addr [%s], local addr[%s]",
                         req_protocol->m_msg_id.c_str(), req_protocol->m_method_name.c_str(),
-                        this_channel->GetClient()->getPeerAddr()->toString().c_str());
+                        this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                        this_channel->GetClient()->getLocalAddr()->toString().c_str());
                 // 读取
-                this_channel->GetClient()->readMessage(req_protocol->m_msg_id, [this_channel](
+                this_channel->GetClient()->readMessage(req_protocol->m_msg_id, [this_channel, rpc_controller](
                         AbstractProtocol::abstract_pro_sptr_t_ msg) {
-
                     auto rsp_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(msg);
-                    INFOLOG("%s | success get rpc response, call method name [%s], peer addr [%s]",
+                    INFOLOG("%s | success get rpc response, call method name [%s], peer addr [%s], local addr[%s]",
                             rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(),
-                            this_channel->GetClient()->getPeerAddr()->toString().c_str());
-
-                    auto rpc_controller = dynamic_cast<RPCController *>(this_channel->GetController());
+                            this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                            this_channel->GetClient()->getLocalAddr()->toString().c_str());
+                    // 反序列化失败
                     if (!(this_channel->GetResponse()->ParseFromString(rsp_protocol->m_pb_data))) {
                         ERRORLOG("%s | serialize error", rsp_protocol->m_msg_id.c_str());
                         rpc_controller->SetError(ERROR_FAILED_SERIALIZE, "serialize error");
                         return;
                     }
+                    // 协议里面的err code是否为错误
                     if (rsp_protocol->m_err_code != 0) {
                         ERRORLOG("%s | call rpc method [%s] failed, error code [%d], error info [%s]",
                                  rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(),
@@ -104,9 +118,10 @@ namespace rocket {
                         return;
                     }
 
-                    INFOLOG("%s | return rpc success, call method name [%s], peer addr [%s], response [%s]",
+                    INFOLOG("%s | return rpc success, call method name [%s], peer addr [%s], local addr[%s], response [%s]",
                             rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(),
                             this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                            this_channel->GetClient()->getLocalAddr()->toString().c_str(),
                             this_channel->GetResponse()->ShortDebugString().c_str());
 
                     if (this_channel->GetClosure()) {
@@ -119,6 +134,7 @@ namespace rocket {
         });
     }
 
+    // get方法不会增加引用计数，只有复制shared ptr的时候才会增加引用计数
     google::protobuf::RpcController *RPCChannel::GetController() {
         return m_controller.get();
     }

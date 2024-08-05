@@ -20,7 +20,7 @@ namespace rocket {
 
         // 析构函数虚函数写override不影响，编译器还是会先调用子类的然后调用父类的
         // 析构不加虚函数则只调用父类的
-        ~RPCController() override = default;
+        ~RPCController() override;
 
         void Reset() override;
 

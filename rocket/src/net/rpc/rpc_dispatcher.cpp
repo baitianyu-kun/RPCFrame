@@ -17,6 +17,10 @@ namespace rocket {
         return g_rpc_dispatcher;
     }
 
+    RPCDispatcher::~RPCDispatcher() {
+        DEBUGLOG("~RPCDispatcher");
+    }
+
     // 当函数参数声明为 const 引用时，这意味着在函数调用时可以传入常量或者非常量的值。const 修饰的参数表示函数在处理这些参数时不会修改它们的值。
     // 入参为常量时候，代表该函数不会修改它，调用的时候传入常量或者非常量都可以
     void rocket::RPCDispatcher::dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,

@@ -14,6 +14,8 @@ namespace rocket {
     public:
         RPCClosure(std::function<void()> callback) : m_callback(callback) {}
 
+        ~RPCClosure() override;
+
         void Run() override {
             if (m_callback) {
                 m_callback();

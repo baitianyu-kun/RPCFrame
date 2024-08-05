@@ -10,7 +10,7 @@ namespace rocket {
     }
 
     TCPBuffer::~TCPBuffer() {
-
+        DEBUGLOG("~TCPBuffer")
     }
 
     int TCPBuffer::readAbleSize() {

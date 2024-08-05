@@ -3,6 +3,7 @@
 //
 #include <unistd.h>
 #include "net/tcp/tcp_client.h"
+#include "common/error_code.h"
 
 namespace rocket {
     rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr) : m_peer_addr(peer_addr) {
@@ -30,12 +31,13 @@ namespace rocket {
         if (m_client_fd > 0) {
             close(m_client_fd);
         }
+        DEBUGLOG("~TCPClient");
     }
 
     void TCPClient::connect(std::function<void()> done) {
         int ret = ::connect(m_client_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockAddrLen());
         if (ret == 0) {
-            DEBUGLOG("connect [%s] sussess", m_peer_addr->toString().c_str());
+            DEBUGLOG("connect [%s] success", m_peer_addr->toString().c_str());
             m_connection->setState(Connected);
             initLocalAddr();
             if (done) {
@@ -67,10 +69,10 @@ namespace rocket {
                     bool is_connect_success = false;
                     if (error == 0) {
                         initLocalAddr();
-                        DEBUGLOG("connect [%s] sussess", m_peer_addr->toString().c_str());
+                        DEBUGLOG("connect [%s] success", m_peer_addr->toString().c_str());
                         is_connect_success = true;
                     } else {
-                        ERRORLOG("connect errror, errno=%d, error=%s", errno, strerror(errno));
+                        ERRORLOG("connect error, errno=%d, error=%s", errno, strerror(errno));
                     }
                     // 处理完后需要取消监听写事件，否则会一直触发
                     m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
@@ -87,7 +89,14 @@ namespace rocket {
                     m_event_loop->loop();
                 }
             } else {
-                ERRORLOG("connect errror, errno=%d, error=%s", errno, strerror(errno));
+                ERRORLOG("connect error, errno=%d, error=%s", errno, strerror(errno));
+                // 需要返回具体的错误码
+                m_connect_err_code = ERROR_FAILED_CONNECT;
+                m_connect_err_info = "connect error, sys error = " + std::string(strerror(errno));
+                // 失败了也需要执行回调函数
+                if (done) {
+                    done();
+                }
             }
         }
     }
@@ -130,6 +139,14 @@ namespace rocket {
             return;
         }
         m_local_addr = std::make_shared<IPNetAddr>(local_addr);
+    }
+
+    int TCPClient::getConnectErrorCode() const {
+        return m_connect_err_code;
+    }
+
+    std::string TCPClient::getConnectErrorInfo() {
+        return m_connect_err_info;
     }
 
 }

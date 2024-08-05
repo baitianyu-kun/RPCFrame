@@ -2,8 +2,14 @@
 // Created by baitianyu on 7/25/24.
 //
 #include "net/rpc/rpc_controller.h"
+#include "common/log.h"
 
 namespace rocket {
+
+    RPCController::~RPCController() {
+        DEBUGLOG("~RPCController");
+    }
+
     void rocket::RPCController::Reset() {
         m_err_code = 0;
         m_err_info = "";

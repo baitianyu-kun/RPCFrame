@@ -35,11 +35,12 @@ void test_rpc_channel() {
     auto response = std::make_shared<makeOrderResponse>();
     auto controller = std::make_shared<rocket::RPCController>();
     controller->SetMsgId("99998888");
-    auto closure = std::make_shared<rocket::RPCClosure>([request, response, channel]() {
+    auto closure = std::make_shared<rocket::RPCClosure>([request, response, channel]() mutable {
         INFOLOG("client call rpc success, request [%s], response [%s]", request->ShortDebugString().c_str(),
                 response->ShortDebugString().c_str());
         INFOLOG("now exit client event loop");
         channel->GetClient()->stop();
+        channel.reset();
     });
     channel->Init(controller, request, response, closure);
     Order_Stub stub(channel.get());
@@ -57,7 +58,7 @@ void test_rpc_client() {
         request.set_price(100);
         request.set_goods("apple");
         if (!request.SerializeToString(&(message->m_pb_data))) {
-            ERRORLOG("serilize error");
+            ERRORLOG("serialize error");
             return;
         }
         message->m_method_name = "Order.makeOrder";

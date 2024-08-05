@@ -51,7 +51,7 @@ namespace rocket {
     }
 
     TCPConnection::~TCPConnection() {
-        DEBUGLOG("~TcpConnection");
+        DEBUGLOG("~TCPConnection");
     }
 
     void TCPConnection::onRead() {

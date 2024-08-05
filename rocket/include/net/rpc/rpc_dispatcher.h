@@ -21,7 +21,7 @@ namespace rocket {
 
         RPCDispatcher() = default;
 
-        ~RPCDispatcher() = default;
+        ~RPCDispatcher();
 
         static std::unique_ptr<RPCDispatcher> &GetRPCDispatcher();
 

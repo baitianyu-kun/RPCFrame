@@ -10,7 +10,7 @@ namespace rocket {
     }
 
     TCPServer::~TCPServer() {
-
+        DEBUGLOG("~TCPServer");
     }
 
     void TCPServer::start() {
@@ -60,12 +60,25 @@ namespace rocket {
         connection->setState(Connected);
         m_client_connection.insert(connection);
         // 轮询添加到线程池中的线程中
-        INFOLOG("TcpServer succ get client, fd: %d, peer addr: %s, now client counts: %d", client_fd,
+        INFOLOG("TcpServer succeed get client, fd: %d, peer addr: %s, now client counts: %d", client_fd,
                 peer_addr->toString().c_str(), m_client_counts);
     }
 
     void TCPServer::clearClientTimerFunc() {
-
+        // 清理过期的connection
+        // 1. 该connection不为nullptr
+        // 2. 该connection的引用计数大于0，证明还有没释放的，感觉这个不是很必要
+        // 3. 该connection的state为closed
+        // 则该connection的状态为过期的
+        auto iter = m_client_connection.begin();
+        for (; iter != m_client_connection.end();) {
+            if ((*iter) != nullptr && (*iter).use_count() > 0 && (*iter)->getState() == TCPState::Closed) {
+                // erase的返回值是指向被删除元素的后继元素的迭代器
+                iter = m_client_connection.erase(iter);
+            } else {
+                iter++;
+            }
+        }
     }
 }
 

@@ -37,7 +37,7 @@ namespace rocket {
     }
 
     rocket::TCPAcceptor::~TCPAcceptor() {
-
+        DEBUGLOG("~TCPAcceptor");
     }
 
     std::pair<int, NetAddr::net_addr_sptr_t_> TCPAcceptor::accept() {

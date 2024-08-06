@@ -301,7 +301,20 @@ namespace rocket {
     }
 
     void TCPConnection::listenRead() {
-        // 监听听的时候，callback为on read函数
+        // 监听的时候，callback为on read函数
+        // auto newCallable = bind(callable, arg_list);
+        // 该形式表达的意思是：当调用newCallable时，会调用callable，并传给它arg_list中的参数。
+        // 类成员函数较为特殊，需要传入一个this指针指定是哪个对象
+        // 非静态类成员函数需要&类::成员函数，静态的直接类::成员函数，即可
+
+        // bind绑定类成员函数时，第一个参数表示对象的成员函数的指针，第二个参数表示对象的地址，
+        // 这是因为对象的成员函数需要有this指针。
+        // 并且编译器不会将对象的成员函数隐式转换成函数指针，需要通过&手动转换；
+        // 对于非类成员函数，编译器会把函数名隐式转换成指针的形式，即转换成函数指针，而对于类成员函数无法转换
+
+        // 但是静态的由于是独立于对象的，可以看作非类成员函数，
+        // 编译器会把函数名隐式转换成指针的形式，所以直接赋给其就可以
+        // std::bind的返回值是可调用实体，可以直接赋给std::function。
         m_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPConnection::onRead, this));
         m_event_loop->addEpollEvent(m_fd_event);
     }

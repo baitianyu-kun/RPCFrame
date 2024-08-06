@@ -165,6 +165,10 @@ namespace rocket {
         return m_connect_err_info;
     }
 
+    std::unique_ptr<EventLoop> &TCPClient::getEventLoop() {
+        return m_event_loop;
+    }
+
 }
 
 

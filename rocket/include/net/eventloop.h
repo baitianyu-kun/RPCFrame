@@ -44,6 +44,8 @@ namespace rocket {
 
         void addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
 
+        void deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+
     private:
         void dealWakeup();
 

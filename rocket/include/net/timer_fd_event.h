@@ -14,6 +14,7 @@
 namespace rocket {
 
     // 这个只是记录定时任务信息，得用timer fd event去来添加定时任务
+    // 这个是单个的定时任务，下面的timer fd event是所有定时任务的集合，负责按照到达时间管理所有的定时任务
     class TimerEventInfo {
     public:
         // 给TimerEventInfo的智能指针起一个别名，多个地方都有可能会用到，所以用shared ptr

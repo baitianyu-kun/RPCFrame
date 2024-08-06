@@ -172,7 +172,7 @@ namespace rocket {
         // 设置完后会自动启动定时器
         itimerspec value{{0, 0}, ts};
         if (timerfd_settime(m_fd, 0, &value, nullptr) != 0) {
-            ERRORLOG("timerfd_settime error, errno=%d, error=%s", errno, strerror(errno));
+            ERRORLOG("timerfd set time error, errno=%d, error=%s", errno, strerror(errno));
         }
     }
 }

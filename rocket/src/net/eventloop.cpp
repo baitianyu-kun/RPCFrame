@@ -132,7 +132,7 @@ namespace rocket {
                         // 需要删除出错的fd，由于此处的fd event不是new出来的
                         // 所以需要给智能指针指定一个空的删除器，即shared ptr析构的时候
                         // 不去delete这个不是new出来的东西。这里用lambda表达式实现
-                        deleteEpollEvent(std::shared_ptr<FDEvent>(fd_event,[](FDEvent*){}));
+                        deleteEpollEvent(std::shared_ptr<FDEvent>(fd_event, [](FDEvent *) {}));
                         auto error_callback = fd_event->handler(FDEvent::ERROR_EVENT);
                         if (error_callback != nullptr) {
                             DEBUGLOG("fd %d add error callback", fd_event->getFD());
@@ -272,5 +272,11 @@ namespace rocket {
     void EventLoop::addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
         m_timer->addTimerEvent(std::move(time_event));
     }
+
+    void EventLoop::deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+        m_timer->deleteTimerEvent(std::move(time_event));
+    }
+
+
 }
 

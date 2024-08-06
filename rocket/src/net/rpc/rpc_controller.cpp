@@ -32,7 +32,6 @@ namespace rocket {
     void RPCController::StartCancel() {
         m_is_canceled = true;
         m_is_failed = true;
-        SetFinished(true);
     }
 
     void RPCController::SetFailed(const std::string &reason) {

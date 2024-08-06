@@ -51,6 +51,8 @@ namespace rocket {
 
         void initLocalAddr();
 
+        std::unique_ptr<EventLoop> &getEventLoop();
+
     private:
         NetAddr::net_addr_sptr_t_ m_peer_addr;
         NetAddr::net_addr_sptr_t_ m_local_addr;

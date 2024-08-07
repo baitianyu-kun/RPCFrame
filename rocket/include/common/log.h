@@ -32,6 +32,28 @@ namespace rocket {
   { \
     rocket::Logger::GetGlobalLogger()->pushLog(rocket::LogEvent(rocket::LogLevel::Error).toString() \
       + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  }                        \
+
+#define APPDEBUGLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Debug) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushAppLog(rocket::LogEvent(rocket::LogLevel::Debug).toString() \
+      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  } \
+
+
+#define APPINFOLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Info) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushAppLog(rocket::LogEvent(rocket::LogLevel::Info).toString() \
+    + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  } \
+
+#define APPERRORLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Error) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushAppLog(rocket::LogEvent(rocket::LogLevel::Error).toString() \
+      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
   } \
 
 
@@ -109,6 +131,8 @@ namespace rocket {
 
         void pushLog(const std::string &msg);
 
+        void pushAppLog(const std::string &msg);
+
         void init_log_timer();
 
         //  同步 m_buffer 到 async_logger 的buffer队尾
@@ -132,10 +156,17 @@ namespace rocket {
 
     private:
         LogLevel m_set_level;
-        std::vector<std::string> m_buffer;
-        Mutex m_mutex;
 
+        std::vector<std::string> m_buffer;
+        std::vector<std::string> m_app_buffer;
+
+        Mutex m_mutex;
+        Mutex m_app_mutex;
+
+        // RPC框架的信息
         AsyncLogger::async_logger_sptr_t_ m_async_logger;
+        // 具体业务的信息
+        AsyncLogger::async_logger_sptr_t_ m_async_app_logger;
 
         TimerEventInfo::time_event_info_sptr_t_ m_timer_event;
         int m_type{0}; // 为0就是只在控制台输出，1是输出到文件

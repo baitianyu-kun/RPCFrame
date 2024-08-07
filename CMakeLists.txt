@@ -38,13 +38,17 @@ target_link_libraries(test_client pthread)
 # test rpc client
 add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_client.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h)
+        testcases/order.pb.h
+        rocket/include/common/runtime.h
+        rocket/src/common/runtime.cpp)
 target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_rpc_client pthread)
 
 # test rpc server
 add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_server.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h)
+        testcases/order.pb.h
+        rocket/include/common/runtime.h
+        rocket/src/common/runtime.cpp)
 target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_rpc_server pthread)

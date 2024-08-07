@@ -9,7 +9,8 @@ namespace rocket {
     // static std::unique_ptr<FDEventPool> g_fd_event_pool = nullptr;
 
     // 单例模式，饿汉类型，线程安全
-    static std::unique_ptr<FDEventPool> g_fd_event_pool =
+    // 提高封装性更改为在类里面，而不是在整个文件的全局变量的单例模式，虽然后者也可以
+    std::unique_ptr<FDEventPool> FDEventPool::g_fd_event_pool =
             std::move(std::unique_ptr<FDEventPool>(new FDEventPool(MAX_FD_EVENT_POOL_SIZE)));
 
     std::unique_ptr<FDEventPool> &FDEventPool::GetFDEventPool() {

@@ -23,6 +23,8 @@ namespace rocket {
 
         ~RPCDispatcher();
 
+        static std::unique_ptr<RPCDispatcher> g_rpc_dispatcher;
+
         static std::unique_ptr<RPCDispatcher> &GetRPCDispatcher();
 
         static void setTinyPBError(std::shared_ptr<TinyPBProtocol> &msg, int32_t err_code, const std::string &err_info);

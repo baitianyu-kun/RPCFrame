@@ -14,6 +14,9 @@
 namespace rocket {
     class FDEventPool {
     public:
+
+        static std::unique_ptr<FDEventPool> g_fd_event_pool;
+
         static std::unique_ptr<FDEventPool> &GetFDEventPool();
 
     public:

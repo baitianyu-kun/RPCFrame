@@ -76,6 +76,7 @@ namespace rocket {
                      m_client_fd);
             if (ret > 0) {
                 // 将write指针向后移动刚刚读取的字节数个位置
+                // 比如你要求从里面读取100byte，但是ret返回了50个，说明只有50个可以读了，所以ret < write count的话证明已经读完了
                 m_in_buffer->moveWriteIndex(ret);
                 if (ret == write_count) {
                     continue;

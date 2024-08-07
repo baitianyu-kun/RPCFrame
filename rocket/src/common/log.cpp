@@ -6,6 +6,7 @@
 #include "common/log.h"
 #include "common/util.h"
 #include "common/config.h"
+#include "common/runtime.h"
 
 
 #define TIME_ARRAY_SIZE 32
@@ -58,9 +59,17 @@ namespace rocket {
                     Config::GetGlobalConfig()->m_log_file_name + "_server",
                     Config::GetGlobalConfig()->m_log_file_path,
                     Config::GetGlobalConfig()->m_log_max_file_size);
+            m_async_app_logger = std::make_shared<AsyncLogger>(
+                    Config::GetGlobalConfig()->m_log_file_name + "_server_app",
+                    Config::GetGlobalConfig()->m_log_file_path,
+                    Config::GetGlobalConfig()->m_log_max_file_size);
         } else {
             m_async_logger = std::make_shared<AsyncLogger>(
                     Config::GetGlobalConfig()->m_log_file_name + "_client",
+                    Config::GetGlobalConfig()->m_log_file_path,
+                    Config::GetGlobalConfig()->m_log_max_file_size);
+            m_async_app_logger = std::make_shared<AsyncLogger>(
+                    Config::GetGlobalConfig()->m_log_file_name + "_server_app",
                     Config::GetGlobalConfig()->m_log_file_path,
                     Config::GetGlobalConfig()->m_log_max_file_size);
         }
@@ -115,6 +124,16 @@ namespace rocket {
             m_async_logger->pushLogBuffer(tmp_vec);
         }
         tmp_vec.clear();
+
+        // 同步 m_app_buffer 到 m_async_app_logger 的buffer队尾
+        std::vector<std::string> tmp_vec2;
+        ScopeMutext<Mutex> lock2(m_app_mutex);
+        tmp_vec2.swap(m_app_buffer);
+        lock.unlock();
+        if (!tmp_vec2.empty()) {
+            m_async_app_logger->pushLogBuffer(tmp_vec2);
+        }
+        tmp_vec2.clear();
     }
 
     void Logger::flush() {
@@ -126,6 +145,9 @@ namespace rocket {
         // 而且一直while下去pthread join也就不起作用了
         m_async_logger->stop();
         m_async_logger->flush();
+
+        m_async_app_logger->stop();
+        m_async_app_logger->flush();
     }
 
     void Logger::pushLog(const std::string &msg) {
@@ -135,6 +157,16 @@ namespace rocket {
         }
         ScopeMutext<Mutex> lock(m_mutex);
         m_buffer.emplace_back(msg);
+        lock.unlock();
+    }
+
+    void Logger::pushAppLog(const std::string &msg) {
+        if (m_type == 0) {
+            printf("%s", (msg).c_str());
+            return;
+        }
+        ScopeMutext<Mutex> lock(m_app_mutex);
+        m_app_buffer.emplace_back(msg);
         lock.unlock();
     }
 
@@ -305,6 +337,15 @@ namespace rocket {
            << "[" << time_str << "]\t"
            << "[" << m_pid << ":" << m_thread_id << "]\t";
 
+        // 保存运行时候的msg id，RPCDispatcher放到RunTime里，然后这里获取
+        std::string msg_id = RunTime::GetRunTime()->m_msg_id;
+        std::string method_name = RunTime::GetRunTime()->m_method_name;
+        if (!msg_id.empty()) {
+            ss << "[" << msg_id << "]\t";
+        }
+        if (!method_name.empty()) {
+            ss << "[" << method_name << "]\t";
+        }
         return ss.str();
     }
 }

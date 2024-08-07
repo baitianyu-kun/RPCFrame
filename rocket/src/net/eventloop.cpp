@@ -55,7 +55,16 @@ namespace rocket {
     // static和thread local可以一块使用，这样就会创建两个static的副本，分别给多个线程使用
     // 但是每个线程都可以取到自己的一个副本
     // ====================================================================================
-    static thread_local EventLoop::event_loop_sptr_t_ t_current_event_loop =
+    // 定义为整个文件的全局变量的形式的单例模式，最好还是像下面都改为在类里面的单例模式，比较的规范，这样别的类就没办法调用了
+    // 比较有封装性。旧版如下，新版在后面，就是在EventLoop添加static thread local成员变量t_current_event_loop，
+    // 成员变量如果为thread local的话则必须显式声明为static
+    // static thread_local EventLoop::event_loop_sptr_t_ t_current_event_loop =
+    //         std::make_shared<EventLoop>();
+    // thread_local EventLoop::event_loop_sptr_t_ EventLoop::t_current_event_loop =
+    //             std::make_shared<EventLoop>();
+    // ====================================================================================
+
+    thread_local EventLoop::event_loop_sptr_t_ EventLoop::t_current_event_loop =
             std::make_shared<EventLoop>();
 
     EventLoop::event_loop_sptr_t_ EventLoop::GetCurrentEventLoop() {

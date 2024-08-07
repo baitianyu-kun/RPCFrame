@@ -5,11 +5,12 @@
 #include "net/rpc/rpc_dispatcher.h"
 #include "common/log.h"
 #include "common/error_code.h"
+#include "common/runtime.h"
 #include "net/rpc/rpc_controller.h"
 
 namespace rocket {
 
-    static std::unique_ptr<RPCDispatcher> g_rpc_dispatcher
+    std::unique_ptr<RPCDispatcher> RPCDispatcher::g_rpc_dispatcher
             = std::move(std::unique_ptr<RPCDispatcher>(new RPCDispatcher()));
 
     // 单例模式，返回引用
@@ -25,7 +26,7 @@ namespace rocket {
     // 入参为常量时候，代表该函数不会修改它，调用的时候传入常量或者非常量都可以
     void rocket::RPCDispatcher::dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
                                          const AbstractProtocol::abstract_pro_sptr_t_ &response,
-                                         const TCPConnection::tcp_connection_sptr_t_& connection) {
+                                         const TCPConnection::tcp_connection_sptr_t_ &connection) {
         // 传入的是智能指针的引用，所以这里转换后还是智能指针，指向的是同一个地方
         // 即使这个智能指针在下面复制了，那么其指的地方不变，所以可以直接修改里面的值
         auto req_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(request);
@@ -74,6 +75,12 @@ namespace rocket {
         rpc_controller->SetLocalAddr(connection->getLocalAddr());
         rpc_controller->SetPeerAddr(connection->getPeerAddr());
         rpc_controller->SetMsgId(req_protocol->m_msg_id);
+
+        // 放入RunTime中使得log能够拿到msg id和addr
+        RunTime::GetRunTime()->m_msg_id = req_protocol->m_msg_id;
+        // // req_protocol->m_method_name是全名，例如Order.make_order，前面是service name，后面是method name
+        RunTime::GetRunTime()->m_method_name = req_protocol->m_method_name;
+
         // Closure* done是回调函数
         service->CallMethod(method, rpc_controller.get(), req_msg.get(), rsp_msg.get(), nullptr);
 
@@ -85,7 +92,7 @@ namespace rocket {
                 rsp_msg->ShortDebugString().c_str());
     }
 
-    void RPCDispatcher::registerService(const RPCDispatcher::protobuf_service_sptr_t_& service) {
+    void RPCDispatcher::registerService(const RPCDispatcher::protobuf_service_sptr_t_ &service) {
         auto service_name = service->GetDescriptor()->full_name();
         m_service_map[service_name] = service;
     }

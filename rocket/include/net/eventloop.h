@@ -21,6 +21,10 @@ namespace rocket {
     public:
         using event_loop_sptr_t_ = std::shared_ptr<EventLoop>;
 
+    public:
+        // 单例模式，一个线程一个event loop
+        static thread_local event_loop_sptr_t_ t_current_event_loop;
+
         static event_loop_sptr_t_ GetCurrentEventLoop();
 
     public:

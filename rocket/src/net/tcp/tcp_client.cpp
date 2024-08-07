@@ -7,7 +7,7 @@
 
 namespace rocket {
     rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr) : m_peer_addr(peer_addr) {
-        m_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
+        m_event_loop = EventLoop::GetCurrentEventLoop();
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         if (m_client_fd < 0) {
             ERRORLOG("TcpClient::TcpClient() error, failed to create fd");
@@ -60,6 +60,8 @@ namespace rocket {
 
             // errno = EINPROGRESS的时候可以用getsockopt，也可以再调用一遍connect方法
             // 并处理连接出错的情况，例如服务端没有开监听，客户端就去连接的情况
+
+            // 需要加入，在connect error之后自动重连
             if (errno == EINPROGRESS) {
                 m_fd_event->listen(FDEvent::OUT_EVENT, [this, done]() {
                     int ret = ::connect(m_client_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockAddrLen());
@@ -105,7 +107,7 @@ namespace rocket {
                     m_event_loop->loop();
                 }
             } else {
-                ERRORLOG("connect error, errno=%d, error=%s", errno, strerror(errno));
+                ERRORLOG("connect error, errno = %d, error = %s", errno, strerror(errno));
                 // 需要返回具体的错误码
                 m_connect_err_code = ERROR_FAILED_CONNECT;
                 m_connect_err_info = "connect error, sys error = " + std::string(strerror(errno));
@@ -165,7 +167,7 @@ namespace rocket {
         return m_connect_err_info;
     }
 
-    std::unique_ptr<EventLoop> &TCPClient::getEventLoop() {
+    EventLoop::event_loop_sptr_t_ TCPClient::getEventLoop() {
         return m_event_loop;
     }
 

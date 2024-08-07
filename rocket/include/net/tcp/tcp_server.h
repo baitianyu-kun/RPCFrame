@@ -37,7 +37,7 @@ namespace rocket {
     private:
         NetAddr::net_addr_sptr_t_ m_local_addr; // 本地监听地址
         TCPAcceptor::tcp_acceptor_sptr_t_ m_acceptor;
-        std::unique_ptr<EventLoop> m_main_event_loop{nullptr};
+        EventLoop::event_loop_sptr_t_ m_main_event_loop{nullptr};
         std::unique_ptr<IOThreadPool> m_io_thread_pool{nullptr};
 
         // 应该都改成timer event info那样的shared ptr声明方式

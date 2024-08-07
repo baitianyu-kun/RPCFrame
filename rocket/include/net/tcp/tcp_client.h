@@ -51,12 +51,12 @@ namespace rocket {
 
         void initLocalAddr();
 
-        std::unique_ptr<EventLoop> &getEventLoop();
+        EventLoop::event_loop_sptr_t_ getEventLoop();
 
     private:
         NetAddr::net_addr_sptr_t_ m_peer_addr;
         NetAddr::net_addr_sptr_t_ m_local_addr;
-        std::unique_ptr<EventLoop> m_event_loop;
+        EventLoop::event_loop_sptr_t_ m_event_loop;
         int m_client_fd{-1};
         FDEvent::fd_event_sptr_t_ m_fd_event;
         TCPConnection::tcp_connection_sptr_t_ m_connection;

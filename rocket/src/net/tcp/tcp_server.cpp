@@ -24,7 +24,7 @@ namespace rocket {
     void TCPServer::init() {
         // 接受器
         m_acceptor = std::make_shared<TCPAcceptor>(m_local_addr);
-        m_main_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
+        m_main_event_loop = EventLoop::GetCurrentEventLoop();
         m_io_thread_pool = std::move(std::unique_ptr<IOThreadPool>(new IOThreadPool(MAX_THREAD_POOL_SIZE)));
         // 获取监听套接字，监听到上面有可读事件就执行onAccept事件
         m_listen_fd_event = std::make_shared<FDEvent>(m_acceptor->getListenFD());

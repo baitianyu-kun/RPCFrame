@@ -41,25 +41,33 @@
     }while(0)
 
 namespace rocket {
-
-// 每个线程只能有一个event loop
-// ThreadLocal用于保存某个线程共享变量：对于同一个static ThreadLocal，
-// 不同线程只能从中get，set，remove自己的变量，而不会影响其他线程的变量。
-    static thread_local EventLoop *t_current_event_loop = nullptr;
     static int g_epoll_max_timeout = 10000;
     static int g_epoll_max_events = 10;
 
+    // ====================================================================================
+    // 2024.08.07 修改为饿汉式，使得event loop直接创建，然后TCPServer和TCPClient以及IOThread在使用
+    // 的时候直接使用这里的shared ptr，保证全局主线程以及各个子线程都有一个自己的event loop，为什么
+    // 不使用unique ptr呢，unique ptr给TCPServer之后，但是有可能全局的log也会用到，移动来移动去
+    // 比较麻烦，同时多线程里面没办法传unique ptr的引用，因为unique ptr没办法赋值，还得创建新的对象。
+
+    // unique ptr没有引用计数，shared ptr每复制一遍就有一个引用计数，unique ptr只有一个
+
+    // static和thread local可以一块使用，这样就会创建两个static的副本，分别给多个线程使用
+    // 但是每个线程都可以取到自己的一个副本
+    // ====================================================================================
+    static thread_local EventLoop::event_loop_sptr_t_ t_current_event_loop =
+            std::make_shared<EventLoop>();
+
+    EventLoop::event_loop_sptr_t_ EventLoop::GetCurrentEventLoop() {
+        return t_current_event_loop;
+    }
+
     rocket::EventLoop::EventLoop() {
-        if (t_current_event_loop != nullptr) {
-            ERRORLOG("failed to create event loop, this thread has created event loop");
-            exit(0);
-        }
         // 设置当前线程的id
         m_pid = getThreadId();
         // Since Linux 2.6.8, the size argument is ignored, but must be greater than zero;
         // 之前需要确定有多少个需要加入，现在新版本size被忽略，因为kernel使用了可扩展的data structure
         m_epoll_fd = epoll_create(10);
-
         if (m_epoll_fd == -1) {
             ERRORLOG("failed to create event loop, epoll create error, error code: [%d]", errno);
             exit(0);
@@ -68,9 +76,7 @@ namespace rocket {
         initWakeUpFDEevent();
         // 初始化定时任务
         initTimer();
-
         INFOLOG("succeed create event loop in thread %d", m_pid);
-        t_current_event_loop = this;
     }
 
     rocket::EventLoop::~EventLoop() {
@@ -250,13 +256,6 @@ namespace rocket {
     // 判断是否是当前进程在loop中
     bool EventLoop::isInLoopThread() {
         return m_pid == getThreadId();
-    }
-
-
-    EventLoop *EventLoop::GetCurrentEventLoop() {
-        // 在new的时候已经给current eventloop赋值过了，所以不需要了
-        // 并且加了thread local，已经线程安全了
-        return t_current_event_loop ? t_current_event_loop : new EventLoop();
     }
 
     bool EventLoop::LoopStopFlag() {

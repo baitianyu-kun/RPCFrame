@@ -19,7 +19,9 @@ namespace rocket {
 
     class EventLoop {
     public:
-        static EventLoop *GetCurrentEventLoop();
+        using event_loop_sptr_t_ = std::shared_ptr<EventLoop>;
+
+        static event_loop_sptr_t_ GetCurrentEventLoop();
 
     public:
         EventLoop();

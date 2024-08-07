@@ -5,7 +5,7 @@
 #include "common/log.h"
 #include "common/util.h"
 #include "common/config.h"
-#include "net/eventloop.h"
+
 
 #define TIME_ARRAY_SIZE 32
 
@@ -52,17 +52,22 @@ namespace rocket {
                                                          true,
                                                          std::bind(&Logger::syncLoop, this));
 
+        // ================================================OLD=======================================================
         // TCPServer是主线程，拿了一个event loop的unique ptr，
         // 然后每个io thread分别又拿了一个新的event loop的unique ptr(因为加了thread local关键字)
         // 此时再move的话，会导致tcp server中的event loop被move到这里，就出了问题
         // auto m_main_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
-
         // 在logger创建的时候这个是个裸指针，TCPServer或者TCPClient创建后裸指针被TCPServer或TCPClient接管，
         // 此时下面的裸指针和TCPServer或TCPClient里面的unique ptr共同进行管理
         // 这里可能需要改一下，感觉还是有点问题
-
-        // 同时，有可能在rpc channel中，还没来得及运行定时任务进行输出就结束进程了，造成日志出问题
-        EventLoop::GetCurrentEventLoop()->addTimerEvent(m_timer_event);
+        // 同时，有可能在rpc channel中，还没来得及运行定时任务进行输出就结束进程了，造成日志出问题，得在结束的时候把所有日志都进行刷新
+        // 还有就是崩溃了，出现异常退出时候得捕获信号，然后输出日志
+        // ================================================OLD=======================================================
+        // ================================================NEW=======================================================
+        // 把event loop都改为shared ptr吧，因为不仅TCPServer或者TCPClient要用，可能有的其他地方也需要用到，例如log里面
+        // ================================================NEW=======================================================
+        m_event_loop = EventLoop::GetCurrentEventLoop(); // 这里也是避免上面出现的相互依赖的问题
+        m_event_loop->addTimerEvent(m_timer_event);
     }
 
     void Logger::syncLoop() {

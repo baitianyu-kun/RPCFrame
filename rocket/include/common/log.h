@@ -9,6 +9,7 @@
 #include "common/config.h"
 #include "common/mutex.h"
 #include "net/timer_fd_event.h"
+#include "net/eventloop.h"
 
 namespace rocket {
 
@@ -100,7 +101,7 @@ namespace rocket {
 
     class Logger {
     public:
-        explicit Logger(LogLevel level, int type = 1,bool is_server = true);
+        explicit Logger(LogLevel level, int type = 1, bool is_server = true);
 
         void pushLog(const std::string &msg);
 
@@ -123,7 +124,7 @@ namespace rocket {
 
         static std::unique_ptr<Logger> &GetGlobalLogger();
 
-        static void InitGlobalLogger(int type = 1,bool is_server = true);
+        static void InitGlobalLogger(int type = 1, bool is_server = true);
 
     private:
         LogLevel m_set_level;
@@ -135,6 +136,8 @@ namespace rocket {
         TimerEventInfo::time_event_info_sptr_t_ m_timer_event;
         int m_type{0}; // 为0就是只在控制台输出，1是输出到文件
         bool m_is_server{true};
+
+        EventLoop::event_loop_sptr_t_ m_event_loop{nullptr};
     };
 
     std::string LogLevelToString(LogLevel level);

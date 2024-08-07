@@ -19,9 +19,14 @@ namespace rocket {
 
         ~IOThread();
 
+        // ===========OLD===============
         // 这里应该返回本类的unique ptr的引用，如果用std::move的话m_event_loop被移动到外面了，
         // 然后里面这个std::unique_ptr<EventLoop> m_event_loop已经成为了空指针
-        std::unique_ptr<EventLoop> &getEventLoop();
+        // ===========OLD===============
+        // ===========NEW===============
+        // 全部使用shared ptr管理event loop
+        // ===========NEW===============
+        EventLoop::event_loop_sptr_t_ getEventLoop();
 
         void start();
 
@@ -33,7 +38,10 @@ namespace rocket {
     private:
         pid_t m_thread_id{-1};
         pthread_t m_thread{0}; // 线程句柄，用来保存和操作线程的
-        std::unique_ptr<EventLoop> m_event_loop{nullptr};
+        // ===========NEW===============
+        // 全部使用shared ptr管理event loop
+        // ===========NEW===============
+        EventLoop::event_loop_sptr_t_ m_event_loop{nullptr};
         // 要求IOThread创建线程时候，等待执行完runner的event loop的loop方法之前，即完成event loop创建任务，但是不启动，放在start中启动
         // 随后runner阻塞在启动loop前，等start给信号后才启动
         sem_t m_init_semaphore;

@@ -35,7 +35,7 @@ namespace rocket {
         pthread_join(m_thread, nullptr); // 等待子线程执行完成
     }
 
-    std::unique_ptr<EventLoop> &IOThread::getEventLoop() {
+    EventLoop::event_loop_sptr_t_ IOThread::getEventLoop() {
         return m_event_loop;
     }
 
@@ -54,7 +54,7 @@ namespace rocket {
     void *IOThread::runner(void *arg) {
         // 前置任务
         auto thread = reinterpret_cast<IOThread *>(arg);
-        thread->m_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
+        thread->m_event_loop = EventLoop::GetCurrentEventLoop();
         thread->m_thread_id = getThreadId();
         // 初始化完成，等待开启信号
         sem_post(&thread->m_init_semaphore);

@@ -32,7 +32,7 @@ namespace rocket {
     public:
         using tcp_connection_sptr_t_ = std::shared_ptr<TCPConnection>;
     public:
-        TCPConnection(const std::unique_ptr<EventLoop> &event_loop, int client_fd, int buffer_size,
+        TCPConnection(EventLoop::event_loop_sptr_t_ event_loop, int client_fd, int buffer_size,
                       NetAddr::net_addr_sptr_t_ peer_addr,
                       NetAddr::net_addr_sptr_t_ local_addr, TCPConnectionType type = TCPConnectionByServer);
 
@@ -81,11 +81,16 @@ namespace rocket {
         NetAddr::net_addr_sptr_t_ getPeerAddr();
 
     private:
+        // ============================================OLD==========================================================
         // 这里使用的是io thread里面创建的event loop，所以创建一个指针共同管理，使用unique的get方法
         // 假如我们只需要在函数中，用这个对象处理一些事情，但不打算涉及其生命周期的管理，也不打算通过函数传参延长 shared_ptr 的生命周期。
         // 对于这种情况，可以使用 raw pointer 或者 const shared_ptr&。
         // 这里的connection只使用eventloop，而不是销毁，销毁是io thread里管理的，所以这里可以用裸指针，或者是传递unique ptr的引用
-        const std::unique_ptr<EventLoop> &m_event_loop;
+        // ============================================OLD==========================================================
+        // ============================================NEW==========================================================
+        // 全部使用shared ptr管理event loop
+        // ============================================NEW==========================================================
+        EventLoop::event_loop_sptr_t_ m_event_loop;
         NetAddr::net_addr_sptr_t_ m_local_addr;
         NetAddr::net_addr_sptr_t_ m_peer_addr;
         TCPBuffer::tcp_buffer_sptr_t_ m_in_buffer; // 接收缓冲区
@@ -105,10 +110,6 @@ namespace rocket {
         // key为msg id
         std::unordered_map<std::string,
                 std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
-
-        // rpc dispatcher，用来解析rpc方法并进行执行，并返回结果
-
-
     };
 
 }

@@ -147,7 +147,7 @@ void test_rpc_client() {
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger(1, false);
+    rocket::Logger::InitGlobalLogger(0, false);
     test_rpc_channel_timeout_marcos();
 }
 

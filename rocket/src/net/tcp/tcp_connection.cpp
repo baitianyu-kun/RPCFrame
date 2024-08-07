@@ -27,7 +27,7 @@ namespace rocket {
     // 但是NetAddr::net_addr_sptr_t_ local_addr这里传入的是一个右值，如果拿常量左值引用const NetAddr::net_addr_sptr_t_ &local_addr
     // 来接收，并赋值给一个常量左值引用const NetAddr::net_addr_sptr_t_ &m_local_addr，那么m_local_addr实际上
     // 接收到的是一个即将销毁的右值，此时访问其空间就访问到了野指针，所以就会出问题。为了方便以后shared ptr都用值传递得了
-    rocket::TCPConnection::TCPConnection(const std::unique_ptr<EventLoop> &event_loop,
+    rocket::TCPConnection::TCPConnection(EventLoop::event_loop_sptr_t_ event_loop,
                                          int client_fd,
                                          int buffer_size,
                                          NetAddr::net_addr_sptr_t_ peer_addr,

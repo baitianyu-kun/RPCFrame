@@ -2,6 +2,7 @@
 #include <sstream>
 #include <cstdio>
 #include <cassert>
+#include <csignal>
 #include "common/log.h"
 #include "common/util.h"
 #include "common/config.h"
@@ -13,6 +14,26 @@ namespace rocket {
 
     static std::unique_ptr<Logger> g_logger = nullptr;
 
+    void CoreDumpHandler(int signal_no) {
+        ERRORLOG("progress received invalid signal, will exit");
+        g_logger->flush();
+        // 等待进程运行完成
+        pthread_join(g_logger->getAsyncAppLogger()->m_thread, nullptr);
+        // SIG_DFL 默认信号处理
+        // SIG_IGN 信号被忽略
+        // 到这个回调函数中进行处理信号，最后记得发出信号
+        signal(signal_no, SIG_DFL);
+        // raise 函数是 C 标准库中的一个函数，用于向当前进程发送信号。
+        // 它定义在 <signal.h> 头文件中，并允许程序向自身发送信号以触发相应的信号处理程序。
+        raise(signal_no);
+    }
+
+    void ExitHandler() {
+        INFOLOG("progress normal exit 0");
+        g_logger->flush();
+        pthread_join(g_logger->getAsyncAppLogger()->m_thread, nullptr);
+    }
+
     std::unique_ptr<Logger> &Logger::GetGlobalLogger() {
         return g_logger;
     }
@@ -22,6 +43,10 @@ namespace rocket {
         printf("Init log level [%s]\n", LogLevelToString(global_log_level).c_str());
         g_logger = std::move(std::unique_ptr<Logger>(new Logger(global_log_level, type, is_server)));
         g_logger->init_log_timer();
+    }
+
+    Logger::~Logger() {
+
     }
 
     Logger::Logger(LogLevel level, int type /* = 1*/, bool is_server /* true */) : m_set_level(level), m_type(type) {
@@ -65,9 +90,19 @@ namespace rocket {
         // ================================================OLD=======================================================
         // ================================================NEW=======================================================
         // 把event loop都改为shared ptr吧，因为不仅TCPServer或者TCPClient要用，可能有的其他地方也需要用到，例如log里面
+        // 崩溃日志输出 完成
+        // 没来得及运行定时任务进行输出就结束进程了，造成日志出问题 已经完成
         // ================================================NEW=======================================================
         m_event_loop = EventLoop::GetCurrentEventLoop(); // 这里也是避免上面出现的相互依赖的问题
         m_event_loop->addTimerEvent(m_timer_event);
+        // signal 函数允许程序定义当某些信号（如 SIGINT，由按下 Ctrl+C 产生）到达时要执行的处理程序。
+        signal(SIGSEGV, CoreDumpHandler);
+        signal(SIGABRT, CoreDumpHandler);
+        signal(SIGTERM, CoreDumpHandler);
+        signal(SIGKILL, CoreDumpHandler);
+        signal(SIGINT, CoreDumpHandler);
+        signal(SIGSTKFLT, CoreDumpHandler);
+        atexit(ExitHandler); // 使用其在退出时候仍然把数据刷新到磁盘里
     }
 
     void Logger::syncLoop() {
@@ -83,8 +118,12 @@ namespace rocket {
     }
 
     void Logger::flush() {
+        // 把现在的数据放进去
+        // 这个时候会唤醒async logger里面的线程去写入，把所有数据都写入进去
+        // 配合pthread join可以等待这个线程写入完成，所以肯定是能把queue里面的数据都写完。
         syncLoop();
-        // 先暂停再输出
+        // 先暂停再输出，不停止的话进程会一直while下去，可能会重新打开文件并写入，刷新不了，
+        // 而且一直while下去pthread join也就不起作用了
         m_async_logger->stop();
         m_async_logger->flush();
     }

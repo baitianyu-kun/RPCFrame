@@ -69,6 +69,8 @@ namespace rocket {
 
     public:
         // 将 buffer 里面的全部数据打印到文件中，然后线程睡眠，直到有新的数据再重复这个过程
+        // 有一条就会写一条，所以肯定都会写入进去
+        // 不用在退出时候遍历queue写入所有，因为在之前只要有数据就会写入，在退出前肯定能写入完
         static void *Loop(void *arg);
 
     public:
@@ -102,6 +104,8 @@ namespace rocket {
     class Logger {
     public:
         explicit Logger(LogLevel level, int type = 1, bool is_server = true);
+
+        ~Logger();
 
         void pushLog(const std::string &msg);
 

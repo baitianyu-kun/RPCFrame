@@ -55,7 +55,7 @@ public:
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger(0);
+    rocket::Logger::InitGlobalLogger(1);
     std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
     rocket::RPCDispatcher::GetRPCDispatcher()->registerService(service);
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);

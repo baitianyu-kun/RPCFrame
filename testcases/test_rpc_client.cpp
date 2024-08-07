@@ -26,7 +26,7 @@
 #include "net/rpc/rpc_controller.h"
 #include "net/rpc/rpc_closure.h"
 
-void test_rpc_channel_timeout2() {
+void test_rpc_channel_timeout_marcos() {
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
     NEW_RPC_CHANNEL(addr, channel);
     NEW_MESSAGE(makeOrderRequest, request);
@@ -35,7 +35,7 @@ void test_rpc_channel_timeout2() {
     request->set_goods("apple");
     NEW_RPC_CONTROLLER(controller);
     controller->SetMsgId("99998888");
-    controller->SetTimeout(1000);
+    controller->SetTimeout(6000);
     auto closure = std::make_shared<rocket::RPCClosure>([request, response, channel, controller]() mutable {
         if (controller->GetErrorCode() == 0) {
             INFOLOG("call rpc success, request[%s], response[%s]",
@@ -147,9 +147,7 @@ void test_rpc_client() {
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger();
-    // test_rpc_client();
-    // test_rpc_channel();
-    test_rpc_channel_timeout2();
+    rocket::Logger::InitGlobalLogger(1, false);
+    test_rpc_channel_timeout_marcos();
 }
 

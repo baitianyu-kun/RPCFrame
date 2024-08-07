@@ -8,8 +8,31 @@
 
 #include "common/config.h"
 #include "common/mutex.h"
+#include "net/timer_fd_event.h"
 
 namespace rocket {
+
+#define DEBUGLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() && rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Debug) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushLog(rocket::LogEvent(rocket::LogLevel::Debug).toString() \
+      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  } \
+
+#define INFOLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Info) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushLog(rocket::LogEvent(rocket::LogLevel::Info).toString() \
+    + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  } \
+
+#define ERRORLOG(str, ...) \
+  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Error) \
+  { \
+    rocket::Logger::GetGlobalLogger()->pushLog(rocket::LogEvent(rocket::LogLevel::Error).toString() \
+      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
+  } \
+
 
     template<typename... Args>
     std::string formatString(const char *str, Args &&... args) {
@@ -21,31 +44,6 @@ namespace rocket {
         }
         return result;
     }
-
-#define DEBUGLOG(str, ...) \
-  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Debug) \
-  { \
-    rocket::Logger::GetGlobalLogger()->pushLog((rocket::LogEvent(rocket::LogLevel::Debug)).toString() \
-      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
-    rocket::Logger::GetGlobalLogger()->log();                                                                                \
-  } \
-
-
-#define INFOLOG(str, ...) \
-  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Info) \
-  { \
-  rocket::Logger::GetGlobalLogger()->pushLog((rocket::LogEvent(rocket::LogLevel::Info)).toString() \
-    + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
-  rocket::Logger::GetGlobalLogger()->log();                                                                      \
-  } \
-
-#define ERRORLOG(str, ...) \
-  if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Error) \
-  { \
-    rocket::Logger::GetGlobalLogger()->pushLog((rocket::LogEvent(rocket::LogLevel::Error)).toString() \
-      + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) + "\n");\
-    rocket::Logger::GetGlobalLogger()->log();                                                                                 \
-  } \
 
     enum LogLevel {
         Unknown = 0,
@@ -102,43 +100,51 @@ namespace rocket {
 
     class Logger {
     public:
-        typedef std::shared_ptr<Logger> s_ptr;
-
-        Logger(LogLevel level) : m_set_level(level) {}
+        explicit Logger(LogLevel level, int type = 1,bool is_server = true);
 
         void pushLog(const std::string &msg);
 
-        void log();
+        void init_log_timer();
+
+        //  同步 m_buffer 到 async_logger 的buffer队尾
+        void syncLoop();
+
+        void flush();
+
+        AsyncLogger::async_logger_sptr_t_ getAsyncAppLogger() {
+            return m_async_logger;
+        }
 
         LogLevel getLogLevel() const {
             return m_set_level;
         }
 
     public:
-        static Logger *GetGlobalLogger();
 
-        static void InitGlobalLogger();
+        static std::unique_ptr<Logger> &GetGlobalLogger();
+
+        static void InitGlobalLogger(int type = 1,bool is_server = true);
 
     private:
         LogLevel m_set_level;
-        std::queue<std::string> m_buffer;
-
+        std::vector<std::string> m_buffer;
         Mutex m_mutex;
 
+        AsyncLogger::async_logger_sptr_t_ m_async_logger;
+
+        TimerEventInfo::time_event_info_sptr_t_ m_timer_event;
+        int m_type{0}; // 为0就是只在控制台输出，1是输出到文件
+        bool m_is_server{true};
     };
 
     std::string LogLevelToString(LogLevel level);
 
     LogLevel StringToLogLevel(const std::string &log_level);
 
+    // 将时间以及level等字符串进行聚合
     class LogEvent {
     public:
-
-        LogEvent(LogLevel level) : m_level(level) {}
-
-        std::string getFileName() const {
-            return m_file_name;
-        }
+        explicit LogEvent(LogLevel level) : m_level(level) {}
 
         LogLevel getLogLevel() const {
             return m_level;
@@ -147,13 +153,9 @@ namespace rocket {
         std::string toString();
 
     private:
-        std::string m_file_name;  // 文件名
-        int32_t m_file_line;  // 行号
-        int32_t m_pid;  // 进程号
-        int32_t m_thread_id;  // 线程号
-
+        int32_t m_pid{0};  // 进程号
+        int32_t m_thread_id{0};  // 线程号
         LogLevel m_level;     //日志级别
-
     };
 }
 

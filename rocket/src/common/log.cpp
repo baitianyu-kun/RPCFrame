@@ -5,100 +5,93 @@
 #include "common/log.h"
 #include "common/util.h"
 #include "common/config.h"
+#include "net/eventloop.h"
 
 #define TIME_ARRAY_SIZE 32
 
 namespace rocket {
 
-    static Logger *g_logger = NULL;
+    static std::unique_ptr<Logger> g_logger = nullptr;
 
-    Logger *Logger::GetGlobalLogger() {
+    std::unique_ptr<Logger> &Logger::GetGlobalLogger() {
         return g_logger;
     }
 
-    void Logger::InitGlobalLogger() {
-
+    void Logger::InitGlobalLogger(int type /*= 1*/, bool is_server /* true */) {
         LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
         printf("Init log level [%s]\n", LogLevelToString(global_log_level).c_str());
-        g_logger = new Logger(global_log_level);
-
+        g_logger = std::move(std::unique_ptr<Logger>(new Logger(global_log_level, type, is_server)));
+        g_logger->init_log_timer();
     }
 
-    std::string LogLevelToString(LogLevel level) {
-        switch (level) {
-            case Debug:
-                return "DEBUG";
-
-            case Info:
-                return "INFO";
-
-            case Error:
-                return "ERROR";
-            default:
-                return "UNKNOWN";
+    Logger::Logger(LogLevel level, int type /* = 1*/, bool is_server /* true */) : m_set_level(level), m_type(type) {
+        if (m_type == 0) {
+            return;
         }
-    }
-
-    LogLevel StringToLogLevel(const std::string &log_level) {
-        if (log_level == "DEBUG") {
-            return Debug;
-        } else if (log_level == "INFO") {
-            return Info;
-        } else if (log_level == "ERROR") {
-            return Error;
+        if (is_server) {
+            m_async_logger = std::make_shared<AsyncLogger>(
+                    Config::GetGlobalConfig()->m_log_file_name + "_server",
+                    Config::GetGlobalConfig()->m_log_file_path,
+                    Config::GetGlobalConfig()->m_log_max_file_size);
         } else {
-            return Unknown;
+            m_async_logger = std::make_shared<AsyncLogger>(
+                    Config::GetGlobalConfig()->m_log_file_name + "_client",
+                    Config::GetGlobalConfig()->m_log_file_path,
+                    Config::GetGlobalConfig()->m_log_max_file_size);
         }
     }
 
-    std::string LogEvent::toString() {
-        struct timeval now_time;
+    void Logger::init_log_timer() {
+        // 初始化timer event，timer event负责定时同步log到async logger的队尾
+        // timer event info中也有debug的log信息，如果放到构造函数中的话，就会出现此处需要创建timer event info，但是timer event info中
+        // 又需要log创建，二者之间出现了相互依赖的问题，只能先创建logger，然后再去写方法init timer event
+        if (m_type == 0) {
+            return;
+        }
+        m_timer_event = std::make_shared<TimerEventInfo>(Config::GetGlobalConfig()->m_log_sync_interval,
+                                                         true,
+                                                         std::bind(&Logger::syncLoop, this));
 
-        gettimeofday(&now_time, nullptr);
+        // TCPServer是主线程，拿了一个event loop的unique ptr，
+        // 然后每个io thread分别又拿了一个新的event loop的unique ptr(因为加了thread local关键字)
+        // 此时再move的话，会导致tcp server中的event loop被move到这里，就出了问题
+        // auto m_main_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
 
-        struct tm now_time_t;
-        localtime_r(&(now_time.tv_sec), &now_time_t);
+        // 在logger创建的时候这个是个裸指针，TCPServer或者TCPClient创建后裸指针被TCPServer或TCPClient接管，
+        // 此时下面的裸指针和TCPServer或TCPClient里面的unique ptr共同进行管理
+        // 这里可能需要改一下，感觉还是有点问题
 
-        char buf[128];
-        strftime(&buf[0], 128, "%y-%m-%d %H:%M:%S", &now_time_t);
-        std::string time_str(buf);
-        int ms = now_time.tv_usec / 1000;
-        time_str = time_str + "." + std::to_string(ms);
+        // 同时，有可能在rpc channel中，还没来得及运行定时任务进行输出就结束进程了，造成日志出问题
+        EventLoop::GetCurrentEventLoop()->addTimerEvent(m_timer_event);
+    }
 
+    void Logger::syncLoop() {
+        // 同步 m_buffer 到 async_logger 的buffer队尾
+        std::vector<std::string> tmp_vec;
+        ScopeMutext<Mutex> lock(m_mutex);
+        tmp_vec.swap(m_buffer);
+        lock.unlock();
+        if (!tmp_vec.empty()) {
+            m_async_logger->pushLogBuffer(tmp_vec);
+        }
+        tmp_vec.clear();
+    }
 
-        m_pid = getPid();
-        m_thread_id = getThreadId();
-
-        std::stringstream ss;
-
-        ss << "[" << LogLevelToString(m_level) << "]\t"
-           << "[" << time_str << "]\t"
-           << "[" << m_pid << ":" << m_thread_id << "]\t";
-
-        return ss.str();
+    void Logger::flush() {
+        syncLoop();
+        // 先暂停再输出
+        m_async_logger->stop();
+        m_async_logger->flush();
     }
 
     void Logger::pushLog(const std::string &msg) {
-        ScopeMutext<Mutex> lock(m_mutex);
-        m_buffer.push(msg);
-        lock.unlock();
-
-    }
-
-    void Logger::log() {
-
-        ScopeMutext<Mutex> lock(m_mutex);
-        std::queue<std::string> tmp;
-        m_buffer.swap(tmp);
-
-        lock.unlock();
-
-        while (!tmp.empty()) {
-            std::string msg = tmp.front();
-            tmp.pop();
-            printf(msg.c_str());
+        if (m_type == 0) {
+            printf("%s", (msg).c_str());
+            return;
         }
-
+        ScopeMutext<Mutex> lock(m_mutex);
+        m_buffer.emplace_back(msg);
+        lock.unlock();
     }
 
     AsyncLogger::AsyncLogger(const std::string &file_name, const std::string &file_path, int max_size) : m_file_name(
@@ -218,5 +211,56 @@ namespace rocket {
             }
         }
         return nullptr;
+    }
+
+    std::string LogLevelToString(LogLevel level) {
+        switch (level) {
+            case Debug:
+                return "DEBUG";
+            case Info:
+                return "INFO";
+            case Error:
+                return "ERROR";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    LogLevel StringToLogLevel(const std::string &log_level) {
+        if (log_level == "DEBUG") {
+            return Debug;
+        } else if (log_level == "INFO") {
+            return Info;
+        } else if (log_level == "ERROR") {
+            return Error;
+        } else {
+            return Unknown;
+        }
+    }
+
+    std::string LogEvent::toString() {
+        struct timeval now_time;
+
+        gettimeofday(&now_time, nullptr);
+
+        struct tm now_time_t;
+        localtime_r(&(now_time.tv_sec), &now_time_t);
+
+        char buf[128];
+        strftime(&buf[0], 128, "%y-%m-%d %H:%M:%S", &now_time_t);
+        std::string time_str(buf);
+        int ms = now_time.tv_usec / 1000;
+        time_str = time_str + "." + std::to_string(ms);
+
+        m_pid = getPid();
+        m_thread_id = getThreadId();
+
+        std::stringstream ss;
+
+        ss << "[" << LogLevelToString(m_level) << "]\t"
+           << "[" << time_str << "]\t"
+           << "[" << m_pid << ":" << m_thread_id << "]\t";
+
+        return ss.str();
     }
 }

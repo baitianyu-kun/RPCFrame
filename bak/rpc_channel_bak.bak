@@ -5,7 +5,7 @@
 #include <google/protobuf/message.h>
 #include "net/rpc/rpc_channel.h"
 #include "net/rpc/rpc_controller.h"
-#include "net/coder/tinypb_protocol.h"
+#include "net/coder/tinypb/tinypb_protocol.h"
 #include "common/msg_id_util.h"
 #include "common/log.h"
 #include "common/error_code.h"

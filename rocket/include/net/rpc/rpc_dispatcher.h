@@ -11,7 +11,7 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include "net/coder/abstract_protocol.h"
-#include "net/coder/tinypb_protocol.h"
+#include "net/coder/tinypb/tinypb_protocol.h"
 #include "net/tcp/tcp_connection.h"
 
 namespace rocket {

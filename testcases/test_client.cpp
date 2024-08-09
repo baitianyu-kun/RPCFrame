@@ -18,8 +18,8 @@
 #include "net/tcp/tcp_client.h"
 #include "net/coder/string_coder.h"
 #include "net/coder/abstract_protocol.h"
-#include "net/coder/tinypb_protocol.h"
-#include "net/coder/tinypb_coder.h"
+#include "net/coder/tinypb/tinypb_protocol.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 
 void test_connect_client_tinypb() {
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);

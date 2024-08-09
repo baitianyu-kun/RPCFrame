@@ -18,8 +18,8 @@
 #include "net/tcp/tcp_client.h"
 #include "net/coder/string_coder.h"
 #include "net/coder/abstract_protocol.h"
-#include "net/coder/tinypb_protocol.h"
-#include "net/coder/tinypb_coder.h"
+#include "net/coder/tinypb/tinypb_protocol.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 #include <google/protobuf/service.h>
 #include "order.pb.h"
 #include "net/rpc/rpc_channel.h"

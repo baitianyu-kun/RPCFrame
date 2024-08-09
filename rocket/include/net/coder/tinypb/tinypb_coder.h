@@ -7,7 +7,7 @@
 
 #include <string>
 #include "net/coder/abstract_coder.h"
-#include "net/coder/tinypb_protocol.h"
+#include "tinypb_protocol.h"
 
 #define MAX_CHAR_ARRAY_LEN 512
 #define DEFAULT_MSG_ID "123456"

@@ -2,8 +2,8 @@
 // Created by baitianyu on 7/23/24.
 //
 #include <arpa/inet.h>
-#include "net/coder/tinypb_protocol.h"
-#include "net/coder/tinypb_coder.h"
+#include "net/coder/tinypb/tinypb_protocol.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 #include "common/util.h"
 #include "common/log.h"
 

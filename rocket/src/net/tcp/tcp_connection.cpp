@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <utility>
 #include "net/tcp/tcp_connection.h"
-#include "net/coder/tinypb_coder.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 #include "net/rpc/rpc_dispatcher.h"
 
 namespace rocket {

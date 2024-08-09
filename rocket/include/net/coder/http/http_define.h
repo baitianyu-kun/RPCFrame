@@ -10,6 +10,13 @@
 
 namespace rocket {
 
+    // 在这里使用cpp里面的值，方便给其他引入该头文件的使用
+    extern std::string g_CRLF;
+    extern std::string g_CRLF_DOUBLE;
+
+    extern std::string content_type_text;
+    extern const char *default_html_template;
+
     enum HTTPMethod {
         GET = 1,
         POSE = 2

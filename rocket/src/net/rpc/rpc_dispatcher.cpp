@@ -32,12 +32,12 @@ namespace rocket {
         auto req_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(request);
         auto rsp_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(response);
         // rpc调用method为：Order.makeOrder，前面是service名，后面是方法名
-        auto method_full_name = req_protocol->m_method_name;
+        auto method_full_name = req_protocol->m_method_full_name;
         std::string service_name;
         std::string method_name;
         // 赋予相同的id，二者的方法名肯定也一样
         rsp_protocol->m_msg_id = req_protocol->m_msg_id;
-        rsp_protocol->m_method_name = req_protocol->m_method_name;
+        rsp_protocol->m_method_full_name = req_protocol->m_method_full_name;
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
             setTinyPBError(rsp_protocol, ERROR_PARSE_SERVICE_NAME, "parse service name error");
             return;
@@ -78,8 +78,8 @@ namespace rocket {
 
         // 放入RunTime中使得log能够拿到msg id和addr
         RunTime::GetRunTime()->m_msg_id = req_protocol->m_msg_id;
-        // // req_protocol->m_method_name是全名，例如Order.make_order，前面是service name，后面是method name
-        RunTime::GetRunTime()->m_method_name = req_protocol->m_method_name;
+        // // req_protocol->m_method_full_name是全名，例如Order.make_order，前面是service name，后面是method name
+        RunTime::GetRunTime()->m_method_full_name = req_protocol->m_method_full_name;
 
         // Closure* done是回调函数
         service->CallMethod(method, rpc_controller.get(), req_msg.get(), rsp_msg.get(), nullptr);

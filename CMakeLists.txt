@@ -42,7 +42,10 @@ add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_
         rocket/include/net/coder/http/http_coder.h
         rocket/include/net/coder/http/http_define.h
         rocket/include/net/coder/http/http_request.h
-        rocket/include/net/coder/http/http_response.h)
+        rocket/include/net/coder/http/http_response.h
+        rocket/include/common/string_util.h
+        rocket/include/net/coder/tinypb/tinypb_dispatcher.h
+        rocket/include/net/coder/http/http_dispatcher.h)
 target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_rpc_client pthread)
 
@@ -53,6 +56,9 @@ add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_
         rocket/include/net/coder/http/http_coder.h
         rocket/include/net/coder/http/http_define.h
         rocket/include/net/coder/http/http_request.h
-        rocket/include/net/coder/http/http_response.h)
+        rocket/include/net/coder/http/http_response.h
+        rocket/include/common/string_util.h
+        rocket/include/net/coder/tinypb/tinypb_dispatcher.h
+        rocket/include/net/coder/http/http_dispatcher.h)
 target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
 target_link_libraries(test_rpc_server pthread)

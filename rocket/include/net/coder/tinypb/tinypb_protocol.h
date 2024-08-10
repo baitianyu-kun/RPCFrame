@@ -36,7 +36,7 @@ namespace rocket {
         int32_t m_pk_len{0}; // 整包长度
         int32_t m_msg_id_len{0}; // msg id的长度
         int32_t m_method_len{0}; // 方法长度
-        std::string m_method_name;
+        std::string m_method_full_name;
         int32_t m_err_info_len{0};
         int32_t m_err_code{0};
         std::string m_err_info;

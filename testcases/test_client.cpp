@@ -30,7 +30,7 @@ void test_connect_client_tinypb() {
         message->m_msg_id = "123456789";
         message->m_pb_data = "test pb data";
         message->m_err_info="no error";
-        message->m_method_name="call back method";
+        message->m_method_full_name="call back method";
         message->m_err_code = 123;
         client.writeMessage(message, [](rocket::AbstractProtocol::abstract_pro_sptr_t_ msg_ptr) {
             DEBUGLOG("send message success");

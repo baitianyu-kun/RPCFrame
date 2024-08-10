@@ -103,8 +103,8 @@ namespace rocket {
                 char method_name_index = method_name_len_index + sizeof(message->m_method_len);
                 char method_name[MAX_CHAR_ARRAY_LEN] = {0};
                 memcpy(&method_name[0], &tmp[method_name_index], message->m_method_len);
-                message->m_method_name = std::string(method_name);
-                DEBUGLOG("parse method_name = %s", message->m_method_name.c_str());
+                message->m_method_full_name = std::string(method_name);
+                DEBUGLOG("parse method_name = %s", message->m_method_full_name.c_str());
                 // errcode
                 int err_code_index = method_name_index + message->m_method_len;
                 if (err_code_index >= end_index) {
@@ -150,7 +150,7 @@ namespace rocket {
         }
         DEBUGLOG("msg_id = %s", message->m_msg_id.c_str());
         int pk_len =
-                2 + 24 + message->m_msg_id.length() + message->m_method_name.length() + message->m_err_info.length() +
+                2 + 24 + message->m_msg_id.length() + message->m_method_full_name.length() + message->m_err_info.length() +
                 message->m_pb_data.length();
         DEBUGLOG("pk_len = %d", pk_len);
         // 使用malloc来预先分配内存，否则p指向的是随机的内存，*p = 'a'是不可以的
@@ -179,13 +179,13 @@ namespace rocket {
             tmp += msg_id_len;
         }
         // method name len
-        auto method_name_len = message->m_method_name.length();
+        auto method_name_len = message->m_method_full_name.length();
         auto method_name_len_net = htonl(method_name_len);
         memcpy(tmp, &method_name_len_net, sizeof(method_name_len_net));
         tmp += sizeof(method_name_len_net);
         // method name
-        if (!message->m_method_name.empty()) {
-            memcpy(tmp, &(message->m_method_name[0]), method_name_len);
+        if (!message->m_method_full_name.empty()) {
+            memcpy(tmp, &(message->m_method_full_name[0]), method_name_len);
             tmp += method_name_len;
         }
         // error code
@@ -215,7 +215,7 @@ namespace rocket {
 
         message->m_pk_len = pk_len;
         message->m_msg_id_len = msg_id_len;
-        message->m_method_name = method_name_len;
+        message->m_method_full_name = method_name_len;
         message->m_err_info_len = err_info_len;
         message->parse_success = true;
         len = pk_len;

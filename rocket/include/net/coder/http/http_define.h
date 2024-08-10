@@ -19,7 +19,7 @@ namespace rocket {
 
     enum HTTPMethod {
         GET = 1,
-        POSE = 2
+        POST = 2
     };
 
     enum HTTPCode {

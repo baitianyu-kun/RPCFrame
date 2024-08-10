@@ -12,6 +12,7 @@
 #include "net/eventloop.h"
 #include "net/io_thread_pool.h"
 #include "net/tcp/tcp_connection.h"
+#include "net/coder/abstract_protocol.h"
 
 #define MAX_THREAD_POOL_SIZE 20
 #define TIMER_EVENT_INTERVAL 5000
@@ -19,7 +20,7 @@
 namespace rocket {
     class TCPServer {
     public:
-        explicit TCPServer(NetAddr::net_addr_sptr_t_ local_addr);
+        TCPServer(NetAddr::net_addr_sptr_t_ local_addr, ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~TCPServer();
 
@@ -47,6 +48,8 @@ namespace rocket {
         std::set<TCPConnection::tcp_connection_sptr_t_> m_client_connection;
 
         int m_client_counts{0};
+
+        ProtocolType m_protocol_type;
     };
 }
 

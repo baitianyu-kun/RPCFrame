@@ -34,7 +34,8 @@ namespace rocket {
     public:
         TCPConnection(EventLoop::event_loop_sptr_t_ event_loop, int client_fd, int buffer_size,
                       NetAddr::net_addr_sptr_t_ peer_addr,
-                      NetAddr::net_addr_sptr_t_ local_addr, TCPConnectionType type = TCPConnectionByServer);
+                      NetAddr::net_addr_sptr_t_ local_addr, TCPConnectionType type = TCPConnectionByServer,
+                      ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~TCPConnection();
 
@@ -80,6 +81,8 @@ namespace rocket {
         // 连接的客户端地址
         NetAddr::net_addr_sptr_t_ getPeerAddr();
 
+        ProtocolType getProtocolType();
+
     private:
         // ============================================OLD==========================================================
         // 这里使用的是io thread里面创建的event loop，所以创建一个指针共同管理，使用unique的get方法
@@ -110,6 +113,8 @@ namespace rocket {
         // key为msg id
         std::unordered_map<std::string,
                 std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
+
+        ProtocolType m_protocol_type;
     };
 
 }

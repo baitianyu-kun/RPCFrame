@@ -32,13 +32,15 @@ namespace rocket {
                                          int buffer_size,
                                          NetAddr::net_addr_sptr_t_ peer_addr,
                                          NetAddr::net_addr_sptr_t_ local_addr,
-                                         TCPConnectionType type /*TCPConnectionByServer*/) :
+                                         TCPConnectionType type /*TCPConnectionByServer*/,
+                                         ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) :
             m_event_loop(event_loop),
             m_local_addr(local_addr),
             m_peer_addr(peer_addr),
             m_state(NotConnected),
             m_client_fd(client_fd),
-            m_connection_type(type) {
+            m_connection_type(type),
+            m_protocol_type(protocol) {
         m_in_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
@@ -326,6 +328,10 @@ namespace rocket {
 
     NetAddr::net_addr_sptr_t_ TCPConnection::getPeerAddr() {
         return m_peer_addr;
+    }
+
+    ProtocolType TCPConnection::getProtocolType() {
+        return m_protocol_type;
     }
 
 

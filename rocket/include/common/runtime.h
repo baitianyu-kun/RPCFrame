@@ -40,7 +40,7 @@ namespace rocket {
 
     public:
         std::string m_msg_id;
-        std::string m_method_name;
+        std::string m_method_full_name;
     };
 }
 

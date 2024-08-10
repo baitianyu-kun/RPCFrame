@@ -24,11 +24,11 @@ namespace rocket {
                     TCPBuffer::tcp_buffer_sptr_t_ in_buffer) override;
 
     private:
-        bool parseHttpRequestLine(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
+        bool parseHTTPRequestLine(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
 
-        bool parseHttpRequestHeader(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
+        bool parseHTTPRequestHeader(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
 
-        bool parseHttpRequestContent(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
+        bool parseHTTPRequestContent(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
     };
 
 }

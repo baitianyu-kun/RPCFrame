@@ -54,8 +54,8 @@ namespace rocket {
         } else {
             req_protocol->m_msg_id = rpc_controller->GetMSGID();
         }
-        req_protocol->m_method_name = method->full_name();
-        INFOLOG("%s | call method name [%s]", req_protocol->m_msg_id.c_str(), req_protocol->m_method_name.c_str());
+        req_protocol->m_method_full_name = method->full_name();
+        INFOLOG("%s | call method name [%s]", req_protocol->m_msg_id.c_str(), req_protocol->m_method_full_name.c_str());
         // 判断是否init
         if (!m_is_init) {
             std::string err_info = "RpcChannel not call init()";
@@ -132,7 +132,7 @@ namespace rocket {
             this_channel->GetClient()->writeMessage(req_protocol, [req_protocol, this_channel, rpc_controller](
                     AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
                 INFOLOG("%s | success send rpc request. call method name [%s], peer addr [%s], local addr[%s]",
-                        req_protocol->m_msg_id.c_str(), req_protocol->m_method_name.c_str(),
+                        req_protocol->m_msg_id.c_str(), req_protocol->m_method_full_name.c_str(),
                         this_channel->GetClient()->getPeerAddr()->toString().c_str(),
                         this_channel->GetClient()->getLocalAddr()->toString().c_str());
                 // 读取
@@ -148,13 +148,13 @@ namespace rocket {
                     // 协议里面的err code是否为错误
                     if (rsp_protocol->m_err_code != 0) {
                         ERRORLOG("%s | call rpc method [%s] failed, error code [%d], error info [%s]",
-                                 rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(),
+                                 rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_full_name.c_str(),
                                  rsp_protocol->m_err_code, rsp_protocol->m_err_info.c_str());
                         rpc_controller->SetError(rsp_protocol->m_err_code, rsp_protocol->m_err_info);
                         return;
                     }
                     INFOLOG("%s | success get rpc response, call method name [%s], peer addr [%s], local addr[%s], response [%s]",
-                            rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(),
+                            rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_full_name.c_str(),
                             this_channel->GetClient()->getPeerAddr()->toString().c_str(),
                             this_channel->GetClient()->getLocalAddr()->toString().c_str(),
                             this_channel->GetResponse()->ShortDebugString().c_str());

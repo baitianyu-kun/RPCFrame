@@ -127,7 +127,7 @@ void test_rpc_client() {
             ERRORLOG("serialize error");
             return;
         }
-        message->m_method_name = "Order.makeOrder";
+        message->m_method_full_name = "Order.makeOrder";
         client.writeMessage(message, [request](rocket::AbstractProtocol::abstract_pro_sptr_t_ msg_ptr) {
             DEBUGLOG("send message success, request[%s]", request.ShortDebugString().c_str());
         });

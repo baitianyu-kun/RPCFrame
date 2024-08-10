@@ -8,6 +8,13 @@
 #include <memory>
 
 namespace rocket {
+
+    enum ProtocolType {
+        TinyPB_Protocol = 1,
+        HTTP_Protocol = 2
+    };
+
+
     // 为什么要用 enable_shared_from_this？
     // 1. 需要在类对象的内部中获得一个指向当前对象的 shared_ptr 对象。
     // 2. 如果在一个程序中，对象内存的生命周期全部由智能指针来管理。在这种情况下，要在一个类的成员函数中，对外部返回 this 指针就成了一个很棘手的问题。

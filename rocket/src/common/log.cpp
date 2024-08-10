@@ -339,7 +339,7 @@ namespace rocket {
 
         // 保存运行时候的msg id，RPCDispatcher放到RunTime里，然后这里获取
         std::string msg_id = RunTime::GetRunTime()->m_msg_id;
-        std::string method_name = RunTime::GetRunTime()->m_method_name;
+        std::string method_name = RunTime::GetRunTime()->m_method_full_name;
         if (!msg_id.empty()) {
             ss << "[" << msg_id << "]\t";
         }

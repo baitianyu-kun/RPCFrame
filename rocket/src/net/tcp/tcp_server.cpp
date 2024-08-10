@@ -4,7 +4,8 @@
 #include "net/tcp/tcp_server.h"
 
 namespace rocket {
-    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr) : m_local_addr(local_addr) {
+    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr, ProtocolType protocol) : m_local_addr(
+            local_addr), m_protocol_type(protocol) {
         init();
         INFOLOG("rocket TcpServer listen sucess on [%s]", m_local_addr->toString().c_str());
     }

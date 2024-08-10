@@ -26,6 +26,11 @@
 #include <google/protobuf/service.h>
 #include <google/protobuf/stubs/callback.h>
 #include "order.pb.h"
+#include "net/coder/http/http_coder.h"
+#include "net/coder/http/http_define.h"
+#include "net/coder/abstract_coder.h"
+#include "net/coder/abstract_protocol.h"
+
 
 
 class OrderImpl : public Order {
@@ -57,10 +62,10 @@ public:
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger(1);
+    rocket::Logger::InitGlobalLogger(0);
     std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    rocket::TCPServer tcp_server(addr);
+    rocket::TCPServer tcp_server(addr,rocket::ProtocolType::HTTP_Protocol);
     tcp_server.registerService(service);
     tcp_server.start();
     return 0;

@@ -26,6 +26,41 @@
 #include "net/rpc/rpc_controller.h"
 #include "net/rpc/rpc_closure.h"
 
+
+void test_rpc_channel_timeout_marcos_http() {
+    rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    auto channel = std::make_shared<rocket::RPCChannel>(addr,rocket::ProtocolType::HTTP_Protocol);
+    auto request = std::make_shared<makeOrderRequest>();
+    request->set_price(100);
+    request->set_goods("apple");
+    auto response = std::make_shared<makeOrderResponse>();
+    auto controller = std::make_shared<rocket::RPCController>();
+    controller->SetMsgId("99998888");
+    auto closure = std::make_shared<rocket::RPCClosure>([request, response, channel, controller]() mutable {
+        if (controller->GetErrorCode() == 0) {
+            INFOLOG("call rpc success, request[%s], response[%s]",
+                    request->ShortDebugString().c_str(),
+                    response->ShortDebugString().c_str());
+            // 执行业务逻辑
+            if (response->order_id() == "20230514") {
+                INFOLOG("hello");
+            }
+        } else {
+            ERRORLOG("call rpc failed, request[%s], error code[%d], error info[%s]",
+                     request->ShortDebugString().c_str(),
+                     controller->GetErrorCode(),
+                     controller->GetErrorInfo().c_str());
+        }
+        INFOLOG("now exit client event loop");
+        channel->GetClient()->stop();
+        channel.reset();
+    });
+    controller->SetTimeout(2000); // 设置超时时间
+    channel->Init(controller, request, response, closure);
+    Order_Stub stub(channel.get());
+    stub.makeOrder(controller.get(), request.get(), response.get(), closure.get());
+}
+
 void test_rpc_channel_timeout_marcos() {
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
     NEW_RPC_CHANNEL(addr, channel);
@@ -147,7 +182,7 @@ void test_rpc_client() {
 
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger(1, false);
+    rocket::Logger::InitGlobalLogger(0, false);
     test_rpc_channel_timeout_marcos();
 }
 

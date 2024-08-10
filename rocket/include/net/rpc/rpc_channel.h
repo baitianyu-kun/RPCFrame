@@ -9,6 +9,7 @@
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_client.h"
 #include "net/timer_fd_event.h"
+#include "net/coder/abstract_protocol.h"
 
 #define NEW_MESSAGE(type, var_name) \
         std::shared_ptr<type> var_name = std::make_shared<type>(); \
@@ -39,7 +40,7 @@ namespace rocket {
         using google_message_sptr_t_ = std::shared_ptr<google::protobuf::Message>;
         using google_closure_sptr_t_ = std::shared_ptr<google::protobuf::Closure>;
 
-        explicit RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr);
+        RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr,ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~RPCChannel() override;
 
@@ -98,6 +99,8 @@ namespace rocket {
         TimerEventInfo::time_event_info_sptr_t_ m_timeout_timer_event_info; // 超时时间定时器
 
         bool m_is_init{false}; // 是否初始化
+
+        ProtocolType m_protocol_type;
 
     };
 

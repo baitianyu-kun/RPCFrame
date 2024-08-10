@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "net/tcp/tcp_connection.h"
 #include "net/coder/tinypb/tinypb_coder.h"
+#include "net/coder/http/http_response.h"
 
 namespace rocket {
     // auto ret = m_acceptor->accept();
@@ -32,7 +33,8 @@ namespace rocket {
                                          NetAddr::net_addr_sptr_t_ local_addr,
                                          AbstractCoder::abstract_coder_sptr_t_ coder,
                                          AbstractDispatcher::abstract_disp_sptr_t dispatcher,
-                                         TCPConnectionType type /*TCPConnectionByServer*/) :
+                                         TCPConnectionType type /*TCPConnectionByServer*/,
+                                         ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) :
             m_event_loop(event_loop),
             m_local_addr(local_addr),
             m_peer_addr(peer_addr),
@@ -40,7 +42,8 @@ namespace rocket {
             m_client_fd(client_fd),
             m_connection_type(type),
             m_coder(coder),
-            m_dispatcher(dispatcher) {
+            m_dispatcher(dispatcher),
+            m_protocol_type(protocol) {
         m_in_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
@@ -155,9 +158,12 @@ namespace rocket {
             for (const auto &result: results) {
                 INFOLOG("success get request[%s] from client[%s]", result->m_msg_id.c_str(),
                         m_peer_addr->toString().c_str());
-                auto message = std::make_shared<TinyPBProtocol>();
-                // message->m_pb_data = "hello, server return rpc test data";
-                // message->m_msg_id = result->m_msg_id;
+                AbstractProtocol::abstract_pro_sptr_t_ message{nullptr};
+                if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+                    message = std::make_shared<HTTPResponse>();
+                } else if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
+                    message = std::make_shared<TinyPBProtocol>();
+                }
                 // 当一个类被共享智能指针 share_ptr 管理，且在类的成员函数里需要把当前类对象作为参数传给其他函数时，这时就需要传递一个指向自身的 share_ptr。
                 // RPCDispatcher::GetRPCDispatcher()->dispatch(result, message, shared_from_this());
                 m_dispatcher->dispatch(result, message, m_peer_addr, m_local_addr);

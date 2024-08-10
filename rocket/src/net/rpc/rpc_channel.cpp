@@ -12,8 +12,9 @@
 
 namespace rocket {
 
-    RPCChannel::RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr) : m_peer_addr(peer_addr) {
-        m_client = std::make_shared<TCPClient>(m_peer_addr);
+    RPCChannel::RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr, ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/)
+            : m_peer_addr(peer_addr), m_protocol_type(protocol) {
+        m_client = std::make_shared<TCPClient>(m_peer_addr, m_protocol_type);
     }
 
     RPCChannel::~RPCChannel() {

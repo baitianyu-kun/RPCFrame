@@ -38,7 +38,8 @@ namespace rocket {
                       NetAddr::net_addr_sptr_t_ local_addr,
                       AbstractCoder::abstract_coder_sptr_t_ coder,
                       AbstractDispatcher::abstract_disp_sptr_t dispatcher,
-                      TCPConnectionType type = TCPConnectionByServer);
+                      TCPConnectionType type = TCPConnectionByServer,
+                      ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~TCPConnection();
 
@@ -116,6 +117,8 @@ namespace rocket {
         // key为msg id
         std::unordered_map<std::string,
                 std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
+
+        ProtocolType m_protocol_type;
     };
 
 }

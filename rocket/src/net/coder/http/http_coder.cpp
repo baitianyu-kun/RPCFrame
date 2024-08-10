@@ -14,14 +14,20 @@ namespace rocket {
                            TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
         for (const auto &in_message: in_messages) {
             auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
-            std::stringstream ss;
-            ss << response->m_response_version << " "
-               << response->m_response_code << " "
-               << response->m_response_info << g_CRLF
-               << response->m_response_properties.toHTTPString() << g_CRLF
-               << response->m_response_body;
-            std::string http_res = ss.str();
-            out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
+            // std::stringstream ss;
+            DEBUGLOG("%s", response->m_response_version.c_str());
+            // DEBUGLOG("%s", response->m_response_info.c_str());
+            // DEBUGLOG("%s", response->m_response_properties.toHTTPString().c_str());
+            // DEBUGLOG("%s", response->m_response_body.c_str());
+
+
+            // ss << response->m_response_version << " "
+            //    << response->m_response_code << " "
+            //    << response->m_response_info << g_CRLF
+            //    << response->m_response_properties.toHTTPString() << g_CRLF
+            //    << response->m_response_body;
+            // std::string http_res = ss.str();
+            // out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
             DEBUGLOG("HTTP encode success");
         }
     }
@@ -64,7 +70,11 @@ namespace rocket {
             tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
             read_size += i_crlf_double + 4;
             // ================request content================
-            auto content_len = std::stoi(request->m_request_properties.m_map_properties["Content-Length"]);
+            int content_len = 0;
+            if (request->m_request_properties.m_map_properties.find("Content-Length") !=
+                request->m_request_properties.m_map_properties.end()) {
+                content_len = std::stoi(request->m_request_properties.m_map_properties["Content-Length"]);
+            }
             // content len 得大于上面请求行和properties的长度
             if (read_size < content_len) {
                 continue;
@@ -85,9 +95,10 @@ namespace rocket {
     }
 
     bool HTTPCoder::parseHTTPRequestLine(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp) {
+        DEBUGLOG("request str: %s", tmp.c_str());
         // 请求行：请求方法，空格，URL，空格，HTTP版本，gCRLF
         auto space1 = tmp.find_first_of(" ");
-        auto space2 = tmp.find_first_of(" ");
+        auto space2 = tmp.find_last_of(" ");
         if (space1 == tmp.npos || space2 == tmp.npos || space1 == space2) {
             ERRORLOG("parse HTTP request line error, space is not 2");
             return false;

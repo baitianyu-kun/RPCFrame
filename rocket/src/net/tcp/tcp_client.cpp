@@ -5,11 +5,13 @@
 #include "net/tcp/tcp_client.h"
 #include "common/error_code.h"
 #include "net/coder/tinypb/tinypb_coder.h"
+#include "net/coder/http/http_coder.h"
 
 namespace rocket {
-    rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr, ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/) : m_peer_addr(peer_addr),
-                                                                                               m_protocol_type(
-                                                                                                       protocol) {
+    rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr,
+                                 ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/) : m_peer_addr(peer_addr),
+                                                                                           m_protocol_type(
+                                                                                                   protocol) {
         m_event_loop = EventLoop::GetCurrentEventLoop();
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         if (m_client_fd < 0) {
@@ -19,7 +21,7 @@ namespace rocket {
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(m_client_fd);
         m_fd_event->setNonBlock();
         if (m_protocol_type == ProtocolType::HTTP_Protocol) {
-
+            m_coder = std::make_shared<HTTPCoder>();
         } else if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
             m_coder = std::make_shared<TinyPBCoder>();
         }
@@ -32,7 +34,8 @@ namespace rocket {
                 nullptr,
                 m_coder,
                 nullptr,
-                TCPConnectionByClient
+                TCPConnectionByClient,
+                m_protocol_type
         );
     }
 
@@ -161,7 +164,7 @@ namespace rocket {
         // 由于是client，其地址是系统随机分配的，所以可以读取sockfd来读取到其分配到的地址
         sockaddr_in local_addr;
         socklen_t len = sizeof(local_addr);
-        int ret = getsockname(m_client_fd, (sockaddr *) (&local_addr), &len);
+        int ret = getsockname(m_client_fd, (sockaddr * )(&local_addr), &len);
         if (ret != 0) {
             ERRORLOG("initLocalAddr error, getsockname error. errno = %d, error = %s", errno, strerror(errno));
             return;

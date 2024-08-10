@@ -11,23 +11,29 @@
 namespace rocket {
 
     void HTTPCoder::encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                           TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
+                           TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client /*false*/) {
         for (const auto &in_message: in_messages) {
-            auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
-            // std::stringstream ss;
-            DEBUGLOG("%s", response->m_response_version.c_str());
-            // DEBUGLOG("%s", response->m_response_info.c_str());
-            // DEBUGLOG("%s", response->m_response_properties.toHTTPString().c_str());
-            // DEBUGLOG("%s", response->m_response_body.c_str());
-
-
-            // ss << response->m_response_version << " "
-            //    << response->m_response_code << " "
-            //    << response->m_response_info << g_CRLF
-            //    << response->m_response_properties.toHTTPString() << g_CRLF
-            //    << response->m_response_body;
-            // std::string http_res = ss.str();
-            // out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
+            std::string http_res;
+            if (!is_http_client) {
+                auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
+                std::stringstream ss;
+                ss << response->m_response_version << " "
+                   << response->m_response_code << " "
+                   << response->m_response_info << g_CRLF
+                   << response->m_response_properties.toHTTPString() << g_CRLF
+                   << response->m_response_body;
+                http_res = ss.str();
+            } else {
+                auto request = std::dynamic_pointer_cast<HTTPRequest>(in_message);
+                std::stringstream ss;
+                ss << HTTPMethodToString(request->m_request_method) << " "
+                   << request->m_request_path << " "
+                   << request->m_request_version << g_CRLF
+                   << request->m_request_properties.toHTTPString() << g_CRLF
+                   << request->m_request_body;
+                http_res = ss.str();
+            }
+            out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
             DEBUGLOG("HTTP encode success");
         }
     }

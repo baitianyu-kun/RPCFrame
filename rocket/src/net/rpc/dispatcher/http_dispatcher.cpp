@@ -32,12 +32,6 @@ namespace rocket {
         std::string service_name;
         std::string method_name;
 
-
-        method_full_name = "Order.makeOrder";
-        pb_data="dapple";
-        req_protocol->m_msg_id = "2323232";
-
-
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
             return;
         }
@@ -79,8 +73,9 @@ namespace rocket {
         std::string res_pb_data;
         rsp_msg->SerializeToString(&res_pb_data);
         std::string final_res = "method_full_name:" + method_full_name + g_CRLF
-                                + "pb_data:" + res_pb_data;
-        rsp_protocol->m_response_body = default_html_template;
+                                + "pb_data:" + res_pb_data + g_CRLF
+                                + "msg_id:" + req_protocol->m_msg_id;
+        rsp_protocol->m_response_body = final_res;
         rsp_protocol->m_response_version = req_protocol->m_request_version;
         rsp_protocol->m_response_code = HTTPCode::HTTP_OK;
         rsp_protocol->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);

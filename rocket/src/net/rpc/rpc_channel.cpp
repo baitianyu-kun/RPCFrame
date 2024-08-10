@@ -9,6 +9,7 @@
 #include "common/msg_id_util.h"
 #include "common/log.h"
 #include "common/error_code.h"
+#include "net/coder/http/http_request.h"
 
 namespace rocket {
 
@@ -39,6 +40,12 @@ namespace rocket {
                                         google::protobuf::RpcController *controller,
                                         const google::protobuf::Message *request, google::protobuf::Message *response,
                                         google::protobuf::Closure *done) {
+
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            CallMethodHTTP(method, controller, request, response, done);
+            return;
+        }
+
         // 保存一下当前channel的智能指针，保证回调函数调用时候channel存在，也就间接保证了回调函数调用
         // 时候可以调用google_rpc_controller_sptr_t_和google_message_sptr_t_等内容
         rpc_channel_sptr_t_ this_channel = shared_from_this();
@@ -173,6 +180,52 @@ namespace rocket {
                     // 同理m_timeout_timer_event_info中也不应该去reset，应该由创建方去reset
                     // ===========================================================================================================
                 });
+            });
+        });
+    }
+
+    void RPCChannel::CallMethodHTTP(const google::protobuf::MethodDescriptor *method,
+                                    google::protobuf::RpcController *controller,
+                                    const google::protobuf::Message *request, google::protobuf::Message *response,
+                                    google::protobuf::Closure *done) {
+        rpc_channel_sptr_t_ this_channel = shared_from_this();
+        auto req_protocol = std::make_shared<HTTPRequest>();
+        auto rpc_controller = dynamic_cast<RPCController *>(controller);
+        if (rpc_controller == nullptr) {
+            ERRORLOG("failed callmethod, RpcController convert error");
+            return;
+        }
+        if (rpc_controller->GetMSGID().empty()) {
+            req_protocol->m_msg_id = MSGIDUtil::GenerateMSGID();
+            rpc_controller->SetMsgId(req_protocol->m_msg_id);
+        } else {
+            req_protocol->m_msg_id = rpc_controller->GetMSGID();
+        }
+        auto method_full_name = method->full_name();
+        INFOLOG("%s | call method name [%s]", req_protocol->m_msg_id.c_str(), method_full_name.c_str());
+        std::string req_pb_data;
+        request->SerializeToString(&req_pb_data);
+        std::string final_res = "method_full_name:" + method_full_name + g_CRLF
+                                + "pb_data:" + req_pb_data + g_CRLF
+                                + "msg_id:" + req_protocol->m_msg_id;
+
+        req_protocol->m_request_body = final_res;
+        req_protocol->m_request_method = HTTPMethod::POST;
+        req_protocol->m_request_version = "HTTP/1.1";
+        req_protocol->m_request_path = "/";
+        req_protocol->m_request_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
+        req_protocol->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+
+        m_client->connect([req_protocol, this_channel]() mutable {
+            // 在这里设置连接失败，并将失败信息放到rpc controller中进行返回
+            auto rpc_controller = dynamic_cast<RPCController *>(this_channel->GetController());
+            // 写入
+            this_channel->GetClient()->writeMessage(req_protocol, [req_protocol, this_channel, rpc_controller](
+                    AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
+                INFOLOG("%s | success send rpc request. call method name [%s], peer addr [%s], local addr[%s]",
+                        req_protocol->m_msg_id.c_str(), req_protocol->m_request_body.c_str(),
+                        this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                        this_channel->GetClient()->getLocalAddr()->toString().c_str());
             });
         });
     }

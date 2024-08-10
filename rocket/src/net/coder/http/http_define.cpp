@@ -29,6 +29,17 @@ namespace rocket {
         }
     }
 
+    const char *HTTPMethodToString(HTTPMethod method) {
+        switch (method) {
+            case HTTPMethod::GET:
+                return "GET";
+            case HTTPMethod::POST:
+                return "POST";
+            default:
+                return "Unknown HTTP Method";
+        }
+    }
+
     void rocket::HTTPHeaderProp::setKeyValue(const std::string &key, const std::string &value) {
         m_map_properties[key] = value;
     }

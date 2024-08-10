@@ -26,7 +26,7 @@ namespace rocket {
         ~StringCode() override = default;
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ out_buffer) override {
+                    TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
             for (const auto &message: in_messages) {
                 auto msg = std::dynamic_pointer_cast<StringProtocol>(message);
                 out_buffer->writeToBuffer(msg->info.c_str(), msg->info.length());

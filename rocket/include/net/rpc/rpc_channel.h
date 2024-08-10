@@ -51,6 +51,10 @@ namespace rocket {
                         google::protobuf::RpcController *controller, const google::protobuf::Message *request,
                         google::protobuf::Message *response, google::protobuf::Closure *done) override;
 
+        void CallMethodHTTP(const google::protobuf::MethodDescriptor *method,
+                            google::protobuf::RpcController *controller, const google::protobuf::Message *request,
+                            google::protobuf::Message *response, google::protobuf::Closure *done);
+
         // 在这段代码中，m_controller 是一个 shared_ptr 类型的对象，
         // 而函数 RPCChannel::GetController() 返回的是一个 shared_ptr 对象，会导致 m_controller 的引用计数增加。
         // google_rpc_controller_sptr_t_ GetController();

@@ -30,6 +30,8 @@ namespace rocket {
         HTTP_INTERNAL_SERVER_ERROR = 500
     };
 
+    const char* HTTPMethodToString(HTTPMethod method);
+
     const char *HTTPCodeToString(const int code);
 
     // header中的请求参数，放到键值对里面，例如Content-Length: 55743等

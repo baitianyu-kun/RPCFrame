@@ -9,7 +9,7 @@
 #include <vector>
 #include <cstring>
 
-#define MAX_TCP_BUFFER_SIZE 128
+#define MAX_TCP_BUFFER_SIZE 2048
 
 namespace rocket {
 

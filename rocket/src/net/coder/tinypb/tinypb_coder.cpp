@@ -11,7 +11,7 @@ namespace rocket {
 
     // 将message对象转换为字节流，写入到buffer
     void rocket::TinyPBCoder::encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                                     TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
+                                     TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client /*false*/) {
         for (const auto &in_message: in_messages) {
             auto msg = std::dynamic_pointer_cast<TinyPBProtocol>(in_message);
             int len = 0;
@@ -150,7 +150,8 @@ namespace rocket {
         }
         DEBUGLOG("msg_id = %s", message->m_msg_id.c_str());
         int pk_len =
-                2 + 24 + message->m_msg_id.length() + message->m_method_full_name.length() + message->m_err_info.length() +
+                2 + 24 + message->m_msg_id.length() + message->m_method_full_name.length() +
+                message->m_err_info.length() +
                 message->m_pb_data.length();
         DEBUGLOG("pk_len = %d", pk_len);
         // 使用malloc来预先分配内存，否则p指向的是随机的内存，*p = 'a'是不可以的

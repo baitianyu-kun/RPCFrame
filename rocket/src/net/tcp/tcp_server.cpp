@@ -80,7 +80,9 @@ namespace rocket {
                 peer_addr,
                 m_local_addr,
                 m_coder,
-                m_dispatcher
+                m_dispatcher,
+                TCPConnectionType::TCPConnectionByServer,
+                m_protocol_type
         );
         connection->setState(Connected);
         m_client_connection.insert(connection);

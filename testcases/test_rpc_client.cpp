@@ -29,7 +29,7 @@
 
 void test_rpc_channel_timeout_marcos_http() {
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    auto channel = std::make_shared<rocket::RPCChannel>(addr,rocket::ProtocolType::HTTP_Protocol);
+    auto channel = std::make_shared<rocket::RPCChannel>(addr, rocket::ProtocolType::HTTP_Protocol);
     auto request = std::make_shared<makeOrderRequest>();
     request->set_price(100);
     request->set_goods("apple");
@@ -183,6 +183,7 @@ void test_rpc_client() {
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger(0, false);
-    test_rpc_channel_timeout_marcos();
+    // test_rpc_channel_timeout_marcos();
+    test_rpc_channel_timeout_marcos_http();
 }
 

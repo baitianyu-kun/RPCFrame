@@ -12,34 +12,48 @@ namespace rocket {
 
     void HTTPCoder::encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
                            TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client /*false*/) {
+        if (is_http_client) {
+            encode_request(in_messages, out_buffer);
+            return;
+        }
         for (const auto &in_message: in_messages) {
             std::string http_res;
-            if (!is_http_client) {
-                auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
-                std::stringstream ss;
-                ss << response->m_response_version << " "
-                   << response->m_response_code << " "
-                   << response->m_response_info << g_CRLF
-                   << response->m_response_properties.toHTTPString() << g_CRLF
-                   << response->m_response_body;
-                http_res = ss.str();
-            } else {
-                auto request = std::dynamic_pointer_cast<HTTPRequest>(in_message);
-                std::stringstream ss;
-                ss << HTTPMethodToString(request->m_request_method) << " "
-                   << request->m_request_path << " "
-                   << request->m_request_version << g_CRLF
-                   << request->m_request_properties.toHTTPString() << g_CRLF
-                   << request->m_request_body;
-                http_res = ss.str();
-            }
+            auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
+            std::stringstream ss;
+            ss << response->m_response_version << " "
+               << response->m_response_code << " "
+               << response->m_response_info << g_CRLF
+               << response->m_response_properties.toHTTPString() << g_CRLF
+               << response->m_response_body;
+            http_res = ss.str();
             out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
-            DEBUGLOG("HTTP encode success");
+            DEBUGLOG("HTTP response encode success");
+        }
+    }
+
+    void HTTPCoder::encode_request(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
+                                   TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
+        for (const auto &in_message: in_messages) {
+            std::string http_res;
+            auto request = std::dynamic_pointer_cast<HTTPRequest>(in_message);
+            std::stringstream ss;
+            ss << HTTPMethodToString(request->m_request_method) << " "
+               << request->m_request_path << " "
+               << request->m_request_version << g_CRLF
+               << request->m_request_properties.toHTTPString() << g_CRLF
+               << request->m_request_body;
+            http_res = ss.str();
+            out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
+            DEBUGLOG("HTTP request encode success");
         }
     }
 
     void HTTPCoder::decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                           TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
+                           TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client /*false*/) {
+        if (is_http_client) {
+            decode_response(out_messages, in_buffer);
+            return;
+        }
         while (true) {
             bool is_parse_request_line = false;
             bool is_parse_request_header = false;
@@ -97,7 +111,61 @@ namespace rocket {
                 break;
             }
         }
-        DEBUGLOG("HTTP decode success");
+        DEBUGLOG("HTTP request decode success");
+    }
+
+    void HTTPCoder::decode_response(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
+                                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
+        while (true) {
+            bool is_parse_response_line = false;
+            bool is_parse_response_header = false;
+            bool is_parse_response_content = false;
+            std::string all_str(in_buffer->getRefBuffer().begin(), in_buffer->getRefBuffer().end());
+            std::string tmp = all_str;
+            // ================request line================
+            auto i_crlf = tmp.find(g_CRLF);
+            if (i_crlf == tmp.npos) {
+                ERRORLOG("not found CRLF in buffer");
+                continue;
+            }
+            if (i_crlf == tmp.length() - 2) {
+                // 请求行中只有 "\r\n" 的时候不完整，需要继续读
+                continue;
+            }
+            auto response = std::make_shared<HTTPResponse>();
+            is_parse_response_line = parseHTTPResponseLine(response, tmp.substr(0, i_crlf));
+            if (!is_parse_response_line) {
+                return;
+            }
+            tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
+            // ================request properties================
+            // 最后一个property后面有两个\r\n
+            auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
+            if (i_crlf_double == tmp.npos) {
+                ERRORLOG("not found last double CRLF in buffer");
+                continue;
+            }
+            is_parse_response_header = parseHTTPResponseHeader(response, tmp.substr(0, i_crlf_double));
+            tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
+            // ================request content================
+            int content_len = 0;
+            if (response->m_response_properties.m_map_properties.find("Content-Length") !=
+                response->m_response_properties.m_map_properties.end()) {
+                content_len = std::stoi(response->m_response_properties.m_map_properties["Content-Length"]);
+            }
+            is_parse_response_content = parseHTTPResponseContent(response, tmp.substr(0, content_len));
+
+            // 存一下msg id
+            std::unordered_map<std::string, std::string> response_body_map;
+            splitStrToMap(response->m_response_body, g_CRLF, ":", response_body_map);
+            response->m_msg_id = response_body_map["msg_id"];
+
+            if (is_parse_response_line && is_parse_response_header && is_parse_response_content) {
+                out_messages.emplace_back(response);
+                break;
+            }
+        }
+        DEBUGLOG("HTTP response decode success");
     }
 
     bool HTTPCoder::parseHTTPRequestLine(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp) {
@@ -185,6 +253,56 @@ namespace rocket {
         request->m_request_body = tmp;
         return true;
     }
+
+    bool HTTPCoder::parseHTTPResponseLine(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp) {
+        DEBUGLOG("response str: %s", tmp.c_str());
+        // 响应行：HTTP版本，空格，状态码，空格，状态码描述，gCRLF
+        auto space1 = tmp.find_first_of(" ");
+        auto space2 = tmp.find_last_of(" ");
+        if (space1 == tmp.npos || space2 == tmp.npos || space1 == space2) {
+            ERRORLOG("parse HTTP response line error, space is not 2");
+            return false;
+        }
+        // version
+        auto version = tmp.substr(0, space1);
+        std::transform(version.begin(), version.end(), version.begin(), toupper);
+        if (version != "HTTP/1.1" && version != "HTTP/1.0") {
+            ERRORLOG("parse HTTP request line error, not support http version: %s", version.c_str());
+            return false;
+        }
+        response->m_response_version = version;
+        // http code
+        auto code = tmp.substr(space1 + 1, space2 - space1 - 1);
+        auto http_code = StringToHTTPCode(code);
+        if (http_code == HTTPCode::HTTP_UNKNOWN_ERROR) {
+            ERRORLOG("parse HTTP request line error, HTTPCode::HTTP_UNKNOWN_ERROR");
+            return false;
+        }
+        response->m_response_code = http_code;
+        // http code info
+        auto code_info = tmp.substr(space2 + 1, tmp.length() - space2 - 1);
+        response->m_response_info = code_info;
+        return true;
+    }
+
+    bool HTTPCoder::parseHTTPResponseHeader(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp) {
+        if (tmp.empty() || tmp == g_CRLF_DOUBLE) {
+            return true;
+        }
+        // Host: developer.mozilla.org\r\n
+        // Content-Length: 64\r\n
+        splitStrToMap(tmp, g_CRLF, ":", response->m_response_properties.m_map_properties);
+        return true;
+    }
+
+    bool HTTPCoder::parseHTTPResponseContent(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp) {
+        if (tmp.empty()) {
+            return true;
+        }
+        response->m_response_body = tmp;
+        return true;
+    }
+
 
 }
 

@@ -22,7 +22,7 @@ namespace rocket {
 
         // 读取buffer，并转换为message对象
         virtual void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                            TCPBuffer::tcp_buffer_sptr_t_ in_buffer) = 0;
+                            TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client = false) = 0;
 
         AbstractCoder() = default;
 

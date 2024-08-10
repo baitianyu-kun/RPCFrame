@@ -7,9 +7,11 @@
 #include "net/rpc/rpc_controller.h"
 #include "net/coder/tinypb/tinypb_protocol.h"
 #include "common/msg_id_util.h"
+#include "common/string_util.h"
 #include "common/log.h"
 #include "common/error_code.h"
 #include "net/coder/http/http_request.h"
+#include "net/coder/http/http_response.h"
 
 namespace rocket {
 
@@ -220,12 +222,31 @@ namespace rocket {
             // 在这里设置连接失败，并将失败信息放到rpc controller中进行返回
             auto rpc_controller = dynamic_cast<RPCController *>(this_channel->GetController());
             // 写入
+            // TODO 加入其他出错的处理，例如超时
             this_channel->GetClient()->writeMessage(req_protocol, [req_protocol, this_channel, rpc_controller](
                     AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
                 INFOLOG("%s | success send rpc request. call method name [%s], peer addr [%s], local addr[%s]",
                         req_protocol->m_msg_id.c_str(), req_protocol->m_request_body.c_str(),
                         this_channel->GetClient()->getPeerAddr()->toString().c_str(),
                         this_channel->GetClient()->getLocalAddr()->toString().c_str());
+            });
+            // 读取
+            this_channel->GetClient()->readMessage(req_protocol->m_msg_id, [this_channel, rpc_controller](
+                    AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
+                auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(msg);
+
+                std::unordered_map<std::string, std::string> response_body_map;
+                splitStrToMap(rsp_protocol->m_response_body, g_CRLF, ":", response_body_map);
+                this_channel->GetResponse()->ParseFromString(response_body_map["pb_data"]);
+
+                INFOLOG("%s | success get rpc response, rsp_protocol_body [%s], peer addr [%s], local addr[%s], response [%s]",
+                        rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_response_body.c_str(),
+                        this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                        this_channel->GetClient()->getLocalAddr()->toString().c_str(),
+                        this_channel->GetResponse()->ShortDebugString().c_str());
+                if (this_channel->GetClosure()) {
+                    this_channel->GetClosure()->Run();
+                }
             });
         });
     }

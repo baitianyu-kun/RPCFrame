@@ -17,11 +17,21 @@ namespace rocket {
 
         ~HTTPCoder() override = default;
 
+        // is_http_client = false的情况下是这个encode，作为server去编码返回的response
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
                     TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client = false) override;
 
+        // is_http_client = true的情况下是这个encode，作为client去编码request
+        void encode_request(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
+                            TCPBuffer::tcp_buffer_sptr_t_ out_buffer);
+
+        // is_http_client = false的情况下是这个decode，作为server去解码client给的request
         void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) override;
+                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client = false) override;
+
+        // is_http_client = true的情况下是这个decode，作为client去解码server返回的response
+        void decode_response(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
+                             TCPBuffer::tcp_buffer_sptr_t_ in_buffer);
 
     private:
         bool parseHTTPRequestLine(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
@@ -29,6 +39,12 @@ namespace rocket {
         bool parseHTTPRequestHeader(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
 
         bool parseHTTPRequestContent(HTTPRequest::http_req_sptr_t_ request, const std::string &tmp);
+
+        bool parseHTTPResponseLine(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp);
+
+        bool parseHTTPResponseHeader(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp);
+
+        bool parseHTTPResponseContent(HTTPResponse::http_res_sptr_t_ response, const std::string &tmp);
     };
 
 }

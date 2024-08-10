@@ -161,10 +161,8 @@ namespace rocket {
                 AbstractProtocol::abstract_pro_sptr_t_ message{nullptr};
                 if (m_protocol_type == ProtocolType::HTTP_Protocol) {
                     message = std::make_shared<HTTPResponse>();
-                    DEBUGLOG("======std::make_shared<HTTPResponse>();======")
                 } else if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
                     message = std::make_shared<TinyPBProtocol>();
-                    DEBUGLOG("======std::make_shared<TinyPBProtocol>();======")
                 }
                 // 当一个类被共享智能指针 share_ptr 管理，且在类的成员函数里需要把当前类对象作为参数传给其他函数时，这时就需要传递一个指向自身的 share_ptr。
                 // RPCDispatcher::GetRPCDispatcher()->dispatch(result, message, shared_from_this());
@@ -175,7 +173,7 @@ namespace rocket {
             listenWrite();
         } else {
             std::vector<AbstractProtocol::abstract_pro_sptr_t_> results;
-            m_coder->decode(results, m_in_buffer);
+            m_coder->decode(results, m_in_buffer, true);
             for (const auto &result: results) {
                 auto iter = m_read_dones.find(result->m_msg_id);
                 if (iter != m_read_dones.end()) {

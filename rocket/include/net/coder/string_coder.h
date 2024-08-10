@@ -36,7 +36,7 @@ namespace rocket {
         }
 
         void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) override {
+                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
             std::vector<char> res;
             in_buffer->readFromBuffer(res, in_buffer->readAbleSize());
             // 这种不太行，有可能收到的不完整，得详细的去校验数据

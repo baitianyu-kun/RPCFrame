@@ -27,12 +27,15 @@ namespace rocket {
         HTTP_BAD_REQUEST = 400,
         HTTP_FORBIDDEN = 403,
         HTTP_NOTFOUND = 404,
-        HTTP_INTERNAL_SERVER_ERROR = 500
+        HTTP_INTERNAL_SERVER_ERROR = 500,
+        HTTP_UNKNOWN_ERROR = 999
     };
 
-    const char* HTTPMethodToString(HTTPMethod method);
+    const char *HTTPMethodToString(HTTPMethod method);
 
     const char *HTTPCodeToString(const int code);
+
+    HTTPCode StringToHTTPCode(std::string &code);
 
     // header中的请求参数，放到键值对里面，例如Content-Length: 55743等
     class HTTPHeaderProp {

@@ -29,9 +29,10 @@ namespace rocket {
         // 请求体数据格式: method_full_name:Order.makeOrder'\r\n'pb_data:......
         auto method_full_name = req_body_data_map["method_full_name"];
         auto pb_data = req_body_data_map["pb_data"];
+        req_protocol->m_msg_id = req_body_data_map["msg_id"];
+
         std::string service_name;
         std::string method_name;
-
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
             return;
         }

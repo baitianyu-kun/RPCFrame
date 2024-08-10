@@ -25,6 +25,7 @@
 #include "net/rpc/rpc_channel.h"
 #include "net/rpc/rpc_controller.h"
 #include "net/rpc/rpc_closure.h"
+#include "thread"
 
 
 void test_rpc_channel_timeout_marcos_http() {
@@ -185,5 +186,9 @@ int main() {
     rocket::Logger::InitGlobalLogger(0, false);
     // test_rpc_channel_timeout_marcos();
     test_rpc_channel_timeout_marcos_http();
+    // for (int i = 0; i < 2000; i++) {
+    //     std::thread t1(test_rpc_channel_timeout_marcos_http);
+    //     t1.join();
+    // }
 }
 

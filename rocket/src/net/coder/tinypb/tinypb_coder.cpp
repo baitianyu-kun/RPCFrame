@@ -28,7 +28,7 @@ namespace rocket {
 
     // 将buffer里面的字节流转换为message对象
     void TinyPBCoder::decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                             TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
+                             TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client /*false*/) {
         // 这里continue的话就是可以下次在读取tcp buffer里面的内容，因为有时候tcp是发不全的
         // while内部只是做了一个包的逻辑，需要一直监听
         while (true) {

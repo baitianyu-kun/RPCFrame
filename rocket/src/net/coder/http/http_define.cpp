@@ -29,6 +29,22 @@ namespace rocket {
         }
     }
 
+    HTTPCode StringToHTTPCode(std::string &code) {
+        if (code == "200") {
+            return HTTP_OK;
+        } else if (code == "400") {
+            return HTTP_BAD_REQUEST;
+        } else if (code == "403") {
+            return HTTP_FORBIDDEN;
+        } else if (code == "404") {
+            return HTTP_NOTFOUND;
+        } else if (code == "500") {
+            return HTTP_INTERNAL_SERVER_ERROR;
+        } else {
+            return HTTP_UNKNOWN_ERROR;
+        }
+    }
+
     const char *HTTPMethodToString(HTTPMethod method) {
         switch (method) {
             case HTTPMethod::GET:

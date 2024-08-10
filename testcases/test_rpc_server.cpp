@@ -20,7 +20,7 @@
 #include "net/coder/abstract_protocol.h"
 #include "net/coder/tinypb/tinypb_protocol.h"
 #include "net/coder/tinypb/tinypb_coder.h"
-#include "net/rpc/rpc_dispatcher.h"
+#include "../bak/rpc_dispatcher.h.bak"
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_server.h"
 #include <google/protobuf/service.h>
@@ -59,9 +59,9 @@ int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger(1);
     std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
-    rocket::RPCDispatcher::GetRPCDispatcher()->registerService(service);
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
     rocket::TCPServer tcp_server(addr);
+    tcp_server.registerService(service);
     tcp_server.start();
     return 0;
 }

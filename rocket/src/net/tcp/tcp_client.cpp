@@ -4,9 +4,12 @@
 #include <unistd.h>
 #include "net/tcp/tcp_client.h"
 #include "common/error_code.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 
 namespace rocket {
-    rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr) : m_peer_addr(peer_addr) {
+    rocket::TCPClient::TCPClient(NetAddr::net_addr_sptr_t_ peer_addr, ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/) : m_peer_addr(peer_addr),
+                                                                                               m_protocol_type(
+                                                                                                       protocol) {
         m_event_loop = EventLoop::GetCurrentEventLoop();
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         if (m_client_fd < 0) {
@@ -15,12 +18,19 @@ namespace rocket {
         }
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(m_client_fd);
         m_fd_event->setNonBlock();
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+
+        } else if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
+            m_coder = std::make_shared<TinyPBCoder>();
+        }
         // 作为client的情况没有本地监听地址local addr
         m_connection = std::make_shared<TCPConnection>(
                 m_event_loop,
                 m_client_fd,
                 MAX_TCP_BUFFER_SIZE,
                 peer_addr,
+                nullptr,
+                m_coder,
                 nullptr,
                 TCPConnectionByClient
         );

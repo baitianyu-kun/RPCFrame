@@ -16,6 +16,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/tcp SRC_NET_TCP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder/tinypb SRC_NET_CODER_TINYPB_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder/http SRC_NET_CODER_HTTP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/rpc SRC_NET_RPC_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/rpc/dispatcher SRC_NET_RPC_DISPATCHER_LIST)
 
 # test event loop
 add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_eventloop.cpp)
@@ -36,29 +37,15 @@ target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_T
 target_link_libraries(test_client pthread)
 
 # test rpc client
-add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_client.cpp
+add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST} testcases/test_rpc_client.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        rocket/include/net/coder/http/http_coder.h
-        rocket/include/net/coder/http/http_define.h
-        rocket/include/net/coder/http/http_request.h
-        rocket/include/net/coder/http/http_response.h
-        rocket/include/common/string_util.h
-        rocket/include/net/coder/tinypb/tinypb_dispatcher.h
-        rocket/include/net/coder/http/http_dispatcher.h)
-target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
+        testcases/order.pb.h)
+target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
 target_link_libraries(test_rpc_client pthread)
 
 # test rpc server
-add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_rpc_server.cpp
+add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST} testcases/test_rpc_server.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        rocket/include/net/coder/http/http_coder.h
-        rocket/include/net/coder/http/http_define.h
-        rocket/include/net/coder/http/http_request.h
-        rocket/include/net/coder/http/http_response.h
-        rocket/include/common/string_util.h
-        rocket/include/net/coder/tinypb/tinypb_dispatcher.h
-        rocket/include/net/coder/http/http_dispatcher.h)
-target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
+        testcases/order.pb.h)
+target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
 target_link_libraries(test_rpc_server pthread)

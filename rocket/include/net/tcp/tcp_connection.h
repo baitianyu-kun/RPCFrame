@@ -14,6 +14,7 @@
 #include "net/fd_event_pool.h"
 #include "net/coder/abstract_protocol.h"
 #include "net/coder/abstract_coder.h"
+#include "net/rpc/abstract_dispatcher.h"
 
 namespace rocket {
     enum TCPState {
@@ -34,8 +35,10 @@ namespace rocket {
     public:
         TCPConnection(EventLoop::event_loop_sptr_t_ event_loop, int client_fd, int buffer_size,
                       NetAddr::net_addr_sptr_t_ peer_addr,
-                      NetAddr::net_addr_sptr_t_ local_addr, TCPConnectionType type = TCPConnectionByServer,
-                      ProtocolType protocol = ProtocolType::TinyPB_Protocol);
+                      NetAddr::net_addr_sptr_t_ local_addr,
+                      AbstractCoder::abstract_coder_sptr_t_ coder,
+                      AbstractDispatcher::abstract_disp_sptr_t dispatcher,
+                      TCPConnectionType type = TCPConnectionByServer);
 
         ~TCPConnection();
 
@@ -81,8 +84,6 @@ namespace rocket {
         // 连接的客户端地址
         NetAddr::net_addr_sptr_t_ getPeerAddr();
 
-        ProtocolType getProtocolType();
-
     private:
         // ============================================OLD==========================================================
         // 这里使用的是io thread里面创建的event loop，所以创建一个指针共同管理，使用unique的get方法
@@ -104,7 +105,9 @@ namespace rocket {
         TCPConnectionType m_connection_type{TCPConnectionByServer};
 
         // coder，使用多态
-        AbstractCoder::abstract_coder_sptr_t_ m_coder;
+        AbstractCoder::abstract_coder_sptr_t_ m_coder{nullptr};
+        // dispatcher, 使用多态
+        AbstractDispatcher::abstract_disp_sptr_t m_dispatcher{nullptr};
 
         // 按顺序进行写入，需要存上智能指针，因为回调传入的也是个abstract_pro_sptr_t_的智能指针
         std::vector<std::pair<AbstractProtocol::abstract_pro_sptr_t_,
@@ -113,8 +116,6 @@ namespace rocket {
         // key为msg id
         std::unordered_map<std::string,
                 std::function<void(AbstractProtocol::abstract_pro_sptr_t_)>> m_read_dones;
-
-        ProtocolType m_protocol_type;
     };
 
 }

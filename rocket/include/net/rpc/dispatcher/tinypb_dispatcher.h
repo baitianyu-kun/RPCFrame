@@ -1,40 +1,34 @@
 //
-// Created by baitianyu on 7/24/24.
+// Created by baitianyu on 8/10/24.
 //
 
-#ifndef RPCFRAME_RPC_DISPATCHER_H
-#define RPCFRAME_RPC_DISPATCHER_H
+#ifndef RPCFRAME_TINYPB_DISPATCHER_H
+#define RPCFRAME_TINYPB_DISPATCHER_H
 
-#include <unordered_map>
 #include <memory>
 #include <google/protobuf/service.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
-#include "net/coder/abstract_protocol.h"
 #include "net/coder/tinypb/tinypb_protocol.h"
-#include "net/tcp/tcp_connection.h"
+#include "net/rpc/abstract_dispatcher.h"
 
 namespace rocket {
 
-    class RPCDispatcher {
+    class TinyPBDispatcher : public AbstractDispatcher {
     public:
-
-        RPCDispatcher() = default;
-
-        ~RPCDispatcher();
-
-        static std::unique_ptr<RPCDispatcher> g_rpc_dispatcher;
-
-        static std::unique_ptr<RPCDispatcher> &GetRPCDispatcher();
+        using protobuf_service_sptr_t_ = std::shared_ptr<google::protobuf::Service>;
 
         static void setTinyPBError(std::shared_ptr<TinyPBProtocol> &msg, int32_t err_code, const std::string &err_info);
 
     public:
-        using protobuf_service_sptr_t_ = std::shared_ptr<google::protobuf::Service>;
+        TinyPBDispatcher() = default;
+
+        ~TinyPBDispatcher() override;
 
         void dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
                       const AbstractProtocol::abstract_pro_sptr_t_ &response,
-                      const TCPConnection::tcp_connection_sptr_t_ &connection);
+                      NetAddr::net_addr_sptr_t_ peer_addr,
+                      NetAddr::net_addr_sptr_t_ local_addr) override;
 
         void registerService(const protobuf_service_sptr_t_ &service);
 
@@ -45,8 +39,6 @@ namespace rocket {
     private:
         std::unordered_map<std::string, protobuf_service_sptr_t_> m_service_map;
     };
-
 }
 
-
-#endif //RPCFRAME_RPC_DISPATCHER_H
+#endif //RPCFRAME_TINYPB_DISPATCHER_H

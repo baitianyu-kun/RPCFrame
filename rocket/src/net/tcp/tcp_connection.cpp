@@ -2,10 +2,8 @@
 // Created by baitianyu on 7/20/24.
 //
 #include <unistd.h>
-#include <utility>
 #include "net/tcp/tcp_connection.h"
 #include "net/coder/tinypb/tinypb_coder.h"
-#include "net/rpc/rpc_dispatcher.h"
 
 namespace rocket {
     // auto ret = m_acceptor->accept();
@@ -32,15 +30,17 @@ namespace rocket {
                                          int buffer_size,
                                          NetAddr::net_addr_sptr_t_ peer_addr,
                                          NetAddr::net_addr_sptr_t_ local_addr,
-                                         TCPConnectionType type /*TCPConnectionByServer*/,
-                                         ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) :
+                                         AbstractCoder::abstract_coder_sptr_t_ coder,
+                                         AbstractDispatcher::abstract_disp_sptr_t dispatcher,
+                                         TCPConnectionType type /*TCPConnectionByServer*/) :
             m_event_loop(event_loop),
             m_local_addr(local_addr),
             m_peer_addr(peer_addr),
             m_state(NotConnected),
             m_client_fd(client_fd),
             m_connection_type(type),
-            m_protocol_type(protocol) {
+            m_coder(coder),
+            m_dispatcher(dispatcher) {
         m_in_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
@@ -48,8 +48,6 @@ namespace rocket {
         if (m_connection_type == TCPConnectionByServer) {
             listenRead(); // 本方是服务器的话，监听读
         }
-        m_coder = std::make_shared<TinyPBCoder>();
-        // m_coder = std::make_shared<StringCode>();
     }
 
     TCPConnection::~TCPConnection() {
@@ -161,7 +159,8 @@ namespace rocket {
                 // message->m_pb_data = "hello, server return rpc test data";
                 // message->m_msg_id = result->m_msg_id;
                 // 当一个类被共享智能指针 share_ptr 管理，且在类的成员函数里需要把当前类对象作为参数传给其他函数时，这时就需要传递一个指向自身的 share_ptr。
-                RPCDispatcher::GetRPCDispatcher()->dispatch(result, message, shared_from_this());
+                // RPCDispatcher::GetRPCDispatcher()->dispatch(result, message, shared_from_this());
+                m_dispatcher->dispatch(result, message, m_peer_addr, m_local_addr);
                 reply_messages.emplace_back(message);
             }
             m_coder->encode(reply_messages, m_out_buffer);
@@ -329,11 +328,6 @@ namespace rocket {
     NetAddr::net_addr_sptr_t_ TCPConnection::getPeerAddr() {
         return m_peer_addr;
     }
-
-    ProtocolType TCPConnection::getProtocolType() {
-        return m_protocol_type;
-    }
-
 
 }
 

@@ -21,7 +21,7 @@ namespace rocket {
     public:
         using tcp_client_sptr_t_ = std::shared_ptr<TCPClient>;
 
-        explicit TCPClient(NetAddr::net_addr_sptr_t_ peer_addr);
+        TCPClient(NetAddr::net_addr_sptr_t_ peer_addr, ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~TCPClient();
 
@@ -62,6 +62,12 @@ namespace rocket {
         TCPConnection::tcp_connection_sptr_t_ m_connection;
         int m_connect_err_code{0};
         std::string m_connect_err_info;
+
+        ProtocolType m_protocol_type;
+
+        AbstractDispatcher::abstract_disp_sptr_t m_dispatcher{nullptr};
+
+        AbstractCoder::abstract_coder_sptr_t_ m_coder{nullptr};
     };
 
 }

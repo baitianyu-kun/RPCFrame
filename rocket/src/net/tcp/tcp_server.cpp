@@ -2,9 +2,10 @@
 // Created by baitianyu on 7/20/24.
 //
 #include "net/tcp/tcp_server.h"
+#include "net/coder/tinypb/tinypb_coder.h"
 
 namespace rocket {
-    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr, ProtocolType protocol) : m_local_addr(
+    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr, ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) : m_local_addr(
             local_addr), m_protocol_type(protocol) {
         init();
         INFOLOG("rocket TcpServer listen sucess on [%s]", m_local_addr->toString().c_str());
@@ -40,6 +41,21 @@ namespace rocket {
                                                                       std::bind(&TCPServer::clearClientTimerFunc,
                                                                                 this));
         m_main_event_loop->addTimerEvent(m_clear_client_timer_event);
+        // dispatcher
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+
+        } else if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
+            m_dispatcher = std::make_shared<TinyPBDispatcher>();
+            m_coder = std::make_shared<TinyPBCoder>();
+        }
+    }
+
+    void TCPServer::registerService(TinyPBDispatcher::protobuf_service_sptr_t_ service) {
+        if (m_protocol_type == ProtocolType::TinyPB_Protocol) {
+            std::dynamic_pointer_cast<TinyPBDispatcher>(m_dispatcher)->registerService(service);
+        } else {
+            ERRORLOG("unknown register service");
+        }
     }
 
     void TCPServer::onAccept() {
@@ -56,7 +72,9 @@ namespace rocket {
                 client_fd,
                 MAX_TCP_BUFFER_SIZE,
                 peer_addr,
-                m_local_addr
+                m_local_addr,
+                m_coder,
+                m_dispatcher
         );
         connection->setState(Connected);
         m_client_connection.insert(connection);

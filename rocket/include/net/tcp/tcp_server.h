@@ -13,6 +13,9 @@
 #include "net/io_thread_pool.h"
 #include "net/tcp/tcp_connection.h"
 #include "net/coder/abstract_protocol.h"
+#include "net/rpc/abstract_dispatcher.h"
+#include "net/rpc/dispatcher/http_dispatcher.h"
+#include "net/rpc/dispatcher/tinypb_dispatcher.h"
 
 #define MAX_THREAD_POOL_SIZE 20
 #define TIMER_EVENT_INTERVAL 5000
@@ -25,6 +28,8 @@ namespace rocket {
         ~TCPServer();
 
         void start();
+
+        void registerService(TinyPBDispatcher::protobuf_service_sptr_t_ service);
 
     private:
         void init();
@@ -50,6 +55,10 @@ namespace rocket {
         int m_client_counts{0};
 
         ProtocolType m_protocol_type;
+
+        AbstractDispatcher::abstract_disp_sptr_t m_dispatcher{nullptr};
+
+        AbstractCoder::abstract_coder_sptr_t_ m_coder{nullptr};
     };
 }
 

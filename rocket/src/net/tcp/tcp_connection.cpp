@@ -269,6 +269,8 @@ namespace rocket {
         m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
         m_event_loop->deleteEpollEvent(m_fd_event);
         m_state = Closed;
+        close(m_fd_event->getFD());
+        close(m_client_fd);
     }
 
     int TCPConnection::getFD() {

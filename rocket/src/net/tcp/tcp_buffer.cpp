@@ -68,6 +68,7 @@ namespace rocket {
         m_buffer.swap(tmp);
         m_read_index = 0;
         m_write_index = count;
+        DEBUGLOG("adjustBuffer success, new size %d", count);
     }
 
     void TCPBuffer::moveReadIndex(int size) {

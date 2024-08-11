@@ -40,6 +40,7 @@ namespace rocket {
             bool parse_success = false;
             // 每次都得调用这个getWriteIndex()是不是怕其他线程往里面写入数据导致write idx发生变化？感觉应该是不会的
             // 应该是每个线程有自己的eventloop，connection调用每个线程的eventloop
+            // 不是上面的原因，是因为在tcp connection的时候，read完成后会move write index，所以write index的位置就是停止的位置
             int index = 0;
             for (index = start_index; index < in_buffer->getWriteIndex(); index++) {
                 if (tmp[index] == TinyPBProtocol::PB_START) {

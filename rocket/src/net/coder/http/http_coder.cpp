@@ -59,8 +59,17 @@ namespace rocket {
             bool is_parse_request_header = false;
             bool is_parse_request_content = false;
             int read_size = 0; // 读取长度，用来和content-length做校验
+
+            auto start_index = in_buffer->getReadIndex();
+            auto end_index = in_buffer->getWriteIndex();
+
+            std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+                                         in_buffer->getRefBuffer().begin() + end_index);
+
             // 转换为string开始解析
-            std::string all_str(in_buffer->getRefBuffer().begin(), in_buffer->getRefBuffer().end());
+            std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
+
+
             std::string tmp = all_str;
             // ================request line================
             auto i_crlf = tmp.find(g_CRLF);
@@ -108,9 +117,11 @@ namespace rocket {
             // ================ok================
             if (is_parse_request_line && is_parse_request_header && is_parse_request_header) {
                 out_messages.emplace_back(request);
+                in_buffer->moveReadIndex(read_size);
                 break;
             }
         }
+
         DEBUGLOG("HTTP request decode success");
     }
 
@@ -120,7 +131,15 @@ namespace rocket {
             bool is_parse_response_line = false;
             bool is_parse_response_header = false;
             bool is_parse_response_content = false;
-            std::string all_str(in_buffer->getRefBuffer().begin(), in_buffer->getRefBuffer().end());
+            int read_size = 0;
+
+            auto start_index = in_buffer->getReadIndex();
+            auto end_index = in_buffer->getWriteIndex();
+            std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+                                         in_buffer->getRefBuffer().begin() + end_index);
+
+            // 转换为string开始解析
+            std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
             std::string tmp = all_str;
             // ================request line================
             auto i_crlf = tmp.find(g_CRLF);
@@ -138,6 +157,7 @@ namespace rocket {
                 return;
             }
             tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
+            read_size += i_crlf + 2;
             // ================request properties================
             // 最后一个property后面有两个\r\n
             auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
@@ -147,6 +167,7 @@ namespace rocket {
             }
             is_parse_response_header = parseHTTPResponseHeader(response, tmp.substr(0, i_crlf_double));
             tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
+            read_size += i_crlf_double + 4;
             // ================request content================
             int content_len = 0;
             if (response->m_response_properties.m_map_properties.find("Content-Length") !=
@@ -154,7 +175,7 @@ namespace rocket {
                 content_len = std::stoi(response->m_response_properties.m_map_properties["Content-Length"]);
             }
             is_parse_response_content = parseHTTPResponseContent(response, tmp.substr(0, content_len));
-
+            read_size += content_len;
             // 存一下msg id
             std::unordered_map<std::string, std::string> response_body_map;
             splitStrToMap(response->m_response_body, g_CRLF, ":", response_body_map);
@@ -162,6 +183,7 @@ namespace rocket {
 
             if (is_parse_response_line && is_parse_response_header && is_parse_response_content) {
                 out_messages.emplace_back(response);
+                in_buffer->moveReadIndex(read_size);
                 break;
             }
         }

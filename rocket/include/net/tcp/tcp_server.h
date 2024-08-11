@@ -17,7 +17,7 @@
 #include "net/rpc/dispatcher/http_dispatcher.h"
 #include "net/rpc/dispatcher/tinypb_dispatcher.h"
 
-#define MAX_THREAD_POOL_SIZE 20
+#define MAX_THREAD_POOL_SIZE 4
 #define TIMER_EVENT_INTERVAL 5000
 
 namespace rocket {

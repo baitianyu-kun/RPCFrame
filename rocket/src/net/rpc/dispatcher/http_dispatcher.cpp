@@ -34,6 +34,13 @@ namespace rocket {
         std::string service_name;
         std::string method_name;
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
+            rsp_protocol->m_response_body = default_html_template;
+            rsp_protocol->m_response_version = req_protocol->m_request_version;
+            rsp_protocol->m_response_code = HTTPCode::HTTP_OK;
+            rsp_protocol->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+            rsp_protocol->m_response_properties.m_map_properties["Content-Length"] = std::to_string(strlen(default_html_template));
+            rsp_protocol->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+            rsp_protocol->m_msg_id = req_protocol->m_msg_id;
             return;
         }
 

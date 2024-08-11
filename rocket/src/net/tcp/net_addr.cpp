@@ -88,6 +88,14 @@ namespace rocket {
         return CheckValid(m_ip, m_port);
     }
 
+    std::string IPNetAddr::getStringIP() {
+        return m_ip;
+    }
+
+    std::string IPNetAddr::getStringPort() {
+        return std::to_string(m_port);
+    }
+
 }
 
 

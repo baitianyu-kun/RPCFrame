@@ -10,7 +10,7 @@ namespace rocket {
                                  ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) : m_local_addr(
             local_addr), m_protocol_type(protocol) {
         init();
-        INFOLOG("rocket TcpServer listen sucess on [%s]", m_local_addr->toString().c_str());
+        INFOLOG("rocket TcpServer listen success on [%s]", m_local_addr->toString().c_str());
     }
 
     TCPServer::~TCPServer() {

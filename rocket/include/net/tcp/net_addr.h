@@ -25,6 +25,10 @@ namespace rocket {
 
         virtual std::string toString() = 0;
 
+        virtual std::string getStringIP() = 0;
+
+        virtual std::string getStringPort() = 0;
+
         virtual bool checkValid() = 0;
     };
 
@@ -50,6 +54,10 @@ namespace rocket {
         int getFamily() override;
 
         std::string toString() override;
+
+        std::string getStringIP() override;
+
+        std::string getStringPort() override;
 
         bool checkValid() override;
 

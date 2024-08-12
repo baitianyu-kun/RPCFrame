@@ -15,11 +15,12 @@
 
 #define MAX_THREAD_POOL_SIZE 4
 #define TIMER_EVENT_INTERVAL 5000
-#define UPDATE_SERVER_TIMER_EVENT_INTERVAL 5000
+#define UPDATE_SERVER_TIMER_EVENT_INTERVAL 12000
+#define UPDATE_SERVER_TIME_OUT 12000
 
 namespace rocket {
 
-    class RegisterCenter{
+    class RegisterCenter {
     public:
         explicit RegisterCenter(NetAddr::net_addr_sptr_t_ local_addr,
                                 ProtocolType protocol = ProtocolType::TinyPB_Protocol);
@@ -57,6 +58,7 @@ namespace rocket {
         // 作为客户端向服务端请求更新数据，使用http协议后，主动connect对方服务器
         // TCPClient::tcp_client_sptr_t_ m_client{nullptr};
         TimerEventInfo::time_event_info_sptr_t_ m_update_server_timer_event;
+        // TimerEventInfo::time_event_info_sptr_t_ m_update_server_timeout_timer_event_info; // 超时时间定时器
     };
 
 }

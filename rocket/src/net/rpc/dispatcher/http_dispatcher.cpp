@@ -3,8 +3,6 @@
 //
 #include <memory>
 #include "net/rpc/dispatcher/http_dispatcher.h"
-#include "net/coder/http/http_request.h"
-#include "net/coder/http/http_response.h"
 #include "common/string_util.h"
 #include "common/log.h"
 #include "common/runtime.h"
@@ -16,6 +14,42 @@ namespace rocket {
     rocket::HTTPDispatcher::~HTTPDispatcher() {
         DEBUGLOG("~HTTPDispatcher");
     }
+
+    // 检测到特定字段去执行向注册中心更新method list的操作
+    // 这个应该抽象出一个基本方法来，可以处理rpc操作和其他操作，这里先简单的往上堆
+    // 注册中心请求服务端: update, msg_id 服务端返回：update, method_full_name，msg_id, server_ip, server_port
+    void HTTPDispatcher::dispatchUpdateRegister(const std::shared_ptr<HTTPRequest> &req_protocol,
+                                                const std::shared_ptr<HTTPResponse> &rsp_protocol,
+                                                NetAddr::net_addr_sptr_t_ peer_addr,
+                                                NetAddr::net_addr_sptr_t_ local_addr) {
+        auto all_service_names = getAllServiceName();
+        std::string all_service_names_str = "";
+        for (const auto &item: all_service_names) {
+            all_service_names_str += item;
+            all_service_names_str += ",";
+        }
+        all_service_names_str = all_service_names_str.substr(0, all_service_names_str.length() - 1);
+
+        std::string msg_id = req_protocol->m_msg_id;
+        std::string final_res = "update:" + std::to_string(true) + g_CRLF
+                                + "server_ip:" + local_addr->getStringIP() + g_CRLF
+                                + "server_port:" + local_addr->getStringPort() + g_CRLF
+                                + "method_full_name:" + all_service_names_str + g_CRLF
+                                + "msg_id:" + msg_id;
+
+        rsp_protocol->m_response_body = final_res;
+        rsp_protocol->m_response_version = req_protocol->m_request_version;
+        rsp_protocol->m_response_code = HTTPCode::HTTP_OK;
+        rsp_protocol->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+        rsp_protocol->m_response_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
+        rsp_protocol->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+        rsp_protocol->m_msg_id = msg_id;
+
+        INFOLOG("%s | update server info to register dispatch success, req_protocol_body [%s], rsp_protocol_body [%s]",
+                msg_id.c_str(), req_protocol->m_request_body.c_str(),
+                rsp_protocol->m_response_body.c_str());
+    }
+
 
     // response_body_map["msg_id"]和req_protocol_register_center->m_msg_id里面的msg id实际上都相等
     // 为了方面每次请求和返回时候都带上msg id
@@ -29,10 +63,16 @@ namespace rocket {
         splitStrToMap(req_protocol->m_request_body,
                       g_CRLF,
                       ":", req_body_data_map);
+        req_protocol->m_msg_id = req_body_data_map["msg_id"];
+
+        if (req_body_data_map.find("update") != req_body_data_map.end()) {
+            dispatchUpdateRegister(req_protocol, rsp_protocol, peer_addr, local_addr);
+            return;
+        }
+
         // 请求体数据格式: method_full_name:Order.makeOrder'\r\n'pb_data:......
         auto method_full_name = req_body_data_map["method_full_name"];
         auto pb_data = req_body_data_map["pb_data"];
-        req_protocol->m_msg_id = req_body_data_map["msg_id"];
 
         std::string service_name;
         std::string method_name;

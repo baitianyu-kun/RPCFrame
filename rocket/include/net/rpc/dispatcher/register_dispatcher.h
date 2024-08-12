@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <set>
+#include <vector>
 #include "net/rpc/abstract_dispatcher.h"
 
 namespace rocket {
@@ -25,6 +26,8 @@ namespace rocket {
         std::set<NetAddr::net_addr_sptr_t_> getAllServerList();
 
         std::string printAllMethodServer();
+
+        void updateMethodServer(std::vector<std::string> method_full_name_vec, NetAddr::net_addr_sptr_t_ server_addr);
 
     private:
         // 这个应该存在dispatcher里面

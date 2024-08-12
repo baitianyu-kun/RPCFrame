@@ -10,6 +10,8 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include "net/rpc/abstract_dispatcher.h"
+#include "net/coder/http/http_request.h"
+#include "net/coder/http/http_response.h"
 
 namespace rocket {
 
@@ -26,6 +28,11 @@ namespace rocket {
                       const AbstractProtocol::abstract_pro_sptr_t_ &response,
                       NetAddr::net_addr_sptr_t_ peer_addr,
                       NetAddr::net_addr_sptr_t_ local_addr) override;
+
+        void dispatchUpdateRegister(const std::shared_ptr<HTTPRequest> &request,
+                                    const std::shared_ptr<HTTPResponse> &response,
+                                    NetAddr::net_addr_sptr_t_ peer_addr,
+                                    NetAddr::net_addr_sptr_t_ local_addr);
 
         void registerService(const protobuf_service_sptr_t_ &service);
 

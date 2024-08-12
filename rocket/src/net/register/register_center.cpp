@@ -35,10 +35,10 @@ namespace rocket {
                                                                                 this));
         m_main_event_loop->addTimerEvent(m_clear_client_timer_event);
 
-        // m_update_server_timer_event = std::make_shared<TimerEventInfo>(UPDATE_SERVER_TIMER_EVENT_INTERVAL, true,
-        //                                                                std::bind(&RegisterCenter::updateServerMethod,
-        //                                                                          this));
-        // m_main_event_loop->addTimerEvent(m_update_server_timer_event);
+        m_update_server_timer_event = std::make_shared<TimerEventInfo>(UPDATE_SERVER_TIMER_EVENT_INTERVAL, true,
+                                                                       std::bind(&RegisterCenter::updateServerMethod,
+                                                                                 this));
+        m_main_event_loop->addTimerEvent(m_update_server_timer_event);
 
         m_dispatcher = std::make_shared<RegisterDispatcher>();
         m_coder = std::make_shared<HTTPCoder>();
@@ -82,8 +82,11 @@ namespace rocket {
         }
     }
 
+    // 定时更新所有服务，这里设置的是12秒更新一次
+    // TODO 把所有的rpc controller都补上，方便确定传输信息以及设置超时时间
     void RegisterCenter::updateServerMethod() {
-        // 注册中心请求服务端: update, msg_id 服务端返回：update, method_full_name，msg_id
+
+        // 注册中心请求服务端: update, msg_id 服务端返回：update, method_full_name，msg_id, server_ip, server_port
         // 客户端请求注册中心：is_server, method_full_name，msg_id 返回：success, server_ip, server_port, msg_id
         // 服务端请求注册中心：is_server, method_full_name，msg_id, server_ip, server_port 返回：add, msg_id
         auto msg_id = MSGIDUtil::GenerateMSGID();
@@ -91,7 +94,7 @@ namespace rocket {
                                 + "msg_id:" + msg_id;
 
         auto req_protocol = std::make_shared<HTTPRequest>();
-        req_protocol->m_msg_id = final_res;
+        req_protocol->m_msg_id = msg_id;
         req_protocol->m_request_body = final_res;
         req_protocol->m_request_method = HTTPMethod::POST;
         req_protocol->m_request_version = "HTTP/1.1";
@@ -102,13 +105,13 @@ namespace rocket {
         auto all_server_list = m_dispatcher->getAllServerList();
         for (const auto &server: all_server_list) {
             auto client = std::make_shared<TCPClient>(server, m_protocol_type);
-            client->connect([&client, req_protocol]()mutable {
+            client->connect([&client, req_protocol, this]()mutable {
                 client->writeMessage(req_protocol,
                                      [](
                                              AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
                                      });
                 client->readMessage(req_protocol->m_msg_id,
-                                    [&client](
+                                    [&client, this](
                                             AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
                                         auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(
                                                 msg);
@@ -121,6 +124,22 @@ namespace rocket {
                                                 rsp_protocol->m_response_body.c_str(),
                                                 client->getPeerAddr()->toString().c_str(),
                                                 client->getLocalAddr()->toString().c_str());
+
+                                        // ======================================================
+                                        // 更新register dispatcher中m_method_server
+                                        std::unordered_map<std::string, std::string> rsp_body_data_map;
+                                        splitStrToMap(rsp_protocol->m_response_body,
+                                                      g_CRLF,
+                                                      ":", rsp_body_data_map);
+                                        auto method_full_name_all = rsp_body_data_map["method_full_name"];
+                                        std::vector<std::string> method_full_name_vec;
+                                        splitStrToVector(method_full_name_all, ",", method_full_name_vec);
+                                        auto server_addr = std::make_shared<IPNetAddr>(rsp_body_data_map["server_ip"],
+                                                                                       std::stoi(
+                                                                                               rsp_body_data_map["server_port"]));
+                                        this->m_dispatcher->updateMethodServer(method_full_name_vec, server_addr);
+                                        // ======================================================
+
                                         client->getConnectionRef().reset();
                                         client.reset(); // 前面lambda捕获client引用，达到再回调函数中销毁client的目的
                                     });

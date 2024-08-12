@@ -35,8 +35,6 @@ namespace rocket {
 
         void registerToCenterAndStartLoop();
 
-        void updateToCenter();
-
     private:
         void init();
 

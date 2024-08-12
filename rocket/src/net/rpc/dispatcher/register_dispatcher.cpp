@@ -13,6 +13,25 @@ namespace rocket {
         DEBUGLOG("~RegisterDispatcher");
     }
 
+    void RegisterDispatcher::updateMethodServer(std::vector<std::string> method_full_name_vec,
+                                                NetAddr::net_addr_sptr_t_ server_addr) {
+        for (const auto &method_full_name: method_full_name_vec) {
+            // 在dispatcher中注册server和其所有的method
+            // std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>>
+            auto method_full_name_find = m_method_server.find(method_full_name);
+            if (method_full_name_find != m_method_server.end()) {
+                // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
+                // 只能是定时任务里面添加后，定时清除掉time out的peer addr
+                method_full_name_find->second.emplace(server_addr);
+            } else {
+                std::set<NetAddr::net_addr_sptr_t_> tmp_peer_set;
+                tmp_peer_set.emplace(server_addr);
+                m_method_server.emplace(method_full_name, tmp_peer_set);
+            }
+        }
+        DEBUGLOG(printAllMethodServer().c_str());
+    }
+
     // 为了方面每次请求和返回时候都带上msg id
     // dispatcher中处理response时候，response的msg id和request的msg id得相等
     void RegisterDispatcher::dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
@@ -44,23 +63,9 @@ namespace rocket {
             IPNetAddr::net_addr_sptr_t_ server_addr = std::make_shared<IPNetAddr>(req_body_data_map["server_ip"],
                                                                                   std::stoi(
                                                                                           req_body_data_map["server_port"]));
-            for (const auto &method_full_name: method_full_name_vec) {
-                // 在dispatcher中注册server和其所有的method
-                // std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>>
-                auto method_full_name_find = m_method_server.find(method_full_name);
-                if (method_full_name_find != m_method_server.end()) {
-                    // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
-                    // 只能是定时任务里面添加后，定时清除掉time out的peer addr
-                    method_full_name_find->second.emplace(server_addr);
-                } else {
-                    std::set<NetAddr::net_addr_sptr_t_> tmp_peer_set;
-                    tmp_peer_set.emplace(server_addr);
-                    m_method_server.emplace(method_full_name, tmp_peer_set);
-                }
-            }
+            updateMethodServer(method_full_name_vec, server_addr);
             final_res = "add_count:" + std::to_string(method_full_name_vec.size()) + g_CRLF + "msg_id:" +
                         req_protocol->m_msg_id;
-            DEBUGLOG(printAllMethodServer().c_str());
         } else {
             // 客户端传过来只能是一个method full name，即只能调一个，所以这里直接取第一个
             // 在dispatcher中查找该method对应的server(后期可加负载均衡)

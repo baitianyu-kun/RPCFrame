@@ -179,10 +179,6 @@ namespace rocket {
                                 });
         });
     }
-
-    void TCPServer::updateToCenter() {
-
-    }
 }
 
 

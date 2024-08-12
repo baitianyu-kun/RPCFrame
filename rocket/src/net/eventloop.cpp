@@ -271,6 +271,11 @@ namespace rocket {
         return m_stop_flag;
     }
 
+    void EventLoop::setLoopStopFlag() {
+        m_stop_flag = false;
+    }
+
+
     void EventLoop::initTimer() {
         m_timer = std::make_shared<TimerFDEvent>();
         addEpollEvent(m_timer);
@@ -284,7 +289,6 @@ namespace rocket {
     void EventLoop::deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
         m_timer->deleteTimerEvent(std::move(time_event));
     }
-
 
 }
 

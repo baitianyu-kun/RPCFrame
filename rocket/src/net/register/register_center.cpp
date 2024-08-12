@@ -85,11 +85,13 @@ namespace rocket {
     void RegisterCenter::updateServerMethod() {
         // 注册中心请求服务端: update, msg_id 服务端返回：update, method_full_name，msg_id
         // 客户端请求注册中心：is_server, method_full_name，msg_id 返回：success, server_ip, server_port, msg_id
-        // 服务端请求注册中心：is_server, method_full_name，msg_id 返回：add, msg_id
+        // 服务端请求注册中心：is_server, method_full_name，msg_id, server_ip, server_port 返回：add, msg_id
+        auto msg_id = MSGIDUtil::GenerateMSGID();
         std::string final_res = "update:" + std::to_string(false) + g_CRLF
-                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
+                                + "msg_id:" + msg_id;
 
         auto req_protocol = std::make_shared<HTTPRequest>();
+        req_protocol->m_msg_id = final_res;
         req_protocol->m_request_body = final_res;
         req_protocol->m_request_method = HTTPMethod::POST;
         req_protocol->m_request_version = "HTTP/1.1";
@@ -113,6 +115,7 @@ namespace rocket {
                                         std::unordered_map<std::string, std::string> response_body_map;
                                         splitStrToMap(rsp_protocol->m_response_body, g_CRLF,
                                                       ":", response_body_map);
+                                        rsp_protocol->m_msg_id = response_body_map["msg_id"];
                                         INFOLOG("%s | success update, rsp_protocol_body [%s], peer addr [%s], local addr[%s]",
                                                 rsp_protocol->m_msg_id.c_str(),
                                                 rsp_protocol->m_response_body.c_str(),

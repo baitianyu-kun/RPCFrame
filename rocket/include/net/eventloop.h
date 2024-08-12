@@ -46,6 +46,8 @@ namespace rocket {
 
         bool LoopStopFlag();
 
+        void setLoopStopFlag();
+
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 
         void addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);

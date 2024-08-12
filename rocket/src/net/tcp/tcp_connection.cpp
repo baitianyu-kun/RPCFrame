@@ -184,6 +184,8 @@ namespace rocket {
                     // 这样无论在done里面删除整个tcp connection类或者是进行其他操作都不会出问题了。
                     m_read_dones.erase(iter);
                     done(result);
+                }else{
+                    DEBUGLOG("not found result->m_msg_id: %s",result->m_msg_id.c_str());
                 }
             }
         }

@@ -45,8 +45,7 @@ namespace rocket {
                 }
             }
         }
-
-        return {};
+        return t_msg_id_number;
     }
 
 }

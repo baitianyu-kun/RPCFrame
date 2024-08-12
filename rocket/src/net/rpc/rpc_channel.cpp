@@ -15,9 +15,10 @@
 
 namespace rocket {
 
-    RPCChannel::RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr, ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/)
-            : m_peer_addr(peer_addr), m_protocol_type(protocol) {
-        m_client = std::make_shared<TCPClient>(m_peer_addr, m_protocol_type);
+    RPCChannel::RPCChannel(NetAddr::net_addr_sptr_t_ register_center_addr,
+                           ProtocolType protocol/*ProtocolType::TinyPB_Protocol*/)
+            : m_register_center_addr(register_center_addr), m_protocol_type(protocol) {
+        m_client = std::make_shared<TCPClient>(m_register_center_addr, m_protocol_type);
     }
 
     RPCChannel::~RPCChannel() {
@@ -44,7 +45,7 @@ namespace rocket {
                                         google::protobuf::Closure *done) {
 
         if (m_protocol_type == ProtocolType::HTTP_Protocol) {
-            CallMethodHTTP(method, controller, request, response, done);
+            CallMethodHTTPRegisterCenter(method, controller, request, response, done);
             return;
         }
 
@@ -186,15 +187,87 @@ namespace rocket {
         });
     }
 
+    void RPCChannel::CallMethodHTTPRegisterCenter(const google::protobuf::MethodDescriptor *method,
+                                                  google::protobuf::RpcController *controller,
+                                                  const google::protobuf::Message *request,
+                                                  google::protobuf::Message *response,
+                                                  google::protobuf::Closure *done) {
+        // 服务端注册时候注册的是：Order
+        // 客户端来的时候是：Order.makeOrder
+        // 客户端请求注册中心：is_server, method_full_name，msg_id 返回：success, server_ip, server_port, msg_id
+        auto msg_id = MSGIDUtil::GenerateMSGID();
+        std::string final_req_to_register_center = "is_server:" + std::to_string(false) + g_CRLF
+                                                   + "method_full_name:" + method->service()->full_name() + g_CRLF
+                                                   + "msg_id:" + msg_id;
+        rpc_channel_sptr_t_ this_channel = shared_from_this();
+        auto req_protocol_register_center = std::make_shared<HTTPRequest>();
+        req_protocol_register_center->m_request_body = final_req_to_register_center;
+        req_protocol_register_center->m_request_method = HTTPMethod::POST;
+        req_protocol_register_center->m_request_version = "HTTP/1.1";
+        req_protocol_register_center->m_request_path = "/";
+        req_protocol_register_center->m_request_properties.m_map_properties["Content-Length"] = std::to_string(
+                final_req_to_register_center.length());
+        req_protocol_register_center->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+        req_protocol_register_center->m_msg_id = msg_id;
+
+        // response_body_map["msg_id"]和req_protocol_register_center->m_msg_id里面的msg id实际上都相等
+        // 为了方面每次请求和返回时候都带上msg id
+        // dispatcher中处理response时候，response的msg id和request的msg id得相等
+        // 连接注册中心
+        m_client->connect(
+                [req_protocol_register_center, this_channel, method, controller, request, response, done]() mutable {
+                    this_channel->GetClient()->writeMessage(req_protocol_register_center,
+                                                            [req_protocol_register_center, this_channel](
+                                                                    AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
+                                                                INFOLOG("%s | success send get server info request. call method name [%s], peer addr [%s], local addr[%s]",
+                                                                        req_protocol_register_center->m_msg_id.c_str(),
+                                                                        req_protocol_register_center->m_request_body.c_str(),
+                                                                        this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                                                                        this_channel->GetClient()->getLocalAddr()->toString().c_str());
+                                                            });
+                    this_channel->GetClient()->readMessage(req_protocol_register_center->m_msg_id,
+                                                           [this_channel, method, controller, request, response, done](
+                                                                   AbstractProtocol::abstract_pro_sptr_t_ msg) mutable {
+                                                               auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(
+                                                                       msg);
+                                                               std::unordered_map<std::string, std::string> response_body_map;
+                                                               splitStrToMap(rsp_protocol->m_response_body, g_CRLF, ":",
+                                                                             response_body_map);
+                                                               rsp_protocol->m_msg_id = response_body_map["msg_id"];
+                                                               INFOLOG("%s | success get server info, rsp_protocol_body [%s], peer addr [%s],"
+                                                                       " local addr[%s], server ip [%s], server port [%s]",
+                                                                       rsp_protocol->m_msg_id.c_str(),
+                                                                       rsp_protocol->m_response_body.c_str(),
+                                                                       this_channel->GetClient()->getPeerAddr()->toString().c_str(),
+                                                                       this_channel->GetClient()->getLocalAddr()->toString().c_str(),
+                                                                       response_body_map["server_ip"].c_str(),
+                                                                       response_body_map["server_port"].c_str());
+                                                               this_channel->GetClient()->stop();
+                                                               auto server_addr = std::make_shared<IPNetAddr>(
+                                                                       response_body_map["server_ip"],
+                                                                       std::stoi(response_body_map["server_port"]));
+                                                               this_channel->CallMethodHTTP(method, controller, request,
+                                                                                            response, done,
+                                                                                            server_addr);
+                                                           });
+                });
+    }
+
     void RPCChannel::CallMethodHTTP(const google::protobuf::MethodDescriptor *method,
                                     google::protobuf::RpcController *controller,
                                     const google::protobuf::Message *request, google::protobuf::Message *response,
-                                    google::protobuf::Closure *done) {
+                                    google::protobuf::Closure *done,
+                                    NetAddr::net_addr_sptr_t_ server_addr) {
+
+        // 根据新的server创建新的client，否则之前的client里面的fd不关闭的话，新的没办法继续使用
+        m_client.reset();
+        m_client = std::make_shared<TCPClient>(server_addr, m_protocol_type);
+
         rpc_channel_sptr_t_ this_channel = shared_from_this();
         auto req_protocol = std::make_shared<HTTPRequest>();
         auto rpc_controller = dynamic_cast<RPCController *>(controller);
         if (rpc_controller == nullptr) {
-            ERRORLOG("failed callmethod, RpcController convert error");
+            ERRORLOG("failed call method, RpcController convert error");
             return;
         }
         if (rpc_controller->GetMSGID().empty()) {
@@ -238,6 +311,7 @@ namespace rocket {
                 std::unordered_map<std::string, std::string> response_body_map;
                 splitStrToMap(rsp_protocol->m_response_body, g_CRLF, ":", response_body_map);
                 this_channel->GetResponse()->ParseFromString(response_body_map["pb_data"]);
+                rsp_protocol->m_msg_id = response_body_map["msg_id"];
 
                 INFOLOG("%s | success get rpc response, rsp_protocol_body [%s], peer addr [%s], local addr[%s], response [%s]",
                         rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_response_body.c_str(),

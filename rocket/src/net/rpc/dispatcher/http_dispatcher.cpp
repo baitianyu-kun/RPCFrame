@@ -17,6 +17,9 @@ namespace rocket {
         DEBUGLOG("~HTTPDispatcher");
     }
 
+    // response_body_map["msg_id"]和req_protocol_register_center->m_msg_id里面的msg id实际上都相等
+    // 为了方面每次请求和返回时候都带上msg id
+    // dispatcher中处理response时候，response的msg id和request的msg id得相等
     void HTTPDispatcher::dispatch(const AbstractProtocol::abstract_pro_sptr_t_ &request,
                                   const AbstractProtocol::abstract_pro_sptr_t_ &response,
                                   NetAddr::net_addr_sptr_t_ peer_addr, NetAddr::net_addr_sptr_t_ local_addr) {
@@ -34,6 +37,7 @@ namespace rocket {
         std::string service_name;
         std::string method_name;
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
+            // 做测试返回空网页用
             rsp_protocol->m_response_body = default_html_template;
             rsp_protocol->m_response_version = req_protocol->m_request_version;
             rsp_protocol->m_response_code = HTTPCode::HTTP_OK;
@@ -91,7 +95,7 @@ namespace rocket {
         rsp_protocol->m_response_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
         rsp_protocol->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
         rsp_protocol->m_msg_id = req_protocol->m_msg_id;
-        INFOLOG("%s | dispatch success, request[%s], response[%s]",
+        INFOLOG("%s | http dispatch success, request[%s], response[%s]",
                 req_protocol->m_msg_id.c_str(), req_msg->ShortDebugString().c_str(),
                 rsp_msg->ShortDebugString().c_str());
     }
@@ -116,6 +120,8 @@ namespace rocket {
         return true;
     }
 
+    // 服务端注册时候注册的是：Order
+    // 客户端来的时候是：Order.makeOrder
     void HTTPDispatcher::registerService(const HTTPDispatcher::protobuf_service_sptr_t_ &service) {
         auto service_name = service->GetDescriptor()->full_name();
         m_service_map[service_name] = service;

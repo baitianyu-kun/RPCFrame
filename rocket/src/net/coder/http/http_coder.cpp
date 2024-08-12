@@ -54,139 +54,148 @@ namespace rocket {
             decode_response(out_messages, in_buffer);
             return;
         }
-        while (true) {
-            bool is_parse_request_line = false;
-            bool is_parse_request_header = false;
-            bool is_parse_request_content = false;
-            int read_size = 0; // 读取长度，用来和content-length做校验
+        // while (true) {
+        bool is_parse_request_line = false;
+        bool is_parse_request_header = false;
+        bool is_parse_request_content = false;
+        int read_size = 0; // 读取长度，用来和content-length做校验
 
-            auto start_index = in_buffer->getReadIndex();
-            auto end_index = in_buffer->getWriteIndex();
+        auto start_index = in_buffer->getReadIndex();
+        auto end_index = in_buffer->getWriteIndex();
 
-            std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
-                                         in_buffer->getRefBuffer().begin() + end_index);
+        std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+                                     in_buffer->getRefBuffer().begin() + end_index);
 
-            // 转换为string开始解析
-            std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
+        // 转换为string开始解析
+        std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
 
 
-            std::string tmp = all_str;
-            // ================request line================
-            auto i_crlf = tmp.find(g_CRLF);
-            if (i_crlf == tmp.npos) {
-                ERRORLOG("not found CRLF in buffer");
-                continue;
-            }
-            if (i_crlf == tmp.length() - 2) {
-                // 请求行中只有 "\r\n" 的时候不完整，需要继续读
-                continue;
-            }
-            auto request = std::make_shared<HTTPRequest>();
-            is_parse_request_line = parseHTTPRequestLine(request, tmp.substr(0, i_crlf));
-            if (!is_parse_request_line) {
-                return;
-            }
-            tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
-            read_size += i_crlf + 2;
-            // ================request properties================
-            // 最后一个property后面有两个\r\n
-            auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
-            if (i_crlf_double == tmp.npos) {
-                ERRORLOG("not found last double CRLF in buffer");
-                continue;
-            }
-            is_parse_request_header = parseHTTPRequestHeader(request, tmp.substr(0, i_crlf_double));
-            tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
-            read_size += i_crlf_double + 4;
-            // ================request content================
-            int content_len = 0;
-            if (request->m_request_properties.m_map_properties.find("Content-Length") !=
-                request->m_request_properties.m_map_properties.end()) {
-                content_len = std::stoi(request->m_request_properties.m_map_properties["Content-Length"]);
-            }
-            // content len 得大于上面请求行和properties的长度
-            if (read_size < content_len) {
-                continue;
-            }
-            if (request->m_request_method == HTTPMethod::POST && content_len != 0) {
-                is_parse_request_content = parseHTTPRequestContent(request, tmp.substr(0, content_len));
-                read_size = read_size + content_len;
-            } else {
-                is_parse_request_content = true; // get的时候没有请求体，请求的东西都在url上，所以直接设置为true
-            }
-            // ================ok================
-            if (is_parse_request_line && is_parse_request_header && is_parse_request_header) {
-                out_messages.emplace_back(request);
-                in_buffer->moveReadIndex(read_size);
-                break;
-            }
+        std::string tmp = all_str;
+        // ================request line================
+        auto i_crlf = tmp.find(g_CRLF);
+        if (i_crlf == tmp.npos) {
+            ERRORLOG("not found CRLF in buffer");
+            // continue;
         }
+        if (i_crlf == tmp.length() - 2) {
+            // 请求行中只有 "\r\n" 的时候不完整，需要继续读
+            // continue;
+        }
+        auto request = std::make_shared<HTTPRequest>();
+        is_parse_request_line = parseHTTPRequestLine(request, tmp.substr(0, i_crlf));
+        if (!is_parse_request_line) {
+            return;
+        }
+        tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
+        read_size += i_crlf + 2;
+        // ================request properties================
+        // 最后一个property后面有两个\r\n
+        auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
+        if (i_crlf_double == tmp.npos) {
+            ERRORLOG("not found last double CRLF in buffer");
+            // continue;
+        }
+        is_parse_request_header = parseHTTPRequestHeader(request, tmp.substr(0, i_crlf_double));
+        tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
+        read_size += i_crlf_double + 4;
+        // ================request content================
+        int content_len = 0;
+        if (request->m_request_properties.m_map_properties.find("Content-Length") !=
+            request->m_request_properties.m_map_properties.end()) {
+            content_len = std::stoi(request->m_request_properties.m_map_properties["Content-Length"]);
+        }
+        // content len 得大于上面请求行和properties的长度
+        // if (read_size < content_len) {
+        //     continue;
+        // }
+        if (request->m_request_method == HTTPMethod::POST && content_len != 0) {
+            is_parse_request_content = parseHTTPRequestContent(request, tmp.substr(0, content_len));
+            read_size = read_size + content_len;
+        } else {
+            is_parse_request_content = true; // get的时候没有请求体，请求的东西都在url上，所以直接设置为true
+        }
+        // ================ok================
+        if (is_parse_request_line && is_parse_request_header && is_parse_request_header) {
+            // TODO 获取msg id，剩下的字段都浪费了，需要优化，还有好多这种地方
+            std::unordered_map<std::string, std::string> req_body_data_map;
+            splitStrToMap(request->m_request_body,
+                          g_CRLF,
+                          ":", req_body_data_map);
+            request->m_msg_id = req_body_data_map["msg_id"];
+
+            out_messages.emplace_back(request);
+            in_buffer->moveReadIndex(read_size);
+            // break;
+        }
+        // }
 
         DEBUGLOG("HTTP request decode success");
     }
 
     void HTTPCoder::decode_response(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
                                     TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
-        while (true) {
-            bool is_parse_response_line = false;
-            bool is_parse_response_header = false;
-            bool is_parse_response_content = false;
-            int read_size = 0;
+        // while (true) {
+        bool is_parse_response_line = false;
+        bool is_parse_response_header = false;
+        bool is_parse_response_content = false;
+        int read_size = 0;
 
-            auto start_index = in_buffer->getReadIndex();
-            auto end_index = in_buffer->getWriteIndex();
-            std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
-                                         in_buffer->getRefBuffer().begin() + end_index);
+        auto start_index = in_buffer->getReadIndex();
+        auto end_index = in_buffer->getWriteIndex();
+        std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+                                     in_buffer->getRefBuffer().begin() + end_index);
 
-            // 转换为string开始解析
-            std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
-            std::string tmp = all_str;
-            // ================request line================
-            auto i_crlf = tmp.find(g_CRLF);
-            if (i_crlf == tmp.npos) {
-                ERRORLOG("not found CRLF in buffer");
-                continue;
-            }
-            if (i_crlf == tmp.length() - 2) {
-                // 请求行中只有 "\r\n" 的时候不完整，需要继续读
-                continue;
-            }
-            auto response = std::make_shared<HTTPResponse>();
-            is_parse_response_line = parseHTTPResponseLine(response, tmp.substr(0, i_crlf));
-            if (!is_parse_response_line) {
-                return;
-            }
-            tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
-            read_size += i_crlf + 2;
-            // ================request properties================
-            // 最后一个property后面有两个\r\n
-            auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
-            if (i_crlf_double == tmp.npos) {
-                ERRORLOG("not found last double CRLF in buffer");
-                continue;
-            }
-            is_parse_response_header = parseHTTPResponseHeader(response, tmp.substr(0, i_crlf_double));
-            tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
-            read_size += i_crlf_double + 4;
-            // ================request content================
-            int content_len = 0;
-            if (response->m_response_properties.m_map_properties.find("Content-Length") !=
-                response->m_response_properties.m_map_properties.end()) {
-                content_len = std::stoi(response->m_response_properties.m_map_properties["Content-Length"]);
-            }
-            is_parse_response_content = parseHTTPResponseContent(response, tmp.substr(0, content_len));
-            read_size += content_len;
+        // 转换为string开始解析
+        std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
+        std::string tmp = all_str;
+        // ================request line================
+        auto i_crlf = tmp.find(g_CRLF);
+        if (i_crlf == tmp.npos) {
+            ERRORLOG("not found CRLF in buffer");
+            // continue;
+        }
+        if (i_crlf == tmp.length() - 2) {
+            // 请求行中只有 "\r\n" 的时候不完整，需要继续读
+            // continue;
+        }
+        auto response = std::make_shared<HTTPResponse>();
+        is_parse_response_line = parseHTTPResponseLine(response, tmp.substr(0, i_crlf));
+        if (!is_parse_response_line) {
+            return;
+        }
+        tmp = tmp.substr(i_crlf + 2, tmp.length() - i_crlf - 2); // 截取剩下的request properties
+        read_size += i_crlf + 2;
+        // ================request properties================
+        // 最后一个property后面有两个\r\n
+        auto i_crlf_double = tmp.find(g_CRLF_DOUBLE);
+        if (i_crlf_double == tmp.npos) {
+            ERRORLOG("not found last double CRLF in buffer");
+            // continue;
+        }
+        is_parse_response_header = parseHTTPResponseHeader(response, tmp.substr(0, i_crlf_double));
+        tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
+        read_size += i_crlf_double + 4;
+        // ================request content================
+        int content_len = 0;
+        if (response->m_response_properties.m_map_properties.find("Content-Length") !=
+            response->m_response_properties.m_map_properties.end()) {
+            content_len = std::stoi(response->m_response_properties.m_map_properties["Content-Length"]);
+        }
+        is_parse_response_content = parseHTTPResponseContent(response, tmp.substr(0, content_len));
+        read_size += content_len;
+
+        if (is_parse_response_line && is_parse_response_header && is_parse_response_content) {
+
             // 存一下msg id
             std::unordered_map<std::string, std::string> response_body_map;
             splitStrToMap(response->m_response_body, g_CRLF, ":", response_body_map);
             response->m_msg_id = response_body_map["msg_id"];
 
-            if (is_parse_response_line && is_parse_response_header && is_parse_response_content) {
-                out_messages.emplace_back(response);
-                in_buffer->moveReadIndex(read_size);
-                break;
-            }
+            out_messages.emplace_back(response);
+            in_buffer->moveReadIndex(read_size);
+            // break;
         }
+        // }
         DEBUGLOG("HTTP response decode success");
     }
 

@@ -40,7 +40,8 @@ namespace rocket {
         using google_message_sptr_t_ = std::shared_ptr<google::protobuf::Message>;
         using google_closure_sptr_t_ = std::shared_ptr<google::protobuf::Closure>;
 
-        RPCChannel(NetAddr::net_addr_sptr_t_ peer_addr,ProtocolType protocol = ProtocolType::TinyPB_Protocol);
+        RPCChannel(NetAddr::net_addr_sptr_t_ register_center_addr,
+                   ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~RPCChannel() override;
 
@@ -51,9 +52,14 @@ namespace rocket {
                         google::protobuf::RpcController *controller, const google::protobuf::Message *request,
                         google::protobuf::Message *response, google::protobuf::Closure *done) override;
 
+        void CallMethodHTTPRegisterCenter(const google::protobuf::MethodDescriptor *method,
+                                          google::protobuf::RpcController *controller, const google::protobuf::Message *request,
+                                          google::protobuf::Message *response, google::protobuf::Closure *done);
+
         void CallMethodHTTP(const google::protobuf::MethodDescriptor *method,
                             google::protobuf::RpcController *controller, const google::protobuf::Message *request,
-                            google::protobuf::Message *response, google::protobuf::Closure *done);
+                            google::protobuf::Message *response, google::protobuf::Closure *done,
+                            NetAddr::net_addr_sptr_t_ server_addr);
 
         // 在这段代码中，m_controller 是一个 shared_ptr 类型的对象，
         // 而函数 RPCChannel::GetController() 返回的是一个 shared_ptr 对象，会导致 m_controller 的引用计数增加。
@@ -77,7 +83,7 @@ namespace rocket {
         void error_call_back();
 
     private:
-        NetAddr::net_addr_sptr_t_ m_peer_addr{nullptr}; // 得知道要调用的对方的服务器地址
+        // NetAddr::net_addr_sptr_t_ m_peer_addr{nullptr}; // 得知道要调用的对方的服务器地址
         NetAddr::net_addr_sptr_t_ m_local_addr{nullptr}; // 本地的地址
 
         // 保存外面传进来的智能指针。因为call method里面如果写回调函数来调其那几个参数，例如*done啊，则done可能在还没有
@@ -105,9 +111,9 @@ namespace rocket {
         bool m_is_init{false}; // 是否初始化
 
         ProtocolType m_protocol_type;
-
+    private:
+        NetAddr::net_addr_sptr_t_ m_register_center_addr; // 本地注册中心地址
     };
-
 }
 
 #endif //RPCFRAME_RPC_CHANNEL_H

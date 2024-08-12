@@ -125,18 +125,24 @@ namespace rocket {
             all_service_names_str += ",";
         }
         all_service_names_str = all_service_names_str.substr(0, all_service_names_str.length() - 1);
-        // is_server, method_full_name，msg_id
-        std::string final_res = "is_server:" + std::to_string(true) + g_CRLF
+
+        std::string msg_id = MSGIDUtil::GenerateMSGID();
+        std::string final_req = "is_server:" + std::to_string(true) + g_CRLF
+                                + "server_ip:" + m_local_addr->getStringIP() + g_CRLF
+                                + "server_port:" + m_local_addr->getStringPort() + g_CRLF
                                 + "method_full_name:" + all_service_names_str + g_CRLF
-                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
+                                + "msg_id:" + msg_id;
+
+        // DEBUGLOG("========final_res: %s========", final_res.c_str());
 
         auto req_protocol = std::make_shared<HTTPRequest>();
-        req_protocol->m_request_body = final_res;
+        req_protocol->m_request_body = final_req;
         req_protocol->m_request_method = HTTPMethod::POST;
         req_protocol->m_request_version = "HTTP/1.1";
         req_protocol->m_request_path = "/";
-        req_protocol->m_request_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
+        req_protocol->m_request_properties.m_map_properties["Content-Length"] = std::to_string(final_req.length());
         req_protocol->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+        req_protocol->m_msg_id = msg_id;
 
         auto client = std::make_shared<TCPClient>(m_register_center_addr, m_protocol_type);
         // 这里拿着this_tcp_server的共享指针无法释放，因为tcp server会一直保持运行，导致client无法析构，造成内存泄露
@@ -153,6 +159,8 @@ namespace rocket {
                                     std::unordered_map<std::string, std::string> response_body_map;
                                     splitStrToMap(rsp_protocol->m_response_body, g_CRLF,
                                                   ":", response_body_map);
+                                    rsp_protocol->m_msg_id = response_body_map["msg_id"];
+
                                     INFOLOG("%s | success register to center, rsp_protocol_body [%s], peer addr [%s], local addr[%s]",
                                             rsp_protocol->m_msg_id.c_str(),
                                             rsp_protocol->m_response_body.c_str(),

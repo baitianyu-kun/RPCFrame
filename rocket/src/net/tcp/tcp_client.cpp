@@ -42,6 +42,7 @@ namespace rocket {
     TCPClient::~TCPClient() {
         // 需要把刚刚主动连接的socket给销毁掉
         if (m_client_fd > 0) {
+            m_event_loop->deleteEpollEvent(m_fd_event);
             close(m_client_fd);
         }
         DEBUGLOG("~TCPClient");
@@ -116,7 +117,14 @@ namespace rocket {
                 });
                 m_event_loop->addEpollEvent(m_fd_event);
                 // 添加完事件后记得开启loop循环
+                // loop flag默认false，则第一次时候开启loop
+                // loop flag如果被stop置为true，则loop停止
+                // 此时再次开启loop，由于stop为true，所以loop无法进行
+                // 所以应该先设置loop flag为true，然后再进行loop
                 if (!m_event_loop->LoopStopFlag()) {
+                    m_event_loop->loop();
+                } else {
+                    m_event_loop->setLoopStopFlag();
                     m_event_loop->loop();
                 }
             } else {
@@ -164,7 +172,7 @@ namespace rocket {
         // 由于是client，其地址是系统随机分配的，所以可以读取sockfd来读取到其分配到的地址
         sockaddr_in local_addr;
         socklen_t len = sizeof(local_addr);
-        int ret = getsockname(m_client_fd, (sockaddr * )(&local_addr), &len);
+        int ret = getsockname(m_client_fd, (sockaddr *) (&local_addr), &len);
         if (ret != 0) {
             ERRORLOG("initLocalAddr error, getsockname error. errno = %d, error = %s", errno, strerror(errno));
             return;
@@ -186,6 +194,10 @@ namespace rocket {
 
     TCPConnection::tcp_connection_sptr_t_ &TCPClient::getConnectionRef() {
         return m_connection;
+    }
+
+    void TCPClient::setPeerAddr(NetAddr::net_addr_sptr_t_ new_peer_addr) {
+        m_peer_addr = new_peer_addr;
     }
 
 }

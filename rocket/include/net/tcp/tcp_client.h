@@ -45,6 +45,8 @@ namespace rocket {
 
         NetAddr::net_addr_sptr_t_ getLocalAddr();
 
+        void setPeerAddr(NetAddr::net_addr_sptr_t_ new_peer_addr);
+
         int getConnectErrorCode() const;
 
         std::string getConnectErrorInfo();

@@ -7,7 +7,7 @@
 
 #include <string>
 
-#define MAX_MSG_ID_LEN 20
+#define MAX_MSG_ID_LEN 8
 
 namespace rocket {
     class MSGIDUtil {

@@ -2,6 +2,7 @@
 // Created by baitianyu on 7/20/24.
 //
 #include "net/fd_event_pool.h"
+#include "common/log.h"
 
 namespace rocket {
     // 单例模式，懒汉类型，用的收才进行创建，线程不安全，假设两个线程，一个判断为nullptr
@@ -48,6 +49,13 @@ namespace rocket {
             m_fd_pool.emplace_back(std::make_shared<FDEvent>(i));
         }
         return m_fd_pool[fd];
+    }
+
+    void FDEventPool::deleteFDEvent(int fd) {
+        if (m_fd_pool[fd]) {
+            m_fd_pool[fd].reset();
+            m_fd_pool.erase(m_fd_pool.begin() + fd);
+        }
     }
 }
 

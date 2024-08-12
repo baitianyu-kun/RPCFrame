@@ -85,7 +85,6 @@ namespace rocket {
     // 定时更新所有服务，这里设置的是12秒更新一次
     // TODO 把所有的rpc controller都补上，方便确定传输信息以及设置超时时间
     void RegisterCenter::updateServerMethod() {
-
         // 注册中心请求服务端: update, msg_id 服务端返回：update, method_full_name，msg_id, server_ip, server_port
         // 客户端请求注册中心：is_server, method_full_name，msg_id 返回：success, server_ip, server_port, msg_id
         // 服务端请求注册中心：is_server, method_full_name，msg_id, server_ip, server_port 返回：add, msg_id
@@ -103,12 +102,31 @@ namespace rocket {
         req_protocol->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
 
         auto all_server_list = m_dispatcher->getAllServerList();
-        for (const auto &server: all_server_list) {
-            auto client = std::make_shared<TCPClient>(server, m_protocol_type);
-            client->connect([&client, req_protocol, this]()mutable {
+        auto server_iter = all_server_list.begin();
+        for (; server_iter != all_server_list.end(); server_iter++) {
+            // 超时没有更新的话就删除掉
+            m_update_server_timeout_timer_event_info = std::make_shared<TimerEventInfo>(
+                    UPDATE_SERVER_TIME_OUT, false, [&server_iter, this]() {
+                        INFOLOG("fail update, server addr [%s], it will be deleted",
+                                server_iter->get()->toString().c_str());
+                        DEBUGLOG("delete before: %s",m_dispatcher->printAllMethodServer().c_str());
+                        m_dispatcher->deleteServerInServerList(*server_iter);
+                        DEBUGLOG("delete after: %s",m_dispatcher->printAllMethodServer().c_str());
+                    }
+            );
+            m_main_event_loop->addTimerEvent(m_update_server_timeout_timer_event_info);
+
+            auto client = std::make_shared<TCPClient>(*server_iter, m_protocol_type);
+            client->connect([&client, &req_protocol, this, &server_iter]()mutable {
                 client->writeMessage(req_protocol,
-                                     [](
+                                     [&client, &req_protocol, &server_iter](
                                              AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
+                                         if (client->getConnectErrorCode() != 0) {
+                                             ERRORLOG("%s | connect error, server addr[%s]",
+                                                      req_protocol->m_msg_id.c_str(),
+                                                      server_iter->get()->toString().c_str());
+                                             return;
+                                         }
                                      });
                 client->readMessage(req_protocol->m_msg_id,
                                     [&client, this](
@@ -124,6 +142,9 @@ namespace rocket {
                                                 rsp_protocol->m_response_body.c_str(),
                                                 client->getPeerAddr()->toString().c_str(),
                                                 client->getLocalAddr()->toString().c_str());
+
+                                        // 删除定时任务
+                                        m_main_event_loop->deleteTimerEvent(m_update_server_timeout_timer_event_info);
 
                                         // ======================================================
                                         // 更新register dispatcher中m_method_server

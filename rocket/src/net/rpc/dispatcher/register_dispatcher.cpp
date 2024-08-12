@@ -1,6 +1,7 @@
 //
 // Created by baitianyu on 8/11/24.
 //
+#include <algorithm>
 #include "net/rpc/dispatcher/register_dispatcher.h"
 #include "net/coder/http/http_request.h"
 #include "net/coder/http/http_response.h"
@@ -22,11 +23,20 @@ namespace rocket {
             if (method_full_name_find != m_method_server.end()) {
                 // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
                 // 只能是定时任务里面添加后，定时清除掉time out的peer addr
-                method_full_name_find->second.emplace(server_addr);
+                auto find_server_iter = std::find_if(method_full_name_find->second.begin(),
+                                                     method_full_name_find->second.end(),
+                                                     [&server_addr](const NetAddr::net_addr_sptr_t_ &x) {
+                                                         return x->toString() == server_addr->toString();
+                                                     });
+                if (find_server_iter != method_full_name_find->second.end()) {
+                    *find_server_iter = server_addr; // 旧的覆盖掉
+                } else {
+                    method_full_name_find->second.emplace_back(server_addr);
+                }
             } else {
-                std::set<NetAddr::net_addr_sptr_t_> tmp_peer_set;
-                tmp_peer_set.emplace(server_addr);
-                m_method_server.emplace(method_full_name, tmp_peer_set);
+                std::vector<NetAddr::net_addr_sptr_t_> tmp_peer_vec;
+                tmp_peer_vec.emplace_back(server_addr);
+                m_method_server.emplace(method_full_name, tmp_peer_vec);
             }
         }
         DEBUGLOG(printAllMethodServer().c_str());
@@ -106,10 +116,32 @@ namespace rocket {
         // 这里只print了第一个的addr
         std::string all_method_server = "In Register: ";
         for (const auto &item: m_method_server) {
-            all_method_server = all_method_server + "method:" + item.first + ", server_addr:" +
-                                item.second.begin()->get()->toString() + ",";
+            std::string all_server = "";
+            for (const auto &server: item.second) {
+                all_server = all_server + server->toString() + ",";
+            }
+            all_server = all_server.substr(0, all_server.length() - 1);
+            all_method_server += all_server;
         }
-        return all_method_server.substr(0, all_method_server.length() - 1);
+        return all_method_server;
+    }
+
+    void RegisterDispatcher::deleteServerInServerList(NetAddr::net_addr_sptr_t_ server_addr) {
+        auto iter = m_method_server.begin();
+        for (; iter != m_method_server.end();) {
+            auto find_server_iter = std::find_if(iter->second.begin(), iter->second.end(),
+                                                 [&server_addr](const NetAddr::net_addr_sptr_t_ &x) {
+                                                     return x->toString() == server_addr->toString();
+                                                 });
+            if (find_server_iter != iter->second.end()) {
+                iter->second.erase(find_server_iter);
+            }
+            if (iter->second.empty()) {
+                iter = m_method_server.erase(iter);
+            } else {
+                iter++;
+            }
+        }
     }
 
 }

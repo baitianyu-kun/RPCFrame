@@ -194,8 +194,9 @@ namespace rocket {
 
     void TCPConnection::onWrite() {
         if (m_state != Connected) {
-            ERRORLOG("onRead error, client has already disconnected, addr[%s], clientfd[%d]",
+            ERRORLOG("onWrite error, client has already disconnected, addr[%s], clientfd[%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
+            clear();
             return;
         }
         // 当前作为客户端的情况下

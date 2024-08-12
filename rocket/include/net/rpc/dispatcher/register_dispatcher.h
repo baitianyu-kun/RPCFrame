@@ -25,13 +25,15 @@ namespace rocket {
 
         std::set<NetAddr::net_addr_sptr_t_> getAllServerList();
 
+        void deleteServerInServerList(NetAddr::net_addr_sptr_t_ server_addr);
+
         std::string printAllMethodServer();
 
         void updateMethodServer(std::vector<std::string> method_full_name_vec, NetAddr::net_addr_sptr_t_ server_addr);
 
     private:
         // 这个应该存在dispatcher里面
-        std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>> m_method_server; // method对应的多少个server
+        std::unordered_map<std::string, std::vector<NetAddr::net_addr_sptr_t_>> m_method_server; // method对应的多少个server
     };
 
 }

@@ -9,6 +9,7 @@
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_acceptor.h"
 #include "net/tcp/tcp_buffer.h"
+#include "net/tcp/tcp_client.h"
 #include "net/eventloop.h"
 #include "net/io_thread_pool.h"
 #include "net/tcp/tcp_connection.h"
@@ -21,15 +22,20 @@
 #define TIMER_EVENT_INTERVAL 5000
 
 namespace rocket {
-    class TCPServer {
+    class TCPServer{
     public:
-        TCPServer(NetAddr::net_addr_sptr_t_ local_addr, ProtocolType protocol = ProtocolType::TinyPB_Protocol);
+        TCPServer(NetAddr::net_addr_sptr_t_ local_addr, NetAddr::net_addr_sptr_t_ register_center_addr,
+                  ProtocolType protocol = ProtocolType::TinyPB_Protocol);
 
         ~TCPServer();
 
         void start();
 
         void registerService(TinyPBDispatcher::protobuf_service_sptr_t_ service);
+
+        void registerToCenterAndStartLoop();
+
+        void updateToCenter();
 
     private:
         void init();
@@ -49,16 +55,15 @@ namespace rocket {
         // 应该都改成timer event info那样的shared ptr声明方式
         FDEvent::fd_event_sptr_t_ m_listen_fd_event;
         TimerEventInfo::time_event_info_sptr_t_ m_clear_client_timer_event;
-
         std::set<TCPConnection::tcp_connection_sptr_t_> m_client_connection;
-
         int m_client_counts{0};
 
         ProtocolType m_protocol_type;
-
         AbstractDispatcher::abstract_disp_sptr_t m_dispatcher{nullptr};
-
         AbstractCoder::abstract_coder_sptr_t_ m_coder{nullptr};
+    private:
+        // TCPClient::tcp_client_sptr_t_ m_client{nullptr}; // 主动向注册中心注册，或者更新到注册中心
+        NetAddr::net_addr_sptr_t_ m_register_center_addr; // 本地监听地址
     };
 }
 

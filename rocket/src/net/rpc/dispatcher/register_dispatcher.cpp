@@ -27,7 +27,10 @@ namespace rocket {
         splitStrToMap(req_protocol->m_request_body,
                       g_CRLF,
                       ":", req_body_data_map);
-        auto method_full_name = req_body_data_map["method_full_name"];
+        auto method_full_name_all = req_body_data_map["method_full_name"];
+        // method full name: Name:1,2,3\r\nAge:1,2,4，可能会存在多个的情况
+        std::vector<std::string> method_full_name_vec;
+        splitStrToVector(method_full_name_all, ",", method_full_name_vec);
         req_protocol->m_msg_id = req_body_data_map["msg_id"];
         // 这个字段为1是代表为server，为0是代表为client
         auto is_server_find = req_body_data_map.find("is_server");
@@ -36,22 +39,27 @@ namespace rocket {
             is_server = true;
         }
         if (is_server) {
-            // 在dispatcher中注册server和其所有的method
-            // std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>>
-            auto method_full_name_find = m_method_server.find(method_full_name);
-            if (method_full_name_find != m_method_server.end()) {
-                // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
-                // 只能是定时任务里面添加后，定时清除掉time out的peer addr
-                method_full_name_find->second.emplace(peer_addr);
-            } else {
-                std::set<NetAddr::net_addr_sptr_t_> tmp_peer_set;
-                tmp_peer_set.emplace(peer_addr);
-                m_method_server.emplace(method_full_name, tmp_peer_set);
+            for (const auto &method_full_name: method_full_name_vec) {
+                // 在dispatcher中注册server和其所有的method
+                // std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>>
+                auto method_full_name_find = m_method_server.find(method_full_name);
+                if (method_full_name_find != m_method_server.end()) {
+                    // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
+                    // 只能是定时任务里面添加后，定时清除掉time out的peer addr
+                    method_full_name_find->second.emplace(peer_addr);
+                } else {
+                    std::set<NetAddr::net_addr_sptr_t_> tmp_peer_set;
+                    tmp_peer_set.emplace(peer_addr);
+                    m_method_server.emplace(method_full_name, tmp_peer_set);
+                }
             }
-            final_res = "add:" + std::to_string(true) + g_CRLF + "msg_id:" + req_protocol->m_msg_id;
+            final_res = "add_count:" + std::to_string(method_full_name_vec.size()) + g_CRLF + "msg_id:" +
+                        req_protocol->m_msg_id;
+            DEBUGLOG(printAllMethodServer().c_str());
         } else {
+            // 客户端传过来只能是一个method full name，即只能调一个，所以这里直接取第一个
             // 在dispatcher中查找该method对应的server(后期可加负载均衡)
-            auto server_find = m_method_server.find(method_full_name);
+            auto server_find = m_method_server.find(*method_full_name_vec.begin());
             if (server_find != m_method_server.end()) {
                 final_res = "success:" + std::to_string(true) + g_CRLF
                             + "server_ip:" + server_find->second.begin()->get()->getStringIP() + g_CRLF
@@ -74,7 +82,7 @@ namespace rocket {
                 final_res.c_str());
     }
 
-    std::set<NetAddr::net_addr_sptr_t_> RegisterDispatcher::get_all_server_list() {
+    std::set<NetAddr::net_addr_sptr_t_> RegisterDispatcher::getAllServerList() {
         std::set<NetAddr::net_addr_sptr_t_> tmp_server_list;
         for (const auto &i: m_method_server) {
             for (const auto &j: i.second) {
@@ -82,6 +90,16 @@ namespace rocket {
             }
         }
         return tmp_server_list;
+    }
+
+    std::string RegisterDispatcher::printAllMethodServer() {
+        // 这里只print了第一个的addr
+        std::string all_method_server = "In Register: ";
+        for (const auto &item: m_method_server) {
+            all_method_server = all_method_server + "method:" + item.first + ", server_addr:" +
+                                item.second.begin()->get()->toString() + ",";
+        }
+        return all_method_server.substr(0, all_method_server.length() - 1);
     }
 
 }

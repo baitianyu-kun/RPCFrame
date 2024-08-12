@@ -32,7 +32,6 @@
 #include "net/coder/abstract_protocol.h"
 
 
-
 class OrderImpl : public Order {
 public:
     OrderImpl() = default;
@@ -65,8 +64,12 @@ int main() {
     rocket::Logger::InitGlobalLogger(0);
     std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
     rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    rocket::TCPServer tcp_server(addr,rocket::ProtocolType::HTTP_Protocol);
-    tcp_server.registerService(service);
-    tcp_server.start();
+    rocket::IPNetAddr::net_addr_sptr_t_ register_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    auto tcp_server = std::make_shared<rocket::TCPServer>(addr, register_addr, rocket::ProtocolType::HTTP_Protocol);
+    // rocket::TCPServer tcp_server(addr, register_addr, rocket::ProtocolType::HTTP_Protocol);
+    // tcp_server.registerService(service);
+    // tcp_server.start();
+    tcp_server->registerService(service);
+    tcp_server->start();
     return 0;
 }

@@ -38,7 +38,8 @@ namespace rocket {
             rsp_protocol->m_response_version = req_protocol->m_request_version;
             rsp_protocol->m_response_code = HTTPCode::HTTP_OK;
             rsp_protocol->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
-            rsp_protocol->m_response_properties.m_map_properties["Content-Length"] = std::to_string(strlen(default_html_template));
+            rsp_protocol->m_response_properties.m_map_properties["Content-Length"] = std::to_string(
+                    strlen(default_html_template));
             rsp_protocol->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
             rsp_protocol->m_msg_id = req_protocol->m_msg_id;
             return;
@@ -118,6 +119,14 @@ namespace rocket {
     void HTTPDispatcher::registerService(const HTTPDispatcher::protobuf_service_sptr_t_ &service) {
         auto service_name = service->GetDescriptor()->full_name();
         m_service_map[service_name] = service;
+    }
+
+    std::vector<std::string> HTTPDispatcher::getAllServiceName() {
+        std::vector<std::string> tmp_service_names;
+        for (const auto &item: m_service_map) {
+            tmp_service_names.push_back(item.first);
+        }
+        return tmp_service_names;
     }
 
 }

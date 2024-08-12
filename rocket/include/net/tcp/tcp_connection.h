@@ -29,7 +29,7 @@ namespace rocket {
         TCPConnectionByClient = 2,  // 作为客户端使用，代表跟对端服务端的连接
     };
 
-    class TCPConnection : public std::enable_shared_from_this<TCPConnection> {
+    class TCPConnection{
     public:
         using tcp_connection_sptr_t_ = std::shared_ptr<TCPConnection>;
     public:

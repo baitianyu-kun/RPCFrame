@@ -177,8 +177,13 @@ namespace rocket {
             for (const auto &result: results) {
                 auto iter = m_read_dones.find(result->m_msg_id);
                 if (iter != m_read_dones.end()) {
-                    iter->second(result); // 执行msg id对应的回调函数
+                    std::function<void(AbstractProtocol::abstract_pro_sptr_t_)> done = iter->second;
+                    // tcp server中的client->connect那块的三个lambda表达式嵌套的问题
+                    // 先保存一下回调，然后在调用，不然如果在调用函数里删除connection的指针的话，则删除后整个tcp connection全部析构，即m_read_dones也析构了
+                    // 导致m_read_dones在上一层lambda表达式调用时提示空指针。所以可以先保存一下这个可调用函数，然后删除m_read_dones，然后在调用done，
+                    // 这样无论在done里面删除整个tcp connection类或者是进行其他操作都不会出问题了。
                     m_read_dones.erase(iter);
+                    done(result);
                 }
             }
         }

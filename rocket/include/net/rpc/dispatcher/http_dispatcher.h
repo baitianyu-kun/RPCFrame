@@ -29,6 +29,8 @@ namespace rocket {
 
         void registerService(const protobuf_service_sptr_t_ &service);
 
+        std::vector<std::string> getAllServiceName();
+
     private:
         static bool
         parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);

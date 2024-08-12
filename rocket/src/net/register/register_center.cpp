@@ -35,10 +35,10 @@ namespace rocket {
                                                                                 this));
         m_main_event_loop->addTimerEvent(m_clear_client_timer_event);
 
-        m_update_server_timer_event = std::make_shared<TimerEventInfo>(UPDATE_SERVER_TIMER_EVENT_INTERVAL, true,
-                                                                       std::bind(&RegisterCenter::updateServerMethod,
-                                                                                 this));
-        m_main_event_loop->addTimerEvent(m_update_server_timer_event);
+        // m_update_server_timer_event = std::make_shared<TimerEventInfo>(UPDATE_SERVER_TIMER_EVENT_INTERVAL, true,
+        //                                                                std::bind(&RegisterCenter::updateServerMethod,
+        //                                                                          this));
+        // m_main_event_loop->addTimerEvent(m_update_server_timer_event);
 
         m_dispatcher = std::make_shared<RegisterDispatcher>();
         m_coder = std::make_shared<HTTPCoder>();
@@ -97,36 +97,32 @@ namespace rocket {
         req_protocol->m_request_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
         req_protocol->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
 
-        auto all_server_list = m_dispatcher->get_all_server_list();
-        auto this_register_center = shared_from_this();
+        auto all_server_list = m_dispatcher->getAllServerList();
         for (const auto &server: all_server_list) {
-            m_client = std::make_shared<TCPClient>(server, m_protocol_type);
-            m_client->connect([this_register_center, req_protocol]() {
-                this_register_center->GetClient()->writeMessage(req_protocol,
-                                                                [this_register_center](
-                                                                        AbstractProtocol::abstract_pro_sptr_t_ msg) {
-                                                                });
-                this_register_center->GetClient()->readMessage(req_protocol->m_msg_id,
-                                                               [this_register_center](
-                                                                       AbstractProtocol::abstract_pro_sptr_t_ msg) {
-                                                                   auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(
-                                                                           msg);
-                                                                   std::unordered_map<std::string, std::string> response_body_map;
-                                                                   splitStrToMap(rsp_protocol->m_response_body, g_CRLF,
-                                                                                 ":", response_body_map);
-                                                                   INFOLOG("%s | success update, rsp_protocol_body [%s], peer addr [%s], local addr[%s]",
-                                                                           rsp_protocol->m_msg_id.c_str(),
-                                                                           rsp_protocol->m_response_body.c_str(),
-                                                                           this_register_center->GetClient()->getPeerAddr()->toString().c_str(),
-                                                                           this_register_center->GetClient()->getLocalAddr()->toString().c_str())
-                                                               });
+            auto client = std::make_shared<TCPClient>(server, m_protocol_type);
+            client->connect([&client, req_protocol]()mutable {
+                client->writeMessage(req_protocol,
+                                     [](
+                                             AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
+                                     });
+                client->readMessage(req_protocol->m_msg_id,
+                                    [&client](
+                                            AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
+                                        auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(
+                                                msg);
+                                        std::unordered_map<std::string, std::string> response_body_map;
+                                        splitStrToMap(rsp_protocol->m_response_body, g_CRLF,
+                                                      ":", response_body_map);
+                                        INFOLOG("%s | success update, rsp_protocol_body [%s], peer addr [%s], local addr[%s]",
+                                                rsp_protocol->m_msg_id.c_str(),
+                                                rsp_protocol->m_response_body.c_str(),
+                                                client->getPeerAddr()->toString().c_str(),
+                                                client->getLocalAddr()->toString().c_str());
+                                        client->getConnectionRef().reset();
+                                        client.reset(); // 前面lambda捕获client引用，达到再回调函数中销毁client的目的
+                                    });
             });
         }
-
-    }
-
-    TCPClient *RegisterCenter::GetClient() {
-        return m_client.get();
     }
 }
 

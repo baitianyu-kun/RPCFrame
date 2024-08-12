@@ -22,7 +22,9 @@ namespace rocket {
                       NetAddr::net_addr_sptr_t_ peer_addr,
                       NetAddr::net_addr_sptr_t_ local_addr) override;
 
-        std::set<NetAddr::net_addr_sptr_t_> get_all_server_list();
+        std::set<NetAddr::net_addr_sptr_t_> getAllServerList();
+
+        std::string printAllMethodServer();
 
     private:
         // 这个应该存在dispatcher里面

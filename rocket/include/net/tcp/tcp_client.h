@@ -53,6 +53,8 @@ namespace rocket {
 
         EventLoop::event_loop_sptr_t_ getEventLoop();
 
+        TCPConnection::tcp_connection_sptr_t_ &getConnectionRef();
+
     private:
         NetAddr::net_addr_sptr_t_ m_peer_addr;
         NetAddr::net_addr_sptr_t_ m_local_addr;

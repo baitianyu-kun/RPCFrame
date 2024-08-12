@@ -19,7 +19,7 @@
 
 namespace rocket {
 
-    class RegisterCenter : public std::enable_shared_from_this<RegisterCenter> {
+    class RegisterCenter{
     public:
         explicit RegisterCenter(NetAddr::net_addr_sptr_t_ local_addr,
                                 ProtocolType protocol = ProtocolType::TinyPB_Protocol);
@@ -27,8 +27,6 @@ namespace rocket {
         ~RegisterCenter();
 
         void start();
-
-        TCPClient *GetClient();
 
     private:
 
@@ -57,7 +55,7 @@ namespace rocket {
         AbstractCoder::abstract_coder_sptr_t_ m_coder{nullptr};
     private:
         // 作为客户端向服务端请求更新数据，使用http协议后，主动connect对方服务器
-        TCPClient::tcp_client_sptr_t_ m_client{nullptr};
+        // TCPClient::tcp_client_sptr_t_ m_client{nullptr};
         TimerEventInfo::time_event_info_sptr_t_ m_update_server_timer_event;
     };
 

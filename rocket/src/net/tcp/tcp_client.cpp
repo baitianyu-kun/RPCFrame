@@ -184,6 +184,10 @@ namespace rocket {
         return m_event_loop;
     }
 
+    TCPConnection::tcp_connection_sptr_t_ &TCPClient::getConnectionRef() {
+        return m_connection;
+    }
+
 }
 
 

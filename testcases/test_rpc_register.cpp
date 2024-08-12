@@ -35,7 +35,7 @@
 int main() {
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger(0);
-    rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    rocket::IPNetAddr::net_addr_sptr_t_ addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
     rocket::RegisterCenter registerCenter(addr, rocket::ProtocolType::HTTP_Protocol);
     registerCenter.start();
     return 0;

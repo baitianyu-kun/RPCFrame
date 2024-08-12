@@ -4,11 +4,13 @@
 #include "net/tcp/tcp_server.h"
 #include "net/coder/tinypb/tinypb_coder.h"
 #include "net/coder/http/http_coder.h"
+#include "common/msg_id_util.h"
+#include "common/string_util.h"
 
 namespace rocket {
-    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr,
+    rocket::TCPServer::TCPServer(NetAddr::net_addr_sptr_t_ local_addr, NetAddr::net_addr_sptr_t_ register_center_addr,
                                  ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) : m_local_addr(
-            local_addr), m_protocol_type(protocol) {
+            local_addr), m_register_center_addr(register_center_addr), m_protocol_type(protocol) {
         init();
         INFOLOG("rocket TcpServer listen success on [%s]", m_local_addr->toString().c_str());
     }
@@ -19,9 +21,16 @@ namespace rocket {
 
     void TCPServer::start() {
         m_io_thread_pool->start();
+        // 注册到注册中心并在client的connect方法中启动eventloop
+        registerToCenterAndStartLoop();
+
         // main event loop是主线程的epoll，但是每个子线程也各自拥有一个epoll，即各自拥有一个eventloop，整个是个这样的模式
         // 是一个主从reactor模式
-        m_main_event_loop->loop();
+
+        // 由于tcp server和tcp client用的是同一个event loop，
+        // 所以在tcp client主动连接注册中心时候connect方法已经启动了eventloop，所以这里就不用启动了
+        // 感觉这里设计的有点狗屎
+        // m_main_event_loop->loop();
     }
 
     // 初始化各种东西
@@ -106,6 +115,65 @@ namespace rocket {
                 iter++;
             }
         }
+    }
+
+    void TCPServer::registerToCenterAndStartLoop() {
+        auto all_service_names = std::dynamic_pointer_cast<HTTPDispatcher>(m_dispatcher)->getAllServiceName();
+        std::string all_service_names_str = "";
+        for (const auto &item: all_service_names) {
+            all_service_names_str += item;
+            all_service_names_str += ",";
+        }
+        all_service_names_str = all_service_names_str.substr(0, all_service_names_str.length() - 1);
+        // is_server, method_full_name，msg_id
+        std::string final_res = "is_server:" + std::to_string(true) + g_CRLF
+                                + "method_full_name:" + all_service_names_str + g_CRLF
+                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
+
+        auto req_protocol = std::make_shared<HTTPRequest>();
+        req_protocol->m_request_body = final_res;
+        req_protocol->m_request_method = HTTPMethod::POST;
+        req_protocol->m_request_version = "HTTP/1.1";
+        req_protocol->m_request_path = "/";
+        req_protocol->m_request_properties.m_map_properties["Content-Length"] = std::to_string(final_res.length());
+        req_protocol->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+
+        auto client = std::make_shared<TCPClient>(m_register_center_addr, m_protocol_type);
+        // 这里拿着this_tcp_server的共享指针无法释放，因为tcp server会一直保持运行，导致client无法析构，造成内存泄露
+        client->connect([&client, req_protocol]()mutable {
+            client->writeMessage(req_protocol,
+                                 [](
+                                         AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
+                                 });
+            client->readMessage(req_protocol->m_msg_id,
+                                [&client](
+                                        AbstractProtocol::abstract_pro_sptr_t_ msg)mutable {
+                                    auto rsp_protocol = std::dynamic_pointer_cast<HTTPResponse>(
+                                            msg);
+                                    std::unordered_map<std::string, std::string> response_body_map;
+                                    splitStrToMap(rsp_protocol->m_response_body, g_CRLF,
+                                                  ":", response_body_map);
+                                    INFOLOG("%s | success register to center, rsp_protocol_body [%s], peer addr [%s], local addr[%s]",
+                                            rsp_protocol->m_msg_id.c_str(),
+                                            rsp_protocol->m_response_body.c_str(),
+                                            client->getPeerAddr()->toString().c_str(),
+                                            client->getLocalAddr()->toString().c_str());
+
+                                    // client和tcp server中由于都是主线程，所以共用一个eventloop，即eventloop的引用计数为2，分别为client和tcp server在引用
+                                    // 此时不能stop client里面的eventloop，否则tcp server也会退出
+                                    // 只能把client里面的eventloop的共享指针给销毁了。
+                                    // client里面是connection在使用eventloop，所以只需要把client里面的connection给销毁了就行
+                                    // 然后eventloop的共享指针就会自动销毁。然后再手动释放client，达到client运行完成后自动释放client和其所有成员。
+
+                                    // 手动析构connection对象，其里面的eventloop的共享指针自然会自动析构，loop函数也就停下来了
+                                    client->getConnectionRef().reset();
+                                    client.reset(); // 前面lambda捕获client引用，达到再回调函数中销毁client的目的
+                                });
+        });
+    }
+
+    void TCPServer::updateToCenter() {
+
     }
 }
 

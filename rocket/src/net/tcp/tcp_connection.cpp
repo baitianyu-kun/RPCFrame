@@ -7,25 +7,7 @@
 #include "net/coder/http/http_response.h"
 
 namespace rocket {
-    // auto ret = m_acceptor->accept();
-    // auto client_fd = ret.first;
-    // auto peer_addr = ret.second;
-    // auto connection = std::make_shared<TCPConnection>(..., ..., ..., peer_addr, m_local_addr);
-    // 这里的ret是临时对象，void TCPServer::onAccept()结束后ret就会被销毁，所以ret是个右值
-    // 然后这里const NetAddr::net_addr_sptr_t_ &peer_addr中const引用既可以传左值，也可以传右值
-    // 所以可以传ret右值，以及ret里面的右值变量。所以这里需要写为const&才可以
-    // 或者就是使用拷贝NetAddr::net_addr_sptr_t_ peer_addr，然后m_peer_addr(std::move(peer_addr))也可以
-    // 也就是NetAddr::net_addr_sptr_t_ peer_addr，然后m_peer_addr(std::move(peer_addr))
-    // = const NetAddr::net_addr_sptr_t_ &peer_addr，m_peer_addr(peer_addr)，相当于是使用了move方法延长生命周期
 
-    // 在 C++11 引入移动语义后，可以通过将右值引用绑定到 const 左值引用上。这种行为在编译器中被称为常量左值引用延长生命周期。
-    // 这种延长生命周期的特性是为了支持移动语义。
-    // 当一个临时对象（右值）被传递给一个函数的参数时，如果这个参数是常量左值引用，编译器会允许这个右值绑定到常量左值引用上。
-    // 在这种情况下，编译器保证临时对象的生命周期会延长到包含它的作用域结束。
-
-    // 但是NetAddr::net_addr_sptr_t_ local_addr这里传入的是一个右值，如果拿常量左值引用const NetAddr::net_addr_sptr_t_ &local_addr
-    // 来接收，并赋值给一个常量左值引用const NetAddr::net_addr_sptr_t_ &m_local_addr，那么m_local_addr实际上
-    // 接收到的是一个即将销毁的右值，此时访问其空间就访问到了野指针，所以就会出问题。为了方便以后shared ptr都用值传递得了
     rocket::TCPConnection::TCPConnection(EventLoop::event_loop_sptr_t_ event_loop,
                                          int client_fd,
                                          int buffer_size,

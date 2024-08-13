@@ -83,26 +83,6 @@ namespace rocket {
             return;
         }
 
-        // 在这里注册超时回调函数，超过此时间报告rpc调用超时
-        // 报告超时不需要进行重复，在回调函数中打印错误信息
-        // 这里应该是在接收到回复包后从event loop中删除该定时任务，防止调用成功后仍然触发
-        // 但是调用成功后应该就立即退出了，所以应该不删除也是可以的
-
-        // ===========================================================================================================
-        // important
-        // 1. this channel被复制捕获到lambda表达式中，然后放到timer event中，如果该timer event没有被调用的话，那么则this channel
-        //    始终持有引用计数，无法析构。应该捕获其外部引用，而不是复制，这样就不会再复制一遍this channel了，在test rpc client中
-        //    调用channel.reset的时候就直接析构了，包括这里面的放到timer event中这个，因为timer event中和外面存的实际上是同一个，并不会
-        //    造成引用计数+1，导致无法正常析构。
-        // 2. 同理，当rpc调用超时的话，connect方法里面的各种lambda表达式都包含着一些this_channel的
-        //    引用计数，导致外面无法正常析构。所以下面都应该捕获引用，保证全局只有一个rpc channel的智能指针对象
-        // 3. 虽然在这个例子中test rpc client会直接退出，不输出析构，这里是不影响的。
-
-        // 但是会不会出现this channel在外面已经析构了，然后回调函数再调用的情况，应该会有吧，所以还是应该在这里都保存一份this channel的智能指针？
-        // 在lambda里面？
-        // 1. 先统一不传引用吧，先统一传复制，上面的分析还得再思考
-        // ===========================================================================================================
-
         m_timeout_timer_event_info = std::make_shared<TimerEventInfo>(rpc_controller->GetTimeout(),
                                                                       false, [this_channel, rpc_controller]()mutable {
                     INFOLOG("%s | call rpc timeout", rpc_controller->GetMSGID().c_str());
@@ -172,16 +152,6 @@ namespace rocket {
                     if (this_channel->GetClosure()) {
                         this_channel->GetClosure()->Run();
                     }
-
-                    // ===========================================================================================================
-                    // 先在这里统一不传引用吧，下面的分析还得再思考
-                    // 释放this channel的指针并设置为nullptr，上面需要添加mutable才可以进行修改，因为lambda默认不允许修改其捕获的外部变量
-                    // 如果捕获的引用的话就无所谓，因为捕获的是引用，不是复制一遍后的this_channel
-                    // this_channel.reset();
-                    // 但是认为this_channel应该在test rpc client中进行管理，即在那里面进行创建和reset，因为在那里无论返回正确还是错误都要reset
-                    // 不应该在这里直接reset，应该由哪里创建，哪里删除
-                    // 同理m_timeout_timer_event_info中也不应该去reset，应该由创建方去reset
-                    // ===========================================================================================================
                 });
             });
         });

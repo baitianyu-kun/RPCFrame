@@ -44,26 +44,6 @@ namespace rocket {
     static int g_epoll_max_timeout = 10000;
     static int g_epoll_max_events = 10;
 
-    // ====================================================================================
-    // 2024.08.07 修改为饿汉式，使得event loop直接创建，然后TCPServer和TCPClient以及IOThread在使用
-    // 的时候直接使用这里的shared ptr，保证全局主线程以及各个子线程都有一个自己的event loop，为什么
-    // 不使用unique ptr呢，unique ptr给TCPServer之后，但是有可能全局的log也会用到，移动来移动去
-    // 比较麻烦，同时多线程里面没办法传unique ptr的引用，因为unique ptr没办法赋值，还得创建新的对象。
-
-    // unique ptr没有引用计数，shared ptr每复制一遍就有一个引用计数，unique ptr只有一个
-
-    // static和thread local可以一块使用，这样就会创建两个static的副本，分别给多个线程使用
-    // 但是每个线程都可以取到自己的一个副本
-    // ====================================================================================
-    // 定义为整个文件的全局变量的形式的单例模式，最好还是像下面都改为在类里面的单例模式，比较的规范，这样别的类就没办法调用了
-    // 比较有封装性。旧版如下，新版在后面，就是在EventLoop添加static thread local成员变量t_current_event_loop，
-    // 成员变量如果为thread local的话则必须显式声明为static
-    // static thread_local EventLoop::event_loop_sptr_t_ t_current_event_loop =
-    //         std::make_shared<EventLoop>();
-    // thread_local EventLoop::event_loop_sptr_t_ EventLoop::t_current_event_loop =
-    //             std::make_shared<EventLoop>();
-    // ====================================================================================
-
     thread_local EventLoop::event_loop_sptr_t_ EventLoop::t_current_event_loop =
             std::make_shared<EventLoop>();
 

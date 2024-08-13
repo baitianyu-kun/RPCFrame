@@ -29,7 +29,6 @@ namespace rocket {
 
         // 由于tcp server和tcp client用的是同一个event loop，
         // 所以在tcp client主动连接注册中心时候connect方法已经启动了eventloop，所以这里就不用启动了
-        // 感觉这里设计的有点狗屎
         // m_main_event_loop->loop();
     }
 

@@ -32,6 +32,16 @@ namespace rocket {
         virtual bool checkValid() = 0;
     };
 
+    struct CompNetAddr {
+        bool operator()(const NetAddr::net_addr_sptr_t_ &left, const NetAddr::net_addr_sptr_t_ &right) const {
+            if (left->toString() == right->toString()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    };
+
     class IPNetAddr : public NetAddr {
     public:
         // 静态里面调不了非静态成员，但是非静态成员可以调用静态成员函数，前者因为是static的，所以和类同时存在，不知道有几个对象

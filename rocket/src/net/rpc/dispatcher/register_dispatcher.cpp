@@ -16,27 +16,18 @@ namespace rocket {
 
     void RegisterDispatcher::updateMethodServer(std::vector<std::string> method_full_name_vec,
                                                 NetAddr::net_addr_sptr_t_ server_addr) {
+
         for (const auto &method_full_name: method_full_name_vec) {
             // 在dispatcher中注册server和其所有的method
             // std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_>>
             auto method_full_name_find = m_method_server.find(method_full_name);
             if (method_full_name_find != m_method_server.end()) {
-                // 目前因为这里是set，所以可能会出现新的添加后，旧的没办法访问，但是又删不掉的情况，需要后面做修改
-                // 只能是定时任务里面添加后，定时清除掉time out的peer addr
-                auto find_server_iter = std::find_if(method_full_name_find->second.begin(),
-                                                     method_full_name_find->second.end(),
-                                                     [&server_addr](const NetAddr::net_addr_sptr_t_ &x) {
-                                                         return x->toString() == server_addr->toString();
-                                                     });
-                if (find_server_iter != method_full_name_find->second.end()) {
-                    *find_server_iter = server_addr; // 旧的覆盖掉
-                } else {
-                    method_full_name_find->second.emplace_back(server_addr);
-                }
+                // 定时任务里面添加后，定时清除掉time out的peer addr
+                method_full_name_find->second.emplace(server_addr); // 会自动去重
             } else {
-                std::vector<NetAddr::net_addr_sptr_t_> tmp_peer_vec;
-                tmp_peer_vec.emplace_back(server_addr);
-                m_method_server.emplace(method_full_name, tmp_peer_vec);
+                std::set<NetAddr::net_addr_sptr_t_, CompNetAddr> tmp_peer_set;
+                tmp_peer_set.emplace(server_addr);
+                m_method_server.emplace(method_full_name, tmp_peer_set);
             }
         }
         DEBUGLOG(printAllMethodServer().c_str());
@@ -129,13 +120,8 @@ namespace rocket {
     void RegisterDispatcher::deleteServerInServerList(NetAddr::net_addr_sptr_t_ server_addr) {
         auto iter = m_method_server.begin();
         for (; iter != m_method_server.end();) {
-            auto find_server_iter = std::find_if(iter->second.begin(), iter->second.end(),
-                                                 [&server_addr](const NetAddr::net_addr_sptr_t_ &x) {
-                                                     return x->toString() == server_addr->toString();
-                                                 });
-            if (find_server_iter != iter->second.end()) {
-                iter->second.erase(find_server_iter);
-            }
+            iter->second.erase(server_addr);
+            // 该method的所有服务器都为空的话，则删掉其
             if (iter->second.empty()) {
                 iter = m_method_server.erase(iter);
             } else {

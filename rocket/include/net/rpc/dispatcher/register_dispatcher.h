@@ -9,6 +9,7 @@
 #include <set>
 #include <vector>
 #include "net/rpc/abstract_dispatcher.h"
+#include "net/balance/hash_balance.h"
 
 namespace rocket {
 
@@ -33,7 +34,10 @@ namespace rocket {
 
     private:
         // 这个应该存在dispatcher里面
-        std::unordered_map<std::string, std::vector<NetAddr::net_addr_sptr_t_>> m_method_server; // method对应的多少个server
+        std::unordered_map<std::string, std::set<NetAddr::net_addr_sptr_t_, CompNetAddr>> m_method_server; // method对应的多少个server
+
+        // 一个方法对应一个balance
+        std::unordered_map<std::string, ConsistentHash::con_hash_sptr_t_> m_method_balance;
     };
 
 }

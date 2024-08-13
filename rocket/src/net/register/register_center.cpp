@@ -109,9 +109,7 @@ namespace rocket {
                     UPDATE_SERVER_TIME_OUT, false, [&server_iter, this]() {
                         INFOLOG("fail update, server addr [%s], it will be deleted",
                                 server_iter->get()->toString().c_str());
-                        DEBUGLOG("delete before: %s",m_dispatcher->printAllMethodServer().c_str());
                         m_dispatcher->deleteServerInServerList(*server_iter);
-                        DEBUGLOG("delete after: %s",m_dispatcher->printAllMethodServer().c_str());
                     }
             );
             m_main_event_loop->addTimerEvent(m_update_server_timeout_timer_event_info);

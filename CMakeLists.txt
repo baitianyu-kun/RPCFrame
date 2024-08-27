@@ -47,7 +47,10 @@ add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_
         rocket/include/net/rpc/dispatcher/register_dispatcher.h
         rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
         rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp)
+        rocket/src/net/balance/hash_balance.cpp
+        rocket/include/coroutine/coctx.h
+        rocket/include/coroutine/coroutine.h
+        rocket/src/coroutine/coroutine.cpp)
 target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
 target_link_libraries(test_rpc_client pthread)
 
@@ -62,7 +65,10 @@ add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_
         rocket/include/net/rpc/dispatcher/register_dispatcher.h
         rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
         rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp)
+        rocket/src/net/balance/hash_balance.cpp
+        rocket/include/coroutine/coctx.h
+        rocket/include/coroutine/coroutine.h
+        rocket/src/coroutine/coroutine.cpp)
 target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
 target_link_libraries(test_rpc_server pthread)
 
@@ -75,6 +81,9 @@ add_executable(test_rpc_register ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TC
         rocket/include/net/rpc/dispatcher/register_dispatcher.h
         rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
         rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp)
+        rocket/src/net/balance/hash_balance.cpp
+        rocket/include/coroutine/coctx.h
+        rocket/include/coroutine/coroutine.h
+        rocket/src/coroutine/coroutine.cpp)
 target_sources(test_rpc_register PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
 target_link_libraries(test_rpc_register pthread)

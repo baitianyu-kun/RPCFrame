@@ -6,15 +6,16 @@
 #define RPCFRAME_MUTEX_H
 
 #include <pthread.h>
-
+#include <queue>
+#include "coroutine/coroutine.h"
 
 namespace rocket {
 
-    template <class T>
+    template<class T>
     class ScopeMutext {
 
     public:
-        ScopeMutext(T& mutex) : m_mutex(mutex) {
+        ScopeMutext(T &mutex) : m_mutex(mutex) {
             m_mutex.lock();
             m_is_lock = true;
         }
@@ -37,8 +38,8 @@ namespace rocket {
         }
 
     private:
-        T& m_mutex;
-        bool m_is_lock {false};
+        T &m_mutex;
+        bool m_is_lock{false};
 
     };
 
@@ -60,13 +61,29 @@ namespace rocket {
             pthread_mutex_unlock(&m_mutex);
         }
 
-        pthread_mutex_t* getMutex() {
+        pthread_mutex_t *getMutex() {
             return &m_mutex;
         }
 
     private:
         pthread_mutex_t m_mutex;
 
+    };
+
+    class CoroutineMutex {
+    public:
+        CoroutineMutex();
+
+        ~CoroutineMutex();
+
+        void lock();
+
+        void unlock();
+
+    private:
+        bool m_lock{false};
+        Mutex m_mutex;
+        std::queue<Coroutine *> m_sleep_cors; // 等待队列
     };
 
 }

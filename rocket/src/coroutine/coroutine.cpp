@@ -11,10 +11,15 @@
 namespace rocket {
 
     static thread_local Coroutine *t_main_coroutine = nullptr;
-    static thread_local Coroutine *t_cur_coroutine = nullptr;
-    static std::atomic_int t_coroutine_count{0}; // 数量和id均为原子操作
+    static thread_local Coroutine *t_cur_coroutine = nullptr; // 线程当前正在执行的协程
+    static std::atomic_int t_coroutine_count{0}; // 数量和id均为原子操作，并且为静态的，可记录所有对象的包含的routine个数
     static std::atomic_int t_cur_coroutine_id{1};
 
+    // 从这里来看，其实至少有三个栈存在：
+    // 主协程的栈
+    // GoFunction函数的栈
+    // co->m_call_back函数的栈
+    // 当第一次从主协程切换到目标协程是，栈由主协程的栈跳转到GoFunction函数栈，然后GoFunction调用m_call_back，栈又跳到m_call_back的栈去了。
     void CoFunction(Coroutine *coroutine) {
         // 调用函数
         if (coroutine != nullptr) {
@@ -96,7 +101,7 @@ namespace rocket {
         if (t_cur_coroutine == nullptr) {
             t_main_coroutine = new Coroutine();
             t_cur_coroutine = t_main_coroutine;
-        }
+        } // 为空的话，说明主协程没有创建，而主协程和用户协程是相同的
         return t_cur_coroutine;
     }
 

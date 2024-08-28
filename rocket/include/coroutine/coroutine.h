@@ -41,6 +41,11 @@ namespace rocket {
             m_is_in_cofunc = v;
         }
 
+        int getCorId() const {
+            return m_cor_id;
+        }
+
+
         bool getIsInCoFunc() const {
             return m_is_in_cofunc;
         }

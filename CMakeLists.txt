@@ -4,86 +4,66 @@ project(RPCFrame VERSION 1.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE "Debug") # 设置为debug即-g编译选项
+enable_language(ASM)
 
-link_libraries("/usr/lib/libprotobuf.a")
-link_libraries("/usr/lib/libtinyxml.a") # 添加第三方库
+# 设置文件输出路径
+set(PATH_LIB ${PROJECT_SOURCE_DIR}/lib)
+set(PATH_BIN ${PROJECT_SOURCE_DIR}/bin)
+set(PATH_TESTCASES testcases)
 
-include_directories(${PROJECT_SOURCE_DIR}/rocket/include) # 头文件搜索
+# 头文件搜索
+include_directories(${PROJECT_SOURCE_DIR}/rocket/include)
 
-aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST) # 读取所有源文件并放到SRC_LIST中，但是不会对子目录进行递归调用
+# 读取所有源文件并放到SRC_LIST中，但是不会对子目录进行递归调用
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/tcp SRC_NET_TCP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder/tinypb SRC_NET_CODER_TINYPB_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/coder/http SRC_NET_CODER_HTTP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/rpc SRC_NET_RPC_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/register SRC_NET_REGISTER_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/balance SRC_NET_BALANCE_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/rpc/dispatcher SRC_NET_RPC_DISPATCHER_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/coroutine SRC_COROUTINE_LIST)
 
-# test event loop
-add_executable(test_eventloop ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_eventloop.cpp)
-target_sources(test_eventloop PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
-target_link_libraries(test_eventloop pthread)
+# 本项目的lib
+set(COXTX ${PROJECT_SOURCE_DIR}/rocket/include/coroutine/coctx_swap.S)
+add_library(rocket ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST}
+        ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_REGISTER_LIST} ${SRC_NET_BALANCE_LIST}
+        ${SRC_NET_RPC_DISPATCHER_LIST} ${SRC_COROUTINE_LIST} ${COXTX})
+install(TARGETS rocket DESTINATION ${PATH_LIB})
 
-# test tcp
-add_executable(test_tcp ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_tcp.cpp
-        rocket/include/net/coder/abstract_coder.h)
-target_sources(test_tcp PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
-target_link_libraries(test_tcp pthread)
+# 第三方lib
+set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
+set(TINYXML_LIB /usr/lib/libtinyxml.a)
 
-# test client
-add_executable(test_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} testcases/test_client.cpp
-        rocket/include/net/rpc/rpc_controller.h
-        rocket/include/net/rpc/rpc_closure.h)
-target_sources(test_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST})
-target_link_libraries(test_client pthread)
-
-# test rpc client
-add_executable(test_rpc_client ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST} testcases/test_rpc_client.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h
-        rocket/include/net/register/register_center.h
-        rocket/src/net/register/register_center.cpp
-        rocket/include/common/encode_util.h
-        rocket/src/common/encode_util.cpp
-        rocket/include/net/rpc/dispatcher/register_dispatcher.h
-        rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
-        rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp
-        rocket/include/coroutine/coctx.h
-        rocket/include/coroutine/coroutine.h
-        rocket/src/coroutine/coroutine.cpp)
-target_sources(test_rpc_client PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
-target_link_libraries(test_rpc_client pthread)
+# 总lib
+set(ALL_LIBS rocket ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
 
 # test rpc server
-add_executable(test_rpc_server ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST} testcases/test_rpc_server.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h
-        rocket/include/net/register/register_center.h
-        rocket/src/net/register/register_center.cpp
-        rocket/include/common/encode_util.h
-        rocket/src/common/encode_util.cpp
-        rocket/include/net/rpc/dispatcher/register_dispatcher.h
-        rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
-        rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp
-        rocket/include/coroutine/coctx.h
-        rocket/include/coroutine/coroutine.h
-        rocket/src/coroutine/coroutine.cpp)
-target_sources(test_rpc_server PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
-target_link_libraries(test_rpc_server pthread)
+add_executable(test_rpc_server
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server.cpp
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.cc
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h)
+target_link_libraries(test_rpc_server ${ALL_LIBS})
+install(TARGETS test_rpc_server DESTINATION ${PATH_BIN})
+
+# test rpc client
+add_executable(test_rpc_client
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_client.cpp
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.cc
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h)
+target_link_libraries(test_rpc_client ${ALL_LIBS})
+install(TARGETS test_rpc_client DESTINATION ${PATH_BIN})
 
 # test rpc register
-add_executable(test_rpc_register ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST} testcases/test_rpc_register.cpp
-        rocket/include/net/register/register_center.h
-        rocket/src/net/register/register_center.cpp
-        rocket/include/common/encode_util.h
-        rocket/src/common/encode_util.cpp
-        rocket/include/net/rpc/dispatcher/register_dispatcher.h
-        rocket/src/net/rpc/dispatcher/register_dispatcher.cpp
-        rocket/include/net/balance/hash_balance.h
-        rocket/src/net/balance/hash_balance.cpp
-        rocket/include/coroutine/coctx.h
-        rocket/include/coroutine/coroutine.h
-        rocket/src/coroutine/coroutine.cpp)
-target_sources(test_rpc_register PUBLIC ${SRC_COMMON_LIST} ${SRC_NET_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_CODER_TINYPB_LIST} ${SRC_NET_CODER_HTTP_LIST} ${SRC_NET_RPC_LIST} ${SRC_NET_RPC_DISPATCHER_LIST})
-target_link_libraries(test_rpc_register pthread)
+add_executable(test_rpc_register
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register.cpp)
+target_link_libraries(test_rpc_register ${ALL_LIBS})
+install(TARGETS test_rpc_register DESTINATION ${PATH_BIN})
+
+# test routine
+add_executable(test_coroutine
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine.cpp)
+target_link_libraries(test_coroutine ${ALL_LIBS})
+install(TARGETS test_coroutine DESTINATION ${PATH_BIN})

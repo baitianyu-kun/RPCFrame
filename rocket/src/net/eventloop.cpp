@@ -9,6 +9,7 @@
 #include "net/eventloop.h"
 #include "common/log.h"
 #include "common/util.h"
+#include "coroutine/coroutine.h"
 
 // 使用do{...}while(0)构造后的宏定义不会受到大括号、分号等的影响，总是会按你期望的方式调用运行。
 #define ADD_OR_MODIFY_TO_EPOLL() \

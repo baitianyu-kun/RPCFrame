@@ -25,18 +25,26 @@ void fun1() {
     std::cout << "cor1 ---- fun1 coroutine back, now end" << std::endl;
 }
 
+void *thread_fun1(void *) {
+    int stack_size = 128 * 1024;
+    char *sp = reinterpret_cast<char *>(malloc(stack_size));
+    cor = std::make_shared<rocket::Coroutine>(stack_size, sp, fun1); // 创建用户协程，会自动创建主协程
+
+
+    rocket::Coroutine::Resume(cor.get()); // fun1，直到yield停止
+    std::cout << "main here in thread 1" << std::endl; // 开始执行这块
+    rocket::Coroutine::Resume(cor.get()); // 继续执行yield后面的代码
+    return nullptr;
+}
+
 int main() {
 
     rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger(0);
 
-    int stack_size = 128 * 1024;
-    char *sp = reinterpret_cast<char *>(malloc(stack_size));
-    cor = std::make_shared<rocket::Coroutine>(stack_size, sp, fun1);
-
-    rocket::Coroutine::Resume(cor.get()); // fun1，直到yield停止
-    std::cout<<"main here"<<std::endl; // 开始执行这块
-    rocket::Coroutine::Resume(cor.get()); // 继续执行yield后面的代码
+    pthread_t thread1;
+    pthread_create(&thread1, nullptr, &thread_fun1, nullptr);
+    pthread_join(thread1, nullptr);
 
     return 0;
 }

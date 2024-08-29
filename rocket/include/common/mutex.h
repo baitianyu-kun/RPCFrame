@@ -80,6 +80,8 @@ namespace rocket {
 
         void unlock();
 
+        std::queue<Coroutine*>& getAllSleepCorsRef();
+
     private:
         bool m_lock{false};
         Mutex m_mutex;

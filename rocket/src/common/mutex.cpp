@@ -36,6 +36,7 @@ namespace rocket {
             // 等待协程互斥锁，当前睡眠队列存在多少个协程
             DEBUGLOG("coroutine yield, pending coroutine mutex, current sleep queue exist [%d] coroutines",
                      sleep_cors_size);
+            // 已经有别的协程拿着锁，所以我们现在这个协程无法继续获取，应该主动挂起协程，回到主协程，让出协程
             Coroutine::Yield(); // 挂起协程后，从用户协程回到主协程，让出协程
         }
     }
@@ -59,11 +60,19 @@ namespace rocket {
             lock.unlock();
             if (first_cor) {
                 DEBUGLOG("coroutine unlock, now to resume coroutine [%d]", first_cor->getCorId());
-                // 放入eventloop中启动，将等待的协程重新加入调度
+                // 此时还处在协程中，需要放到主协程中来去resume，所以需要获取当前线程的eventloop去执行
+                // 设置好回调后，就可以退出当前协程并切到主协程中了，随后主协程中的Eventloop就会自动执行Coroutine::Resume(first_cor);
                 EventLoop::GetCurrentEventLoop()->addTask([first_cor]() {
                     Coroutine::Resume(first_cor);
+                    EventLoop::GetCurrentEventLoop()->stop(); // resume结束后，关闭eventloop，这个可选
                 }, true);
+                // CoFunction里面执行完回调会自动回到主协程中，所以这里就不用手动回到了
+                Coroutine::Yield(); //也可以设置一下手动回到主协程
             }
         }
+    }
+
+    std::queue<Coroutine *> &CoroutineMutex::getAllSleepCorsRef() {
+        return m_sleep_cors;
     }
 }

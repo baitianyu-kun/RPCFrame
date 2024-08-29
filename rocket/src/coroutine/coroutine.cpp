@@ -133,6 +133,7 @@ namespace rocket {
         }
         auto cur_coroutine = t_cur_coroutine;
         t_cur_coroutine = t_main_coroutine;
+        DEBUGLOG("coroutine [%d] yield, back to main coroutine", cur_coroutine->getCorId());
         // 交换一下
         coctx_swap(&(cur_coroutine->m_coctx), &(t_main_coroutine->m_coctx));
     }

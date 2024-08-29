@@ -67,3 +67,22 @@ add_executable(test_coroutine
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine.cpp)
 target_link_libraries(test_coroutine ${ALL_LIBS})
 install(TARGETS test_coroutine DESTINATION ${PATH_BIN})
+
+# test routine 2
+add_executable(test_coroutine2
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine2.cpp)
+target_link_libraries(test_coroutine2 ${ALL_LIBS})
+install(TARGETS test_coroutine2 DESTINATION ${PATH_BIN})
+
+# test routine 3
+add_executable(test_coroutine3
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine3.cpp)
+target_link_libraries(test_coroutine3 ${ALL_LIBS})
+install(TARGETS test_coroutine3 DESTINATION ${PATH_BIN})
+
+
+# test routine 4
+add_executable(test_coroutine4
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine4.cpp)
+target_link_libraries(test_coroutine4 ${ALL_LIBS})
+install(TARGETS test_coroutine4 DESTINATION ${PATH_BIN})

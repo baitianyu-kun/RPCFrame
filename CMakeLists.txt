@@ -44,7 +44,8 @@ set(ALL_LIBS rocket ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
 add_executable(test_rpc_server
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server.cpp
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.cc
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h)
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h
+        rocket/include/coroutine/coroutine_hook.h)
 target_link_libraries(test_rpc_server ${ALL_LIBS})
 install(TARGETS test_rpc_server DESTINATION ${PATH_BIN})
 
@@ -52,13 +53,15 @@ install(TARGETS test_rpc_server DESTINATION ${PATH_BIN})
 add_executable(test_rpc_client
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_client.cpp
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.cc
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h)
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/order.pb.h
+        rocket/include/coroutine/coroutine_hook.h)
 target_link_libraries(test_rpc_client ${ALL_LIBS})
 install(TARGETS test_rpc_client DESTINATION ${PATH_BIN})
 
 # test rpc register
 add_executable(test_rpc_register
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register.cpp)
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register.cpp
+        rocket/include/coroutine/coroutine_hook.h)
 target_link_libraries(test_rpc_register ${ALL_LIBS})
 install(TARGETS test_rpc_register DESTINATION ${PATH_BIN})
 

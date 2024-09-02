@@ -200,6 +200,10 @@ namespace rocket {
         m_peer_addr = new_peer_addr;
     }
 
+    int TCPClient::getClientFD() const {
+        return m_client_fd;
+    }
+
 }
 
 

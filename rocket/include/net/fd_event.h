@@ -8,6 +8,7 @@
 #include <functional>
 #include <sys/epoll.h>
 #include <memory>
+#include "coroutine/coroutine.h"
 
 #define WAKE_UP_BUFF_LEN 8
 
@@ -54,6 +55,12 @@ namespace rocket {
             return m_listen_event;
         }
 
+        void setCoroutine(Coroutine::coroutine_sptr_t_ cor);
+
+        Coroutine::coroutine_sptr_t_ getCoroutine();
+
+        void clearCoroutine();
+
     protected: // 因为要继承给WakeUpFDEvent
         // 要监听的描述符
         int m_fd{-1};
@@ -63,6 +70,8 @@ namespace rocket {
         std::function<void()> m_read_callback{nullptr};
         std::function<void()> m_write_callback{nullptr};
         std::function<void()> m_error_callback{nullptr};
+
+        Coroutine::coroutine_sptr_t_ m_coroutine{nullptr};
     };
 }
 

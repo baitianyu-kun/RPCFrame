@@ -53,6 +53,8 @@ namespace rocket {
 
         void initLocalAddr();
 
+        int getClientFD() const;
+
         EventLoop::event_loop_sptr_t_ getEventLoop();
 
         TCPConnection::tcp_connection_sptr_t_ &getConnectionRef();

@@ -12,6 +12,7 @@
 #include "common/error_code.h"
 #include "net/coder/http/http_request.h"
 #include "net/coder/http/http_response.h"
+#include "coroutine/coroutine_pool.h"
 
 namespace rocket {
 
@@ -46,6 +47,7 @@ namespace rocket {
 
         if (m_protocol_type == ProtocolType::HTTP_Protocol) {
             CallMethodHTTPRegisterCenter(method, controller, request, response, done);
+            // CallMethodHTTPRegisterCenterCoroutine(method, controller, request, response, done);
             return;
         }
 
@@ -155,6 +157,57 @@ namespace rocket {
                 });
             });
         });
+    }
+
+    void RPCChannel::CallMethodHTTPRegisterCenterCoroutine(const google::protobuf::MethodDescriptor *method,
+                                                           google::protobuf::RpcController *controller,
+                                                           const google::protobuf::Message *request,
+                                                           google::protobuf::Message *response,
+                                                           google::protobuf::Closure *done) {
+        auto msg_id = MSGIDUtil::GenerateMSGID();
+        std::string final_req_to_register_center = "is_server:" + std::to_string(false) + g_CRLF
+                                                   + "method_full_name:" + method->service()->full_name() + g_CRLF
+                                                   + "msg_id:" + msg_id;
+        rpc_channel_sptr_t_ this_channel = shared_from_this();
+        auto req_protocol_register_center = std::make_shared<HTTPRequest>();
+        req_protocol_register_center->m_request_body = final_req_to_register_center;
+        req_protocol_register_center->m_request_method = HTTPMethod::POST;
+        req_protocol_register_center->m_request_version = "HTTP/1.1";
+        req_protocol_register_center->m_request_path = "/";
+        req_protocol_register_center->m_request_properties.m_map_properties["Content-Length"] = std::to_string(
+                final_req_to_register_center.length());
+        req_protocol_register_center->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+        req_protocol_register_center->m_msg_id = msg_id;
+
+        auto cor = CoroutinePool::GetCoroutinePool()->getCoroutineInstance();
+        Coroutine::GetMainCoroutine();
+
+        Coroutine::Resume(cor.get());
+
+        INFOLOG("[MAIN] now begin to connect resume");
+
+        auto fd_event = std::make_shared<FDEvent>(m_client->getClientFD());
+        fd_event->setNonBlock();
+        fd_event->listen(FDEvent::IN_EVENT, [cor]() {
+            Coroutine::Resume(cor.get());
+        });
+        EventLoop::GetCurrentEventLoop()->addEpollEvent(fd_event);
+        int ret = ::connect(m_client->getClientFD(), m_client->getPeerAddr()->getSockAddr(),
+                            m_client->getPeerAddr()->getSockAddrLen());
+        INFOLOG("[COR %d] now accept begin to yield", cor->getCorId());
+        Coroutine::Yield();
+
+        // 然后connect成功后，即epoll监听到了client fd的in event，会跳转到这里来
+        // 先删掉事件
+        INFOLOG("[COR %d] now connect resume", cor->getCorId());
+        fd_event->cancel_listen(FDEvent::IN_EVENT);
+        EventLoop::GetCurrentEventLoop()->deleteEpollEvent(fd_event);
+        if (ret == 0) {
+            INFOLOG("[COR %d] connect success");
+        } else {
+            INFOLOG("[COR %d] connect failed");
+        }
+        exit(0);
     }
 
     void RPCChannel::CallMethodHTTPRegisterCenter(const google::protobuf::MethodDescriptor *method,

@@ -32,43 +32,43 @@
 // PTypeFun2 pTypeAdd2 = add;
 // padd = add;
 
-using read_fun_ptr_t = ssize_t(*)(int fd, void *buf, size_t count);
-using write_fun_ptr_t = ssize_t(*)(int fd, const void *buf, size_t count);
-using connect_fun_ptr_t = int (*)(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-using accept_fun_ptr_t = int (*)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-using socket_fun_ptr_t = int (*)(int domain, int type, int protocol);
-using sleep_fun_ptr_t = int (*)(unsigned int seconds);
+// using read_fun_ptr_t = ssize_t(*)(int fd, void *buf, size_t count);
+// using write_fun_ptr_t = ssize_t(*)(int fd, const void *buf, size_t count);
+// using connect_fun_ptr_t = int (*)(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+// using accept_fun_ptr_t = int (*)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+// using socket_fun_ptr_t = int (*)(int domain, int type, int protocol);
+// using sleep_fun_ptr_t = int (*)(unsigned int seconds);
 
 namespace rocket {
 
-    static bool g_hook = true;
-
-    int accept_hook(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-
-    ssize_t read_hook(int fd, void *buf, size_t count);
-
-    ssize_t write_hook(int fd, const void *buf, size_t count);
-
-    int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-
-    unsigned int sleep_hook(unsigned int seconds);
-
-    void SetHook(bool val);
-
-}
-
-extern "C" {
-
-int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-
-ssize_t read(int fd, void *buf, size_t count);
-
-ssize_t write(int fd, const void *buf, size_t count);
-
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-
-unsigned int sleep(unsigned int seconds);
+    // static bool g_hook = true;
+    //
+    // int accept_hook(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+    //
+    // ssize_t read_hook(int fd, void *buf, size_t count);
+    //
+    // ssize_t write_hook(int fd, const void *buf, size_t count);
+    //
+    // int connect_hook(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+    //
+    // unsigned int sleep_hook(unsigned int seconds);
+    //
+    // void SetHook(bool val);
 
 }
+
+// extern "C" {
+//
+// int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+//
+// ssize_t read(int fd, void *buf, size_t count);
+//
+// ssize_t write(int fd, const void *buf, size_t count);
+//
+// int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+//
+// unsigned int sleep(unsigned int seconds);
+//
+// }
 
 #endif //RPCFRAME_COROUTINE_HOOK_H

@@ -12,6 +12,7 @@ namespace rocket {
         if (physicalServerNodeCounts.find(nodeIp) == physicalServerNodeCounts.end()) {
             for (int j = 0; j < virtualNodeNum; ++j) {
                 std::stringstream nodeKey;
+                // 实际上只把虚拟节点加入到哈希环上了
                 nodeKey << nodeIp << "#" << j;
                 uint32_t partition = murmur3_32(nodeKey.str().c_str(), nodeKey.str().size());
                 serverNodes.insert({partition, nodeIp});

@@ -32,9 +32,9 @@ namespace rocket {
             auto it = serverNodes.find(partition);
             if (it != serverNodes.end()) {
                 serverNodes.erase(it);
-                physicalServerNodeCounts.erase(nodeIp);
             }
         }
+        physicalServerNodeCounts.erase(nodeIp);
     }
 
     std::string ConsistentHash::GetServerIndex(const std::string &key) {

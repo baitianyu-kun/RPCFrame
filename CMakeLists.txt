@@ -97,3 +97,10 @@ add_executable(test_coroutine_connect
         rocket/include/coroutine/coroutine_pool.h)
 target_link_libraries(test_coroutine_connect ${ALL_LIBS})
 install(TARGETS test_coroutine_connect DESTINATION ${PATH_BIN})
+
+
+# test con hash
+add_executable(test_con_hash
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_con_hash.cpp)
+target_link_libraries(test_con_hash ${ALL_LIBS})
+install(TARGETS test_con_hash DESTINATION ${PATH_BIN})

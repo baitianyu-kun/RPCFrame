@@ -8,15 +8,15 @@
 
 namespace rocket {
 
-    void ConsistentHash::AddNewPhysicalNode(const std::string &nodeIp) {
-        if (physicalServerNodeCounts.find(nodeIp) == physicalServerNodeCounts.end()) {
+    void ConsistentHash::AddNewPhysicalNode(const std::string &nodeIp, int virtualNodeNum) {
+        if (physicalServerAndVirtualNodeNum.find(nodeIp) == physicalServerAndVirtualNodeNum.end()) {
+            physicalServerAndVirtualNodeNum.emplace(nodeIp, virtualNodeNum);
             for (int j = 0; j < virtualNodeNum; ++j) {
                 std::stringstream nodeKey;
                 // 实际上只把虚拟节点加入到哈希环上了
                 nodeKey << nodeIp << "#" << j;
                 uint32_t partition = murmur3_32(nodeKey.str().c_str(), nodeKey.str().size());
                 serverNodes.insert({partition, nodeIp});
-                physicalServerNodeCounts[nodeIp]++;
             }
         } else {
             // 没插入过才进行插入
@@ -25,19 +25,24 @@ namespace rocket {
     }
 
     void ConsistentHash::DeletePhysicalNode(const std::string &nodeIp) {
-        for (int j = 0; j < virtualNodeNum; ++j) {
-            std::stringstream nodeKey;
-            nodeKey << nodeIp << "#" << j;
-            uint32_t partition = murmur3_32(nodeKey.str().c_str(), nodeKey.str().size());
-            auto it = serverNodes.find(partition);
-            if (it != serverNodes.end()) {
-                serverNodes.erase(it);
+        auto server_and_vnode_num = physicalServerAndVirtualNodeNum.find(nodeIp);
+        if (server_and_vnode_num != physicalServerAndVirtualNodeNum.end()) {
+            for (int j = 0; j < server_and_vnode_num->second; ++j) {
+                std::stringstream nodeKey;
+                nodeKey << nodeIp << "#" << j;
+                uint32_t partition = murmur3_32(nodeKey.str().c_str(), nodeKey.str().size());
+                auto it = serverNodes.find(partition);
+                if (it != serverNodes.end()) {
+                    serverNodes.erase(it);
+                }
             }
+            physicalServerAndVirtualNodeNum.erase(nodeIp);
+        } else {
+            return;
         }
-        physicalServerNodeCounts.erase(nodeIp);
     }
 
-    std::string ConsistentHash::GetServerIndex(const std::string &key) {
+    std::string ConsistentHash::GetServerIP(const std::string &key) {
         uint32_t partition = murmur3_32(key.c_str(), key.size());
         auto it = serverNodes.lower_bound(partition);
         // 沿环的顺时针找到一个大于等于 partition 的虚拟节点
@@ -61,9 +66,9 @@ namespace rocket {
     }
 
     NetAddr::net_addr_sptr_t_ ConsistentHash::GetServer(const std::string &key) {
-        auto idx = GetServerIndex(key);
-        DEBUGLOG("Hash Balance to server: %s", idx.c_str());
-        return toIPNetAddr(idx);
+        auto ip = GetServerIP(key);
+        DEBUGLOG("Hash Balance to server: %s", ip.c_str());
+        return toIPNetAddr(ip);
     }
 
     std::string ConsistentHash::printAllServerNodes() {

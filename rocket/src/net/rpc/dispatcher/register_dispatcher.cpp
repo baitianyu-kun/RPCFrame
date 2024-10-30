@@ -23,15 +23,16 @@ namespace rocket {
             if (method_full_name_find != m_method_server.end()) {
                 // 添加过该方法的情况，自动更新
                 method_full_name_find->second.emplace(server_addr); // 会自动去重
-                m_method_balance[method_full_name]->AddNewPhysicalNode(server_addr->toString()); // 同样会自动去重
+                m_method_balance[method_full_name]->AddNewPhysicalNode(server_addr->toString(),
+                                                                       VIRTUAL_NODE_NUM); // 同样会自动去重
             } else {
                 // 没有添加过该方法的情况，则创建
                 std::set<NetAddr::net_addr_sptr_t_, CompNetAddr> tmp_peer_set;
                 tmp_peer_set.emplace(server_addr);
                 m_method_server.emplace(method_full_name, tmp_peer_set);
                 // 为该方法添加balance
-                ConsistentHash::con_hash_sptr_t_ con_hash = std::make_shared<ConsistentHash>(VIRTUAL_NODE_NUM);
-                con_hash->AddNewPhysicalNode(server_addr->toString());
+                ConsistentHash::con_hash_sptr_t_ con_hash = std::make_shared<ConsistentHash>();
+                con_hash->AddNewPhysicalNode(server_addr->toString(), VIRTUAL_NODE_NUM);
                 m_method_balance.emplace(method_full_name, con_hash);
             }
         }
@@ -133,7 +134,7 @@ namespace rocket {
     }
 
     void RegisterDispatcher::deleteServerInServerList(NetAddr::net_addr_sptr_t_ server_addr) {
-        DEBUGLOG("delete before: %s",printAllMethodServer().c_str());
+        DEBUGLOG("delete before: %s", printAllMethodServer().c_str());
         // DEBUGLOG("delete before: %s",printAllMethodBalance().c_str());
         auto iter = m_method_server.begin();
         for (; iter != m_method_server.end();) {
@@ -149,7 +150,7 @@ namespace rocket {
                 iter++;
             }
         }
-        DEBUGLOG("delete after: %s",printAllMethodServer().c_str());
+        DEBUGLOG("delete after: %s", printAllMethodServer().c_str());
         // DEBUGLOG("delete after: %s",printAllMethodBalance().c_str());
     }
 

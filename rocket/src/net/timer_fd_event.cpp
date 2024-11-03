@@ -39,7 +39,7 @@ namespace rocket {
     }
 
     void TimerFDEvent::addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
-        // 1. 如果pending events为空的话，说明没有任务，所以需要设置一下下一次timerfd触发的间隔时间，否则不会触发
+        // 1. 如果pending events为空的话，说明没有任务，所以不用设置触发时间，在resetTimerEventArriveTime中会直接进行返回
         // 2. 如果来的新任务比当第一个任务(已经根据到达时间排序在multimap中)的时间还小
         // 说明是一个过期的任务，应该给他设置一个较快的间隔时间例如100ms来让他在后面快速执行
         // 这两种情况需要reset内置的timerfd的时间戳，否则就不用重新进行设置
@@ -135,9 +135,10 @@ namespace rocket {
     }
 
     void TimerFDEvent::resetTimerEventArriveTime() {
-        // 1. 如果pending events为空的话，说明没有任务，所以需要设置一下下一次timerfd触发的间隔时间，否则不会触发
+        // 1. 如果pending events为空的话，说明没有任务，所以不用设置触发时间，在resetTimerEventArriveTime中会直接进行返回
         // 2. 如果来的新任务比当第一个任务(已经根据到达时间排序在multimap中)的时间还小
         // 说明是一个过期的任务，应该给他设置一个较快的间隔时间例如100ms来让他在后面快速执行
+        // 然后multimap是按照从小到大的到达时间来进行排序的，如果第一个大于now time的话，那么说明所有的都大于。所以下一次触发超时时间为第一个的到达时间减去当前时间。
         ScopeMutext<Mutex> lock(m_mutex);
         auto tmp_events = m_pending_events;
         lock.unlock();

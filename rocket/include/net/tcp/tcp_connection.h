@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <queue>
 #include "net/tcp/net_addr.h"
-#include "net/tcp/tcp_buffer.h"
+#include "net/tcp/tcp_ring_buffer.h"
 #include "net/io_thread.h"
 #include "net/fd_event_pool.h"
 #include "net/coder/abstract_protocol.h"
@@ -89,8 +89,8 @@ namespace rocket {
         EventLoop::event_loop_sptr_t_ m_event_loop;
         NetAddr::net_addr_sptr_t_ m_local_addr;
         NetAddr::net_addr_sptr_t_ m_peer_addr;
-        TCPBuffer::tcp_buffer_sptr_t_ m_in_buffer; // 接收缓冲区
-        TCPBuffer::tcp_buffer_sptr_t_ m_out_buffer; // 发送缓冲区
+        TCPRingBuffer::tcp_ring_buff_sptr_t_ m_in_buffer; // 接收缓冲区
+        TCPRingBuffer::tcp_ring_buff_sptr_t_ m_out_buffer; // 发送缓冲区
         FDEvent::fd_event_sptr_t_ m_fd_event{nullptr};
         TCPState m_state;
         int m_client_fd{0};

@@ -22,10 +22,10 @@ namespace rocket {
         ~TinyPBCoder() override = default;
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client = false) override;
+                    TCPRingBuffer::tcp_ring_buff_sptr_t_ out_buffer, bool is_http_client = false) override;
 
         void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client = false) override;
+                    TCPRingBuffer::tcp_ring_buff_sptr_t_ in_buffer, bool is_http_client = false) override;
 
     private:
 

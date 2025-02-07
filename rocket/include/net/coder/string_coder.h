@@ -26,7 +26,7 @@ namespace rocket {
         ~StringCode() override = default;
 
         void encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
+                    TCPRingBuffer::tcp_ring_buff_sptr_t_ out_buffer) {
             for (const auto &message: in_messages) {
                 auto msg = std::dynamic_pointer_cast<StringProtocol>(message);
                 out_buffer->writeToBuffer(msg->info.c_str(), msg->info.length());
@@ -36,7 +36,7 @@ namespace rocket {
         }
 
         void decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
+                    TCPRingBuffer::tcp_ring_buff_sptr_t_ in_buffer) {
             std::vector<char> res;
             in_buffer->readFromBuffer(res, in_buffer->readAbleSize());
             // 这种不太行，有可能收到的不完整，得详细的去校验数据

@@ -7,7 +7,6 @@
 #include "net/coder/http/http_response.h"
 
 namespace rocket {
-
     rocket::TCPConnection::TCPConnection(EventLoop::event_loop_sptr_t_ event_loop,
                                          int client_fd,
                                          int buffer_size,
@@ -16,18 +15,18 @@ namespace rocket {
                                          AbstractCoder::abstract_coder_sptr_t_ coder,
                                          AbstractDispatcher::abstract_disp_sptr_t dispatcher,
                                          TCPConnectionType type /*TCPConnectionByServer*/,
-                                         ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) :
-            m_event_loop(event_loop),
-            m_local_addr(local_addr),
-            m_peer_addr(peer_addr),
-            m_state(NotConnected),
-            m_client_fd(client_fd),
-            m_connection_type(type),
-            m_coder(coder),
-            m_dispatcher(dispatcher),
-            m_protocol_type(protocol) {
-        m_in_buffer = std::make_shared<TCPBuffer>(buffer_size);
-        m_out_buffer = std::make_shared<TCPBuffer>(buffer_size);
+                                         ProtocolType protocol /*ProtocolType::TinyPB_Protocol*/) : m_event_loop(
+            event_loop),
+        m_local_addr(local_addr),
+        m_peer_addr(peer_addr),
+        m_state(NotConnected),
+        m_client_fd(client_fd),
+        m_connection_type(type),
+        m_coder(coder),
+        m_dispatcher(dispatcher),
+        m_protocol_type(protocol) {
+        m_in_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
+        m_out_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
         m_fd_event->setNonBlock();
         if (m_connection_type == TCPConnectionByServer) {
@@ -50,19 +49,25 @@ namespace rocket {
         bool is_close = false;
         while (!is_read_and_write_all) {
             // 没有读完就一直读，没有写入位置了就扩充
-            if (m_in_buffer->writeAbleSize() == 0) {
-                m_in_buffer->resizeBuffer(2 * m_in_buffer->getBufferSize());
-            }
+            // if (m_in_buffer->writeAbleSize() == 0) {
+            //     m_in_buffer->resizeBuffer(2 * m_in_buffer->getBufferSize());
+            // }
+            // int write_count = m_in_buffer->writeAbleSize();
+            // int write_index = m_in_buffer->getWriteIndex();
+            // // 返回读取到的字节数
+            // int ret = read(m_client_fd, &(m_in_buffer->getRefBuffer()[write_index]), write_count);
+
             int write_count = m_in_buffer->writeAbleSize();
-            int write_index = m_in_buffer->getWriteIndex();
-            // 返回读取到的字节数
-            int ret = read(m_client_fd, &(m_in_buffer->getRefBuffer()[write_index]), write_count);
+            char tmp1[write_count];
+            int ret = read(m_client_fd, tmp1, write_count);
+            m_in_buffer->writeToBuffer(tmp1, ret);
+
             DEBUGLOG("success read %d bytes from addr[%s], client fd[%d]", ret, m_peer_addr->toString().c_str(),
                      m_client_fd);
             if (ret > 0) {
                 // 将write指针向后移动刚刚读取的字节数个位置
                 // 比如你要求从里面读取100byte，但是ret返回了50个，说明只有50个可以读了，所以ret < write count的话证明已经读完了
-                m_in_buffer->moveWriteIndex(ret);
+                // m_in_buffer->moveWriteIndex(ret);
                 if (ret == write_count) {
                     continue;
                 } else if (ret < write_count) {
@@ -166,8 +171,8 @@ namespace rocket {
                     // 这样无论在done里面删除整个tcp connection类或者是进行其他操作都不会出问题了。
                     m_read_dones.erase(iter);
                     done(result);
-                }else{
-                    DEBUGLOG("not found result->m_msg_id: %s",result->m_msg_id.c_str());
+                } else {
+                    DEBUGLOG("not found result->m_msg_id: %s", result->m_msg_id.c_str());
                 }
             }
         }
@@ -201,9 +206,16 @@ namespace rocket {
                 is_read_and_write_all = true;
                 break;
             }
+            // int read_count = m_out_buffer->readAbleSize();
+            // int read_index = m_out_buffer->getReadIndex();
+            // int ret = write(m_client_fd, &(m_out_buffer->getRefBuffer()[read_index]), read_count);
+
+            std::vector<char> tmp;
             int read_count = m_out_buffer->readAbleSize();
-            int read_index = m_out_buffer->getReadIndex();
-            int ret = write(m_client_fd, &(m_out_buffer->getRefBuffer()[read_index]), read_count);
+            m_out_buffer->readFromBuffer(tmp, read_count);
+            int ret = write(m_client_fd, &tmp[0], tmp.size());
+
+
             if (ret >= read_count) {
                 DEBUGLOG("no more data need to send to client [%s]", m_peer_addr->toString().c_str());
                 is_read_and_write_all = true;
@@ -326,8 +338,4 @@ namespace rocket {
     NetAddr::net_addr_sptr_t_ TCPConnection::getPeerAddr() {
         return m_peer_addr;
     }
-
 }
-
-
-

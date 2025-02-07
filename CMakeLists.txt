@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(RPCFrame VERSION 1.0)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE "Debug") # 设置为debug即-g编译选项
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl")
@@ -65,39 +65,6 @@ add_executable(test_rpc_register
         rocket/include/coroutine/coroutine_pool.h)
 target_link_libraries(test_rpc_register ${ALL_LIBS})
 install(TARGETS test_rpc_register DESTINATION ${PATH_BIN})
-
-# test routine
-add_executable(test_coroutine
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine.cpp)
-target_link_libraries(test_coroutine ${ALL_LIBS})
-install(TARGETS test_coroutine DESTINATION ${PATH_BIN})
-
-# test routine 2
-add_executable(test_coroutine2
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine2.cpp)
-target_link_libraries(test_coroutine2 ${ALL_LIBS})
-install(TARGETS test_coroutine2 DESTINATION ${PATH_BIN})
-
-# test routine 3
-add_executable(test_coroutine3
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine3.cpp)
-target_link_libraries(test_coroutine3 ${ALL_LIBS})
-install(TARGETS test_coroutine3 DESTINATION ${PATH_BIN})
-
-
-# test routine 4
-add_executable(test_coroutine4
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine4.cpp)
-target_link_libraries(test_coroutine4 ${ALL_LIBS})
-install(TARGETS test_coroutine4 DESTINATION ${PATH_BIN})
-
-# test routine connect
-add_executable(test_coroutine_connect
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_coroutine_connect.cpp
-        rocket/include/coroutine/coroutine_pool.h)
-target_link_libraries(test_coroutine_connect ${ALL_LIBS})
-install(TARGETS test_coroutine_connect DESTINATION ${PATH_BIN})
-
 
 # test con hash
 add_executable(test_con_hash

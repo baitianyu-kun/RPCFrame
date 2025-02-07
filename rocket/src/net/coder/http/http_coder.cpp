@@ -9,9 +9,8 @@
 #include "common/string_util.h"
 
 namespace rocket {
-
     void HTTPCoder::encode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                           TCPBuffer::tcp_buffer_sptr_t_ out_buffer, bool is_http_client /*false*/) {
+                           TCPRingBuffer::tcp_ring_buff_sptr_t_ out_buffer, bool is_http_client /*false*/) {
         if (is_http_client) {
             encode_request(in_messages, out_buffer);
             return;
@@ -21,10 +20,10 @@ namespace rocket {
             auto response = std::dynamic_pointer_cast<HTTPResponse>(in_message);
             std::stringstream ss;
             ss << response->m_response_version << " "
-               << response->m_response_code << " "
-               << response->m_response_info << g_CRLF
-               << response->m_response_properties.toHTTPString() << g_CRLF
-               << response->m_response_body;
+                    << response->m_response_code << " "
+                    << response->m_response_info << g_CRLF
+                    << response->m_response_properties.toHTTPString() << g_CRLF
+                    << response->m_response_body;
             http_res = ss.str();
             out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
             DEBUGLOG("HTTP response encode success");
@@ -32,16 +31,16 @@ namespace rocket {
     }
 
     void HTTPCoder::encode_request(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &in_messages,
-                                   TCPBuffer::tcp_buffer_sptr_t_ out_buffer) {
+                                   TCPRingBuffer::tcp_ring_buff_sptr_t_ out_buffer) {
         for (const auto &in_message: in_messages) {
             std::string http_res;
             auto request = std::dynamic_pointer_cast<HTTPRequest>(in_message);
             std::stringstream ss;
             ss << HTTPMethodToString(request->m_request_method) << " "
-               << request->m_request_path << " "
-               << request->m_request_version << g_CRLF
-               << request->m_request_properties.toHTTPString() << g_CRLF
-               << request->m_request_body;
+                    << request->m_request_path << " "
+                    << request->m_request_version << g_CRLF
+                    << request->m_request_properties.toHTTPString() << g_CRLF
+                    << request->m_request_body;
             http_res = ss.str();
             out_buffer->writeToBuffer(http_res.c_str(), http_res.length());
             DEBUGLOG("HTTP request encode success");
@@ -49,7 +48,7 @@ namespace rocket {
     }
 
     void HTTPCoder::decode(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                           TCPBuffer::tcp_buffer_sptr_t_ in_buffer, bool is_http_client /*false*/) {
+                           TCPRingBuffer::tcp_ring_buff_sptr_t_ in_buffer, bool is_http_client /*false*/) {
         if (is_http_client) {
             decode_response(out_messages, in_buffer);
             return;
@@ -60,11 +59,15 @@ namespace rocket {
         bool is_parse_request_content = false;
         int read_size = 0; // 读取长度，用来和content-length做校验
 
-        auto start_index = in_buffer->getReadIndex();
-        auto end_index = in_buffer->getWriteIndex();
+        // auto start_index = in_buffer->getReadIndex();
+        // auto end_index = in_buffer->getWriteIndex();
+        // std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+        //                              in_buffer->getRefBuffer().begin() + end_index);
 
-        std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
-                                     in_buffer->getRefBuffer().begin() + end_index);
+        std::vector<char> tmp_buffer;
+        in_buffer->readFromBuffer(tmp_buffer, in_buffer->readAbleSize());
+
+
 
         // 转换为string开始解析
         std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
@@ -124,7 +127,7 @@ namespace rocket {
             request->m_msg_id = req_body_data_map["msg_id"];
 
             out_messages.emplace_back(request);
-            in_buffer->moveReadIndex(read_size);
+            // in_buffer->moveReadIndex(read_size);
             // break;
         }
         // }
@@ -133,17 +136,20 @@ namespace rocket {
     }
 
     void HTTPCoder::decode_response(std::vector<AbstractProtocol::abstract_pro_sptr_t_> &out_messages,
-                                    TCPBuffer::tcp_buffer_sptr_t_ in_buffer) {
+                                    TCPRingBuffer::tcp_ring_buff_sptr_t_ in_buffer) {
         // while (true) {
         bool is_parse_response_line = false;
         bool is_parse_response_header = false;
         bool is_parse_response_content = false;
         int read_size = 0;
 
-        auto start_index = in_buffer->getReadIndex();
-        auto end_index = in_buffer->getWriteIndex();
-        std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
-                                     in_buffer->getRefBuffer().begin() + end_index);
+        // auto start_index = in_buffer->getReadIndex();
+        // auto end_index = in_buffer->getWriteIndex();
+        // std::vector<char> tmp_buffer(in_buffer->getRefBuffer().begin() + start_index,
+        //                              in_buffer->getRefBuffer().begin() + end_index);
+
+        std::vector<char> tmp_buffer;
+        in_buffer->readFromBuffer(tmp_buffer, in_buffer->readAbleSize());
 
         // 转换为string开始解析
         std::string all_str(tmp_buffer.begin(), tmp_buffer.end());
@@ -185,14 +191,13 @@ namespace rocket {
         read_size += content_len;
 
         if (is_parse_response_line && is_parse_response_header && is_parse_response_content) {
-
             // 存一下msg id
             std::unordered_map<std::string, std::string> response_body_map;
             splitStrToMap(response->m_response_body, g_CRLF, ":", response_body_map);
             response->m_msg_id = response_body_map["msg_id"];
 
             out_messages.emplace_back(response);
-            in_buffer->moveReadIndex(read_size);
+            // in_buffer->moveReadIndex(read_size);
             // break;
         }
         // }
@@ -333,8 +338,4 @@ namespace rocket {
         response->m_response_body = tmp;
         return true;
     }
-
-
 }
-
-

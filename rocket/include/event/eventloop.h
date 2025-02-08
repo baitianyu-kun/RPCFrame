@@ -11,9 +11,9 @@
 #include <memory>
 #include <cassert>
 #include "common/mutex.h"
-#include "net/fd_event.h"
-#include "net/wake_up_fd_event.h"
-#include "net/timer_fd_event.h"
+#include "event/fd_event.h"
+#include "event/wake_up_fd_event.h"
+#include "event/timer_fd_event.h"
 
 namespace rocket {
 

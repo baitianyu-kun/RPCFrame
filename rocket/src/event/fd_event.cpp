@@ -3,7 +3,7 @@
 //
 #include <cstring>
 #include <fcntl.h>
-#include "net/fd_event.h"
+#include "event/fd_event.h"
 
 namespace rocket {
 
@@ -62,18 +62,6 @@ namespace rocket {
     void FDEvent::cancel_listen(FDEvent::TriggerEventType event_type) {
         event_type == TriggerEventType::IN_EVENT ? m_listen_event.events &= (~EPOLLIN)
                                                  : m_listen_event.events &= (~EPOLLOUT);
-    }
-
-    void FDEvent::setCoroutine(Coroutine::coroutine_sptr_t_ cor) {
-        m_coroutine = cor;
-    }
-
-    Coroutine::coroutine_sptr_t_ FDEvent::getCoroutine() {
-        return m_coroutine;
-    }
-
-    void FDEvent::clearCoroutine() {
-        m_coroutine = nullptr;
     }
 
 }

@@ -41,7 +41,6 @@ namespace rocket {
     // 如果m listen event监听到事件发生的话，那么会自动调用回调函数
     void FDEvent::listen(FDEvent::TriggerEventType event_type, std::function<void()> callback,
                          std::function<void()> error_callback /*null ptr*/) {
-        // 需要修改: Clang-Tidy:参数'error_callback'在每次调用时都被复制，但只用作const引用;考虑将其作为const引用
         if (event_type == TriggerEventType::IN_EVENT) {
             // epoll_ctl中的EPOLL_CTL_ADD是指设置将fd加到epoll fd的中，只对epoll fd操作，或者设置其他例如EPOLL_CTL_MOD修改、EPOLL_CTL_DEL删除
             // 而这里的events代表事件类型，对epoll event进行操作，例如EPOLLIN，EPOLLOUT，或者EPOLLERR

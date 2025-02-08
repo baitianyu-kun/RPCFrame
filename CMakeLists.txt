@@ -37,3 +37,12 @@ set(TINYXML_LIB /usr/lib/libtinyxml.a)
 
 # 总lib
 set(ALL_LIBS rocket ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
+
+# test rpc server
+add_executable(test_eventloop
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_eventloop.cpp
+        rocket/include/net/tcp/abstract_tcp_buffer.h
+        rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/protocol/abstract_protocol.h
+        rocket/include/net/protocol/abstract_coder.h)
+target_link_libraries(test_eventloop ${ALL_LIBS})

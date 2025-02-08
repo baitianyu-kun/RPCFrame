@@ -19,7 +19,7 @@ namespace rocket {
 
         ~IOThread();
 
-        EventLoop::event_loop_sptr_t_ getEventLoop();
+        EventLoop::ptr getEventLoop();
 
         void start();
 
@@ -32,7 +32,7 @@ namespace rocket {
         pid_t m_thread_id{-1};
         pthread_t m_thread{0}; // 线程句柄，用来保存和操作线程的
 
-        EventLoop::event_loop_sptr_t_ m_event_loop{nullptr};
+        EventLoop::ptr m_event_loop{nullptr};
         // 要求IOThread创建线程时候，等待执行完runner的event loop的loop方法之前，即完成event loop创建任务，但是不启动，放在start中启动
         // 随后runner阻塞在启动loop前，等start给信号后才启动
         sem_t m_init_semaphore;

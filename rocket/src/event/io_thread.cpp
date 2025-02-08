@@ -35,7 +35,7 @@ namespace rocket {
         pthread_join(m_thread, nullptr); // 等待子线程执行完成
     }
 
-    EventLoop::event_loop_sptr_t_ IOThread::getEventLoop() {
+    EventLoop::ptr IOThread::getEventLoop() {
         return m_event_loop;
     }
 

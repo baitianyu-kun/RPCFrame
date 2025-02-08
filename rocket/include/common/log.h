@@ -8,8 +8,8 @@
 
 #include "common/config.h"
 #include "common/mutex.h"
-#include "net/timer_fd_event.h"
-#include "net/eventloop.h"
+#include "event/timer_fd_event.h"
+#include "event/eventloop.h"
 
 namespace rocket {
 
@@ -172,7 +172,7 @@ namespace rocket {
         int m_type{0}; // 为0就是只在控制台输出，1是输出到文件
         bool m_is_server{true};
 
-        EventLoop::event_loop_sptr_t_ m_event_loop{nullptr};
+        EventLoop::ptr m_event_loop{nullptr};
     };
 
     std::string LogLevelToString(LogLevel level);

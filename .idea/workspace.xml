@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CMakePresetLoader"><![CDATA[{
+  "useNewFormat": true
+}]]></component>
+  <component name="CMakeReloadState">
+    <option name="reloaded" value="true" />
+  </component>
+  <component name="CMakeRunConfigurationManager">
+    <generated>
+      <config projectName="RPCFrame" targetName="test_eventloop" />
+      <config projectName="RPCFrame" targetName="rocket" />
+    </generated>
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/RPCFrame.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/protocol/abstract_coder.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/protocol/abstract_protocol.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/abstract_tcp_buffer.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/net_addr.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_acceptor.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_connection.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_ring_buffer.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_vector_buffer.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/net_addr.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_acceptor.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_ring_buffer.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_vector_buffer.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_eventloop.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/RPCFrameNew.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/common/log.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/common/log.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/event/eventloop.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/event/eventloop.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/event/fd_event.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/event/fd_event.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/event/fd_event_pool.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/event/fd_event_pool.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/event/io_thread.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/event/io_thread.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/event/eventloop.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/event/eventloop.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/event/fd_event.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/event/fd_event.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/event/fd_event_pool.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/event/fd_event_pool.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/event/io_thread.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/event/io_thread.cpp" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CMakeLists.txt" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2skJo0mkh0gmw66vEEXGJ6CIl6n" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "C/C++ File.test_eventloop.cpp.executor": "Run",
+    "CMake Application.test_eventloop.executor": "Run",
+    "CMake Debug.RPCFrame.executor": "Debug",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "dev",
+    "last_opened_file_path": "/home/baitianyu/CLionProjects/RPCFrame/CMakeLists.txt",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "structure.view.defaults.are.configured": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RdControllerToolWindowsLayoutState" isNewUi="true">
+    <layout>
+      <window_info id="Space Code Reviews" show_stripe_button="false" />
+      <window_info id="Bookmarks" show_stripe_button="false" side_tool="true" />
+      <window_info id="Merge Requests" show_stripe_button="false" />
+      <window_info id="Commit_Guest" show_stripe_button="false" />
+      <window_info id="Pull Requests" show_stripe_button="false" />
+      <window_info id="Learn" show_stripe_button="false" />
+      <window_info id="DFA" show_stripe_button="false" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20104736" />
+      <window_info id="Commit" order="1" weight="0.25113946" />
+      <window_info id="Structure" order="2" side_tool="true" weight="0.25113946" />
+      <window_info anchor="bottom" id="CMake" />
+      <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
+      <window_info anchor="bottom" id="TypeScript" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Build" weight="0.3303872" />
+      <window_info anchor="bottom" id="Debug" weight="0.3303872" />
+      <window_info anchor="bottom" id="Python Packages" show_stripe_button="false" />
+      <window_info anchor="bottom" id="TODO" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Messages" weight="0.3303872" />
+      <window_info anchor="bottom" id="File Transfer" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Run" weight="0.3303872" />
+      <window_info anchor="bottom" id="Vcpkg" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Find" />
+      <window_info anchor="bottom" id="clangd" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="0" weight="0.36129847" />
+      <window_info anchor="bottom" id="Problems View" order="1" weight="0.3301012" />
+      <window_info anchor="bottom" id="Terminal" order="2" weight="0.3303872" />
+      <window_info anchor="bottom" id="Services" order="3" weight="0.36129847" />
+      <window_info anchor="right" id="make" show_stripe_button="false" side_tool="true" />
+      <window_info anchor="right" id="Coverage" side_tool="true" />
+      <window_info anchor="right" content_ui="combo" id="Notifications" order="0" weight="0.25" />
+      <window_info anchor="right" id="AIAssistant" order="1" weight="0.25" />
+      <window_info anchor="right" id="Database" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/rocket/include/net" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/rocket/src/net/protocol" />
+    </key>
+  </component>
+  <component name="RunManager" selected="CMake Debug.RPCFrame">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RPCFrame" type="CMakeListConfigurationType" factoryName="CMakeListConfigurationFactory" temporary="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="rocket" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="rocket" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_eventloop" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_eventloop" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_eventloop">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="CMake Application.rocket" />
+      <item itemvalue="CMake Application.test_eventloop" />
+      <item itemvalue="CMake Debug.RPCFrame" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="CMake Debug.RPCFrame" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="" />
+      <created>1738993810244</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1738993810244</updated>
+      <workItem from="1738993812764" duration="353000" />
+      <workItem from="1738994349458" duration="96000" />
+      <workItem from="1738994471289" duration="50000" />
+      <workItem from="1738994544896" duration="2614000" />
+      <workItem from="1738997180197" duration="228000" />
+      <workItem from="1738997437093" duration="302000" />
+      <workItem from="1738997752861" duration="46000" />
+      <workItem from="1738997814841" duration="2320000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VCPKGProject">
+    <isAutomaticCheckingOnLaunch value="false" />
+    <isAutomaticFoundErrors value="true" />
+    <isAutomaticReloadCMake value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

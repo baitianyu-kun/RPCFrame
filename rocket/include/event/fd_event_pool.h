@@ -24,13 +24,13 @@ namespace rocket {
 
         ~FDEventPool();
 
-        FDEvent::fd_event_sptr_t_ getFDEvent(int fd);
+        FDEvent::ptr getFDEvent(int fd);
 
         void deleteFDEvent(int fd);
 
     private:
         int m_size{0};
-        std::vector<FDEvent::fd_event_sptr_t_> m_fd_pool;
+        std::vector<FDEvent::ptr> m_fd_pool;
         Mutex m_mutex;
     };
 }

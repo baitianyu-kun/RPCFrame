@@ -25,7 +25,7 @@ namespace rocket {
     }
 
     // 有可能多个进程会访问这个函数，所以要加锁
-    FDEvent::fd_event_sptr_t_ FDEventPool::getFDEvent(int fd) {
+    FDEvent::ptr FDEventPool::getFDEvent(int fd) {
         ScopeMutext<Mutex> lock(m_mutex);
         if ((size_t) fd < m_fd_pool.size()) {
             return m_fd_pool[fd];

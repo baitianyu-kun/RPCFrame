@@ -19,13 +19,13 @@ namespace rocket {
 
     class EventLoop {
     public:
-        using event_loop_sptr_t_ = std::shared_ptr<EventLoop>;
+        using ptr = std::shared_ptr<EventLoop>;
 
     public:
         // 单例模式，一个线程一个event loop
-        static thread_local event_loop_sptr_t_ t_current_event_loop;
+        static thread_local ptr t_current_event_loop;
 
-        static event_loop_sptr_t_ GetCurrentEventLoop();
+        static ptr GetCurrentEventLoop();
 
     public:
         EventLoop();
@@ -38,9 +38,9 @@ namespace rocket {
 
         void stop();
 
-        void addEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr);
+        void addEpollEvent(FDEvent::ptr fd_event_s_ptr);
 
-        void deleteEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr);
+        void deleteEpollEvent(FDEvent::ptr fd_event_s_ptr);
 
         bool isInLoopThread();
 

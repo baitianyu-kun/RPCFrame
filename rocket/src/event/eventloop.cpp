@@ -44,10 +44,10 @@ namespace rocket {
     static int g_epoll_max_timeout = 10000;
     static int g_epoll_max_events = 10;
 
-    thread_local EventLoop::event_loop_sptr_t_ EventLoop::t_current_event_loop =
+    thread_local EventLoop::ptr EventLoop::t_current_event_loop =
             std::make_shared<EventLoop>();
 
-    EventLoop::event_loop_sptr_t_ EventLoop::GetCurrentEventLoop() {
+    EventLoop::ptr EventLoop::GetCurrentEventLoop() {
         return t_current_event_loop;
     }
 
@@ -198,7 +198,7 @@ namespace rocket {
         }
     }
 
-    void EventLoop::addEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr) {
+    void EventLoop::addEpollEvent(FDEvent::ptr fd_event_s_ptr) {
         auto fd_event = fd_event_s_ptr.get();
         // 创建epoll event去监听wakeup的读取事件
         // epoll_event tmp_event;
@@ -230,7 +230,7 @@ namespace rocket {
         }
     }
 
-    void EventLoop::deleteEpollEvent(FDEvent::fd_event_sptr_t_ fd_event_s_ptr) {
+    void EventLoop::deleteEpollEvent(FDEvent::ptr fd_event_s_ptr) {
         auto fd_event = fd_event_s_ptr.get();
         if (isInLoopThread()) {
             DELETE_FROM_EPOLL();

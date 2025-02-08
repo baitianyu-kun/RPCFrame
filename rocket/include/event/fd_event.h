@@ -16,7 +16,7 @@ namespace rocket {
 
     class FDEvent {
     public:
-        using fd_event_sptr_t_ = std::shared_ptr<FDEvent>;
+        using ptr = std::shared_ptr<FDEvent>;
 
         // 事件类型，使用和epoll相同
         enum TriggerEventType {

@@ -42,7 +42,17 @@ set(ALL_LIBS rocket ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
 add_executable(test_eventloop
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_eventloop.cpp
         rocket/include/net/tcp/abstract_tcp_buffer.h
-        rocket/include/net/tcp/tcp_connection.h
         rocket/include/net/protocol/abstract_protocol.h
-        rocket/include/net/protocol/abstract_coder.h)
+        rocket/include/net/protocol/http/http_define.h
+        rocket/include/net/protocol/http/http_parse.h
+)
 target_link_libraries(test_eventloop ${ALL_LIBS})
+
+add_executable(test_http_parse_encode
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_http_parse_encode.cpp
+        rocket/include/net/tcp/abstract_tcp_buffer.h
+        rocket/include/net/protocol/abstract_protocol.h
+        rocket/include/net/protocol/http/http_define.h
+        rocket/include/net/protocol/http/http_parse.h
+)
+target_link_libraries(test_http_parse_encode ${ALL_LIBS})

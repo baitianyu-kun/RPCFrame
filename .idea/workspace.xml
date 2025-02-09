@@ -14,6 +14,8 @@
       <config projectName="RPCFrame" targetName="test_eventloop" />
       <config projectName="RPCFrame" targetName="test_http_parse_encode" />
       <config projectName="RPCFrame" targetName="rocket" />
+      <config projectName="RPCFrame" targetName="test_rpc_dispatcher" />
+      <config projectName="RPCFrame" targetName="test_http_servlet" />
     </generated>
   </component>
   <component name="CMakeSettings">
@@ -23,16 +25,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="rebase">
-      <change afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_define.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_parse.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_define.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_parse.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testcases/test_http_parse_encode.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_servlet.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/rpc/rpc_dispatcher.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_servlet.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/rpc/rpc_dispatcher.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_http_servlet.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_rpc_dispatcher.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/protocol/abstract_coder.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_connection.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/common/mutex.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/common/mutex.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_parse.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_parse.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_parse.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_parse.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/test_http_parse_encode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/test_http_parse_encode.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +106,7 @@
       <window_info id="Pull Requests" show_stripe_button="false" />
       <window_info id="Learn" show_stripe_button="false" />
       <window_info id="DFA" show_stripe_button="false" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20104736" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15277778" />
       <window_info id="Commit" order="1" weight="0.20104736" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25113946" />
       <window_info anchor="bottom" id="CMake" />
@@ -116,11 +120,11 @@
       <window_info anchor="bottom" id="File Transfer" show_stripe_button="false" />
       <window_info anchor="bottom" id="Run" weight="0.3303872" />
       <window_info anchor="bottom" id="Vcpkg" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Find" />
+      <window_info anchor="bottom" id="Find" weight="0.3303872" />
       <window_info anchor="bottom" id="clangd" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="0" weight="0.36129847" />
       <window_info anchor="bottom" id="Problems View" order="1" weight="0.3301012" />
-      <window_info anchor="bottom" id="Terminal" order="2" weight="0.30765992" />
+      <window_info anchor="bottom" id="Terminal" order="2" weight="0.3301012" />
       <window_info anchor="bottom" id="Services" order="3" weight="0.36129847" />
       <window_info anchor="right" id="make" show_stripe_button="false" side_tool="true" />
       <window_info anchor="right" id="Coverage" side_tool="true" />
@@ -138,13 +142,13 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Debug.RPCFrame">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="RPCFrame" type="CMakeListConfigurationType" factoryName="CMakeListConfigurationFactory" temporary="true">
       <method v="2" />
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
     </configuration>
     <configuration name="rocket" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="rocket" CONFIG_NAME="Debug">
       <method v="2">
@@ -161,10 +165,22 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="test_http_servlet" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_http_servlet" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_http_servlet">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_rpc_dispatcher" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_rpc_dispatcher" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_rpc_dispatcher">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="CMake Application.rocket" />
       <item itemvalue="CMake Application.test_eventloop" />
       <item itemvalue="CMake Application.test_http_parse_encode" />
+      <item itemvalue="CMake Application.test_http_servlet" />
+      <item itemvalue="CMake Application.test_rpc_dispatcher" />
       <item itemvalue="CMake Debug.RPCFrame" />
     </list>
     <recent_temporary>
@@ -189,7 +205,8 @@
       <workItem from="1738997437093" duration="302000" />
       <workItem from="1738997752861" duration="46000" />
       <workItem from="1738997814841" duration="2947000" />
-      <workItem from="1739020689458" duration="4479000" />
+      <workItem from="1739020689458" duration="4494000" />
+      <workItem from="1739071471410" duration="5632000" />
     </task>
     <task id="LOCAL-00001" summary="rebase">
       <option name="closed" value="true" />
@@ -199,7 +216,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739001112794</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="rebase">
+      <option name="closed" value="true" />
+      <created>1739034348152</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1739034348152</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

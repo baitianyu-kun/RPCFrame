@@ -19,7 +19,7 @@ namespace rocket {
 
         bool parse(std::string &str);
 
-        HTTPRequest getRequest() { return m_request; }
+        HTTPRequest::ptr getRequest() { return m_request; }
 
     private:
         bool parseHTTPRequestLine(const std::string &tmp);
@@ -29,7 +29,7 @@ namespace rocket {
         bool parseHTTPRequestContent(const std::string &tmp);
 
     private:
-        HTTPRequest m_request;
+        HTTPRequest::ptr m_request;
 
     };
 
@@ -43,7 +43,7 @@ namespace rocket {
 
         bool parse(std::string &str);
 
-        HTTPResponse getResponse() { return m_response; }
+        HTTPResponse::ptr getResponse() { return m_response; }
 
     private:
         bool parseHTTPResponseLine(const std::string &tmp);
@@ -53,7 +53,7 @@ namespace rocket {
         bool parseHTTPResponseContent(const std::string &tmp);
 
     private:
-        HTTPResponse m_response;
+        HTTPResponse::ptr m_response;
     };
 }
 

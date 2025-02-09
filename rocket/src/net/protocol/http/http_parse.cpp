@@ -11,6 +11,8 @@ bool rocket::HTTPRequestParser::parse(std::string &str) {
     bool is_parse_request_header = false;
     bool is_parse_request_content = false;
 
+    m_request = std::make_shared<HTTPRequest>();
+
     std::string tmp = str;
     // ================request line================
     auto i_crlf = tmp.find(g_CRLF);
@@ -37,12 +39,12 @@ bool rocket::HTTPRequestParser::parse(std::string &str) {
     tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
     // ================request content================
     int content_len = 0;
-    if (m_request.m_request_properties.m_map_properties.find("Content-Length") !=
-        m_request.m_request_properties.m_map_properties.end()) {
-        content_len = std::stoi(m_request.m_request_properties.m_map_properties["Content-Length"]);
+    if (m_request->m_request_properties.m_map_properties.find("Content-Length") !=
+        m_request->m_request_properties.m_map_properties.end()) {
+        content_len = std::stoi(m_request->m_request_properties.m_map_properties["Content-Length"]);
     }
 
-    if (m_request.m_request_method == HTTPMethod::POST && content_len != 0) {
+    if (m_request->m_request_method == HTTPMethod::POST && content_len != 0) {
         is_parse_request_content = parseHTTPRequestContent(tmp.substr(0, content_len));
     } else {
         is_parse_request_content = true; // get的时候没有请求体，请求的东西都在url上，所以直接设置为true
@@ -67,9 +69,9 @@ bool rocket::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp) {
     auto method = tmp.substr(0, space1);
     std::transform(method.begin(), method.end(), method.begin(), toupper);
     if (method == "GET") {
-        m_request.m_request_method = HTTPMethod::GET;
+        m_request->m_request_method = HTTPMethod::GET;
     } else if (method == "POST") {
-        m_request.m_request_method = HTTPMethod::POST;
+        m_request->m_request_method = HTTPMethod::POST;
     } else {
         ERRORLOG("parse HTTP request line error, unknown method name %s, should be GET or POST", method.c_str());
         return false;
@@ -81,7 +83,7 @@ bool rocket::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp) {
         ERRORLOG("parse HTTP request line error, not support http version: %s", version.c_str());
         return false;
     }
-    m_request.m_request_version = version;
+    m_request->m_request_version = version;
     // url
     auto url = tmp.substr(space1 + 1, space2 - space1 - 1);
     auto double_slash = url.find("://");
@@ -109,16 +111,16 @@ bool rocket::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp) {
     // params, contact_form.php?id=1
     auto quest_mark = url.find_first_of("?");
     if (quest_mark == url.npos) {
-        m_request.m_request_path = url;
+        m_request->m_request_path = url;
         DEBUGLOG("http request path: %s", url.c_str());
         return true;
     }
-    m_request.m_request_path = url.substr(0, quest_mark);
-    m_request.m_request_params = url.substr(quest_mark + 1, url.length() - quest_mark - 1);
-    DEBUGLOG("http request path: %s, and params: %s", m_request.m_request_path.c_str(),
-             m_request.m_request_params.c_str());
+    m_request->m_request_path = url.substr(0, quest_mark);
+    m_request->m_request_params = url.substr(quest_mark + 1, url.length() - quest_mark - 1);
+    DEBUGLOG("http request path: %s, and params: %s", m_request->m_request_path.c_str(),
+             m_request->m_request_params.c_str());
     // id=1&age=2
-    splitStrToMap(m_request.m_request_params, "&", "=", m_request.m_request_params_map);
+    splitStrToMap(m_request->m_request_params, "&", "=", m_request->m_request_params_map);
     return true;
 }
 
@@ -128,12 +130,12 @@ bool rocket::HTTPRequestParser::parseHTTPRequestHeader(const std::string &tmp) {
     }
     // Host: developer.mozilla.org \r\n
     // Content-Length: 64 \r\n
-    splitStrToMap(tmp, g_CRLF, ":", m_request.m_request_properties.m_map_properties);
+    splitStrToMap(tmp, g_CRLF, ":", m_request->m_request_properties.m_map_properties);
     return true;
 }
 
 bool rocket::HTTPRequestParser::parseHTTPRequestContent(const std::string &tmp) {
-    m_request.m_request_body = tmp;
+    m_request->m_request_body = tmp;
     return true;
 }
 
@@ -142,6 +144,9 @@ bool rocket::HTTPResponseParser::parse(std::string &str) {
     bool is_parse_response_line = false;
     bool is_parse_response_header = false;
     bool is_parse_response_content = false;
+
+    m_response = std::make_shared<HTTPResponse>();
+
     std::string tmp = str;
     // ================request line================
     auto i_crlf = tmp.find(g_CRLF);
@@ -168,9 +173,9 @@ bool rocket::HTTPResponseParser::parse(std::string &str) {
     tmp = tmp.substr(i_crlf_double + 4, tmp.length() - i_crlf_double - 4);
     // ================request content================
     int content_len = 0;
-    if (m_response.m_response_properties.m_map_properties.find("Content-Length") !=
-        m_response.m_response_properties.m_map_properties.end()) {
-        content_len = std::stoi(m_response.m_response_properties.m_map_properties["Content-Length"]);
+    if (m_response->m_response_properties.m_map_properties.find("Content-Length") !=
+        m_response->m_response_properties.m_map_properties.end()) {
+        content_len = std::stoi(m_response->m_response_properties.m_map_properties["Content-Length"]);
     }
     is_parse_response_content = parseHTTPResponseContent(tmp.substr(0, content_len));
     if (!is_parse_response_content) {
@@ -196,7 +201,7 @@ bool rocket::HTTPResponseParser::parseHTTPResponseLine(const std::string &tmp) {
         ERRORLOG("parse HTTP request line error, not support http version: %s", version.c_str());
         return false;
     }
-    m_response.m_response_version = version;
+    m_response->m_response_version = version;
     // http code
     auto code = tmp.substr(space1 + 1, space2 - space1 - 1);
     auto http_code = stringToHTTPCode(code);
@@ -204,10 +209,10 @@ bool rocket::HTTPResponseParser::parseHTTPResponseLine(const std::string &tmp) {
         ERRORLOG("parse HTTP request line error, HTTPCode::HTTP_UNKNOWN_ERROR");
         return false;
     }
-    m_response.m_response_code = http_code;
+    m_response->m_response_code = http_code;
     // http code info
     auto code_info = tmp.substr(space2 + 1, tmp.length() - space2 - 1);
-    m_response.m_response_info = code_info;
+    m_response->m_response_info = code_info;
     return true;
 }
 
@@ -217,11 +222,11 @@ bool rocket::HTTPResponseParser::parseHTTPResponseHeader(const std::string &tmp)
     }
     // Host: developer.mozilla.org\r\n
     // Content-Length: 64\r\n
-    splitStrToMap(tmp, g_CRLF, ":", m_response.m_response_properties.m_map_properties);
+    splitStrToMap(tmp, g_CRLF, ":", m_response->m_response_properties.m_map_properties);
     return true;
 }
 
 bool rocket::HTTPResponseParser::parseHTTPResponseContent(const std::string &tmp) {
-    m_response.m_response_body = tmp;
+    m_response->m_response_body = tmp;
     return true;
 }

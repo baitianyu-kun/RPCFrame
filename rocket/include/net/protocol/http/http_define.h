@@ -116,6 +116,10 @@ namespace rocket {
 
         static HTTPResponse::ptr createResponse(MSGType type, body_type body);
 
+        static HTTPRequest::ptr createEmptyRequest();
+
+        static HTTPResponse::ptr createEmptyResponse();
+
     private:
 
         static HTTPRequest::ptr createMethodRequest(body_type body);

@@ -17,7 +17,7 @@ namespace rocket {
     // 主要是封装了流的读取写入等，包括inbuffer和outbuffer
     // inbuffer: 在fd可读的情况，调用read从socket缓冲区中读取到数据，然后写入到inbuffer里面
     // outbuffer： 在fd可写的情况调用write把outbuffer中的数据都写入到socket中
-    class TCPVectorBuffer : TCPBuffer {
+    class TCPVectorBuffer : public TCPBuffer {
     public:
         using ptr = std::shared_ptr<TCPVectorBuffer>;
 

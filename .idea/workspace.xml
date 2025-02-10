@@ -27,22 +27,15 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="add register servlet">
-      <change afterPath="$PROJECT_DIR$/rocket/include/rpc/servlet/server_servlet.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/rpc/servlet/server_servlet.cpp" afterDir="false" />
+    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="split servlets">
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_connection.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/common/msg_id_util.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/common/string_util.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/common/string_util.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_define.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_define.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/rpc/rpc_dispatcher.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/rpc/rpc_dispatcher.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/rpc/servlet/register_center_servlet.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/rpc/servlet/register_center_servlet.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/common/msg_id_util.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/common/string_util.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/common/string_util.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_ring_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_ring_buffer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_vector_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_vector_buffer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_define.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_define.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/rpc/rpc_dispatcher.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/rpc/rpc_dispatcher.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/rpc/servlet/register_center_servlet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/rpc/servlet/register_center_servlet.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/test_rpc_dispatcher.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/test_rpc_dispatcher.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,8 +112,8 @@
       <window_info id="Pull Requests" show_stripe_button="false" />
       <window_info id="Learn" show_stripe_button="false" />
       <window_info id="DFA" show_stripe_button="false" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1653646" />
-      <window_info id="Commit" order="1" weight="0.15598959" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15338542" />
+      <window_info id="Commit" order="1" weight="0.1653646" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25113946" />
       <window_info anchor="bottom" id="CMake" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
@@ -222,7 +215,7 @@
       <workItem from="1738997814841" duration="2947000" />
       <workItem from="1739020689458" duration="4494000" />
       <workItem from="1739071471410" duration="5632000" />
-      <workItem from="1739151925872" duration="10175000" />
+      <workItem from="1739151925872" duration="19509000" />
     </task>
     <task id="LOCAL-00001" summary="rebase">
       <option name="closed" value="true" />
@@ -248,7 +241,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739158849446</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="split servlets">
+      <option name="closed" value="true" />
+      <created>1739166896890</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1739166896890</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -273,7 +274,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="rebase" />
     <MESSAGE value="add register servlet" />
-    <option name="LAST_COMMIT_MESSAGE" value="add register servlet" />
+    <MESSAGE value="split servlets" />
+    <option name="LAST_COMMIT_MESSAGE" value="split servlets" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

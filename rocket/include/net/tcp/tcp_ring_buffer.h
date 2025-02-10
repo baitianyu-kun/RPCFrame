@@ -24,7 +24,7 @@
 #define MAX_TCP_BUFFER_SIZE 2048
 
 namespace rocket {
-    class TCPRingBuffer : TCPBuffer {
+    class TCPRingBuffer : public TCPBuffer {
     public:
         using ptr = std::shared_ptr<TCPRingBuffer>;
 

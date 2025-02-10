@@ -124,6 +124,19 @@ namespace rocket {
         }
     }
 
+    HTTPRequest::ptr HTTPManager::createEmptyRequest() {
+        return nullptr;
+    }
+
+    HTTPResponse::ptr HTTPManager::createEmptyResponse() {
+        auto response = std::make_shared<HTTPResponse>();
+        response->m_response_version = "HTTP/1.1";
+        response->m_response_code = HTTPCode::HTTP_OK;
+        response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+        response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+        return response;
+    }
+
     HTTPRequest::ptr HTTPManager::createMethodRequest(HTTPManager::body_type body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF

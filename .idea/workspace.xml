@@ -14,11 +14,13 @@
   </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
+      <config projectName="RPCFrame" targetName="test_rpc_server" />
       <config projectName="RPCFrame" targetName="test_eventloop" />
       <config projectName="RPCFrame" targetName="test_http_parse_encode" />
       <config projectName="RPCFrame" targetName="rocket" />
       <config projectName="RPCFrame" targetName="test_rpc_dispatcher" />
       <config projectName="RPCFrame" targetName="test_http_servlet" />
+      <config projectName="RPCFrame" targetName="test_rpc_client" />
     </generated>
   </component>
   <component name="CMakeSettings">
@@ -27,15 +29,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="split servlets">
-      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_connection.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" afterDir="false" />
+    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="tcp connection">
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_client.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_server.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_client.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_server.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_rpc_client.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testcases/test_rpc_server.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_define.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/protocol/http/http_define.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_ring_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_ring_buffer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_vector_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_vector_buffer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_define.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/protocol/http/http_define.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/abstract_tcp_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/abstract_tcp_buffer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_acceptor.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_acceptor.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,7 +118,7 @@
       <window_info id="Learn" show_stripe_button="false" />
       <window_info id="DFA" show_stripe_button="false" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15338542" />
-      <window_info id="Commit" order="1" weight="0.1653646" />
+      <window_info id="Commit" order="1" weight="0.15338542" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25113946" />
       <window_info anchor="bottom" id="CMake" />
       <window_info anchor="bottom" id="Database Changes" show_stripe_button="false" />
@@ -135,7 +140,7 @@
       <window_info anchor="right" id="make" show_stripe_button="false" side_tool="true" />
       <window_info anchor="right" id="Coverage" side_tool="true" />
       <window_info anchor="right" id="Python Console" show_stripe_button="false" />
-      <window_info anchor="right" content_ui="combo" id="Notifications" order="0" weight="0.25" />
+      <window_info anchor="right" id="Notifications" order="0" weight="0.32994792" />
       <window_info anchor="right" id="AIAssistant" order="1" weight="0.25" />
       <window_info anchor="right" id="Database" order="2" weight="0.25" />
       <window_info anchor="right" id="Meson" order="5" show_stripe_button="false" />
@@ -178,7 +183,17 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="test_rpc_client" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_rpc_client" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_rpc_client">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="test_rpc_dispatcher" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_rpc_dispatcher" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_rpc_dispatcher">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test_rpc_server" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="test_rpc_server" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RPCFrame" RUN_TARGET_NAME="test_rpc_server">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -188,7 +203,9 @@
       <item itemvalue="CMake Application.test_eventloop" />
       <item itemvalue="CMake Application.test_http_parse_encode" />
       <item itemvalue="CMake Application.test_http_servlet" />
+      <item itemvalue="CMake Application.test_rpc_client" />
       <item itemvalue="CMake Application.test_rpc_dispatcher" />
+      <item itemvalue="CMake Application.test_rpc_server" />
       <item itemvalue="CMake Debug.RPCFrame" />
     </list>
     <recent_temporary>
@@ -215,7 +232,7 @@
       <workItem from="1738997814841" duration="2947000" />
       <workItem from="1739020689458" duration="4494000" />
       <workItem from="1739071471410" duration="5632000" />
-      <workItem from="1739151925872" duration="19509000" />
+      <workItem from="1739151925872" duration="24548000" />
     </task>
     <task id="LOCAL-00001" summary="rebase">
       <option name="closed" value="true" />
@@ -249,7 +266,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739166896890</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="tcp connection">
+      <option name="closed" value="true" />
+      <created>1739179305975</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1739179305975</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -275,7 +300,8 @@
     <MESSAGE value="rebase" />
     <MESSAGE value="add register servlet" />
     <MESSAGE value="split servlets" />
-    <option name="LAST_COMMIT_MESSAGE" value="split servlets" />
+    <MESSAGE value="tcp connection" />
+    <option name="LAST_COMMIT_MESSAGE" value="tcp connection" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

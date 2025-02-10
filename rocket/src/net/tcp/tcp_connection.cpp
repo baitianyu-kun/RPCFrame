@@ -20,6 +20,8 @@ namespace rocket {
               m_state(NotConnected),
               m_dispatcher(dispatcher),
               m_connection_type(type) {
+        m_request_parser = std::make_shared<HTTPRequestParser>();
+        m_response_parser = std::make_shared<HTTPResponseParser>();
         m_in_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);

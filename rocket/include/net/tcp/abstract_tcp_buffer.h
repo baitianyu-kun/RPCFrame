@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 
+#define MAX_TCP_BUFFER_SIZE 4096
+
 namespace rocket {
     class TCPBuffer {
     public:

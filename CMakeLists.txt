@@ -54,6 +54,8 @@ add_executable(test_eventloop
         rocket/include/rpc/servlet/server_servlet.h
         rocket/src/rpc/servlet/server_servlet.cpp
         rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
 )
 target_link_libraries(test_eventloop ${ALL_LIBS})
 
@@ -70,6 +72,8 @@ add_executable(test_http_parse_encode
         rocket/include/rpc/servlet/server_servlet.h
         rocket/src/rpc/servlet/server_servlet.cpp
         rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
 )
 target_link_libraries(test_http_parse_encode ${ALL_LIBS})
 
@@ -86,6 +90,8 @@ add_executable(test_http_servlet
         rocket/include/rpc/servlet/server_servlet.h
         rocket/src/rpc/servlet/server_servlet.cpp
         rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
 )
 target_link_libraries(test_http_servlet ${ALL_LIBS})
 
@@ -97,5 +103,33 @@ add_executable(test_rpc_dispatcher
         rocket/include/rpc/servlet/server_servlet.h
         rocket/src/rpc/servlet/server_servlet.cpp
         rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
 )
 target_link_libraries(test_rpc_dispatcher ${ALL_LIBS})
+
+add_executable(test_rpc_server
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server.cpp
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
+        rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
+)
+target_link_libraries(test_rpc_server ${ALL_LIBS})
+
+add_executable(test_rpc_client
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_client.cpp
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
+        rocket/include/net/tcp/tcp_connection.h
+        rocket/include/net/tcp/tcp_server.h
+        rocket/include/net/tcp/tcp_client.h
+)
+target_link_libraries(test_rpc_client ${ALL_LIBS})

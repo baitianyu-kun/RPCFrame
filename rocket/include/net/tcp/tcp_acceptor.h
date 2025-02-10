@@ -13,7 +13,7 @@
 namespace rocket {
     class TCPAcceptor {
     public:
-        using tcp_acceptor_sptr_t_ = std::shared_ptr<TCPAcceptor>;
+        using ptr = std::shared_ptr<TCPAcceptor>;
 
         // 使用父类，然后虚函数多态
         explicit TCPAcceptor(NetAddr::ptr local_addr);

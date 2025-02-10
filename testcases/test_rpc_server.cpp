@@ -25,4 +25,5 @@ int main() {
     tcp_server->addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, s4);
 
     tcp_server->start();
+    return 0;
 }

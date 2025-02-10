@@ -14,6 +14,11 @@ namespace rocket {
     }
 
     void ClientRegisterServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
-        response->m_response_body = "ClientRegisterServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response)";
+        std::string body_str;
+//        body_str += "result:Success_handle_ClientRegisterServlet" + g_CRLF;
+        body_str += "msg_id:1234";
+        response->m_response_properties.setKeyValue("Content-Length",std::to_string(body_str.length()));
+        response->m_response_body = body_str;
+        DEBUGLOG("%s", body_str.c_str());
     }
 }

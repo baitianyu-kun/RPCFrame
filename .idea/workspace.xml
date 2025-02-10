@@ -29,18 +29,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="tcp connection">
-      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_client.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_server.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_client.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_server.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testcases/test_rpc_client.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testcases/test_rpc_server.cpp" afterDir="false" />
+    <list default="true" id="b2762dd1-f347-445a-a8b4-57f6113282c3" name="Changes" comment="tcp client server">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/abstract_tcp_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/abstract_tcp_buffer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_acceptor.h" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/include/net/tcp/tcp_acceptor.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_connection.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_server.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/net/tcp/tcp_server.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rocket/src/rpc/servlet/register_center_servlet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/rocket/src/rpc/servlet/register_center_servlet.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/test_http_parse_encode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/test_http_parse_encode.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/test_rpc_client.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/test_rpc_client.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/test_rpc_server.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/test_rpc_server.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,6 +62,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "baitianyu-kun"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/baitianyu-kun/RPCFrame.git",
+    "accountId": "4375f902-8ea0-40d4-8510-b19ff310ae86"
+  }
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -81,33 +88,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "C/C++ File.test_eventloop.cpp.executor": "Run",
-    "CMake Application.test_eventloop.executor": "Run",
-    "CMake Debug.RPCFrame.executor": "Debug",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "cf.advertisement.text.overridden": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "dev",
-    "last_opened_file_path": "/home/baitianyu/CLionProjects/RPCFrame/CMakeLists.txt",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "structure.view.defaults.are.configured": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;C/C++ File.test_eventloop.cpp.executor&quot;: &quot;Run&quot;,
+    &quot;CMake Application.test_eventloop.executor&quot;: &quot;Run&quot;,
+    &quot;CMake Debug.RPCFrame.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;cf.advertisement.text.overridden&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/baitianyu/CLionProjects/RPCFrame/CMakeLists.txt&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;structure.view.defaults.are.configured&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RdControllerToolWindowsLayoutState" isNewUi="true">
     <layout>
       <window_info id="Space Code Reviews" show_stripe_button="false" />
@@ -143,7 +150,7 @@
       <window_info anchor="right" id="Notifications" order="0" weight="0.32994792" />
       <window_info anchor="right" id="AIAssistant" order="1" weight="0.25" />
       <window_info anchor="right" id="Database" order="2" weight="0.25" />
-      <window_info anchor="right" id="Meson" order="5" show_stripe_button="false" />
+      <window_info anchor="right" id="Meson" order="3" show_stripe_button="false" />
     </layout>
   </component>
   <component name="RecentsManager">
@@ -157,11 +164,6 @@
   <component name="RunManager" selected="CMake Debug.RPCFrame">
     <configuration name="RPCFrame" type="CMakeListConfigurationType" factoryName="CMakeListConfigurationFactory" temporary="true">
       <method v="2" />
-    </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
     </configuration>
     <configuration name="rocket" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RPCFrame" TARGET_NAME="rocket" CONFIG_NAME="Debug">
       <method v="2">
@@ -232,7 +234,8 @@
       <workItem from="1738997814841" duration="2947000" />
       <workItem from="1739020689458" duration="4494000" />
       <workItem from="1739071471410" duration="5632000" />
-      <workItem from="1739151925872" duration="24548000" />
+      <workItem from="1739151925872" duration="24790000" />
+      <workItem from="1739187951972" duration="3189000" />
     </task>
     <task id="LOCAL-00001" summary="rebase">
       <option name="closed" value="true" />
@@ -274,7 +277,15 @@
       <option name="project" value="LOCAL" />
       <updated>1739179305975</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="tcp client server">
+      <option name="closed" value="true" />
+      <created>1739187494345</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1739187494345</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -301,7 +312,8 @@
     <MESSAGE value="add register servlet" />
     <MESSAGE value="split servlets" />
     <MESSAGE value="tcp connection" />
-    <option name="LAST_COMMIT_MESSAGE" value="tcp connection" />
+    <MESSAGE value="tcp client server" />
+    <option name="LAST_COMMIT_MESSAGE" value="tcp client server" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

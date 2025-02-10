@@ -7,7 +7,9 @@
 
 namespace rocket {
 
-    RPCDispatcher::ptr RPCDispatcher::t_current_rpc_dispatcher = std::make_shared<RPCDispatcher>();
+    // dispatcher中持有register center和server等的业务servlet，例如registerUpdateServer的时候可能会出现竞争问题，所以单例模式应该加锁
+    // 所以这里采用thread local的模式
+    thread_local RPCDispatcher::ptr RPCDispatcher::t_current_rpc_dispatcher = std::make_shared<RPCDispatcher>();
 
     RPCDispatcher::RPCDispatcher() {
         // 把相应的处理方法注册到dispatcher servlet中
@@ -31,7 +33,6 @@ namespace rocket {
                                                  std::placeholders::_2));
     }
 
-    // 做成单例模式，整个只需要一个dispatcher，多线程共享，由于添加删除只有主线程进行，子线程getServlet的时候不参与添加删除，所以暂时不需要进行加锁
     RPCDispatcher::ptr RPCDispatcher::GetCurrentRPCDispatcher() {
         return t_current_rpc_dispatcher;
     }
@@ -45,16 +46,22 @@ namespace rocket {
     }
 
     // 从request中读取数据，并写入到response中
+    // 注册中心定时向服务器请求更新其所提供的服务列表
     void RPCDispatcher::registerUpdateServer(HTTPRequest::ptr request, HTTPResponse::ptr response) {
         DEBUGLOG("========== registerUpdateServer success ==========");
     }
 
+    // 这里注册中心返回给服务端注册成功信息
     void RPCDispatcher::serverRegister(HTTPRequest::ptr request, HTTPResponse::ptr response) {
         DEBUGLOG("========== serverRegister success ==========");
     }
 
+    // 客户端从注册中心中拉下来所有服务器地址和服务，存到缓存中，然后负载均衡放到客户端这边
+    // 这里注册中心返回给客户端所有信息
     void RPCDispatcher::clientRegister(HTTPRequest::ptr request, HTTPResponse::ptr response) {
         DEBUGLOG("========== clientRegister success ==========");
+        // 业务，写入到response里面
+        // 业务呢，需要注册中心里面的一个buffer变量
     }
 
     void RPCDispatcher::clientServer(HTTPRequest::ptr request, HTTPResponse::ptr response) {
@@ -128,9 +135,9 @@ namespace rocket {
         return request;
     }
 
+    // 向注册中心请求所有提供的服务
     HTTPRequest::ptr RPCDispatcher::createDiscoveryRequest(RPCDispatcher::body_type body) {
-        std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
-                               + "msg_id:" + MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
         auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;

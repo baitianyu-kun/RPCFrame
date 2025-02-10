@@ -6,8 +6,7 @@
 
 namespace rocket {
 
-    std::unique_ptr<FDEventPool> FDEventPool::g_fd_event_pool =
-            std::move(std::unique_ptr<FDEventPool>(new FDEventPool(MAX_FD_EVENT_POOL_SIZE)));
+    std::unique_ptr<FDEventPool> FDEventPool::g_fd_event_pool = std::make_unique<FDEventPool>(MAX_FD_EVENT_POOL_SIZE);
 
     std::unique_ptr<FDEventPool> &FDEventPool::GetFDEventPool() {
         return g_fd_event_pool;

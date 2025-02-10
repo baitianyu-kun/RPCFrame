@@ -47,6 +47,8 @@ add_executable(test_eventloop
         rocket/include/net/protocol/http/http_parse.h
         rocket/include/net/protocol/http/http_servlet.h
         rocket/include/rpc/rpc_dispatcher.h
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
 )
 target_link_libraries(test_eventloop ${ALL_LIBS})
 
@@ -57,6 +59,8 @@ add_executable(test_http_parse_encode
         rocket/include/net/protocol/http/http_define.h
         rocket/include/net/protocol/http/http_parse.h
         rocket/include/rpc/rpc_dispatcher.h
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
 )
 target_link_libraries(test_http_parse_encode ${ALL_LIBS})
 
@@ -67,10 +71,14 @@ add_executable(test_http_servlet
         rocket/include/net/protocol/http/http_define.h
         rocket/include/net/protocol/http/http_parse.h
         rocket/include/rpc/rpc_dispatcher.h
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
 )
 target_link_libraries(test_http_servlet ${ALL_LIBS})
 
 add_executable(test_rpc_dispatcher
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_dispatcher.cpp
+        rocket/include/rpc/register_center.h
+        rocket/include/rpc/servlet/register_center_servlet.h
 )
 target_link_libraries(test_rpc_dispatcher ${ALL_LIBS})

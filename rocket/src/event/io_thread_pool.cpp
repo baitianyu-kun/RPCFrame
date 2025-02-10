@@ -9,7 +9,7 @@ namespace rocket {
     IOThreadPool::IOThreadPool(int size) {
         m_io_thread_pools.resize(size);
         for (auto &m_io_thread: m_io_thread_pools) {
-            m_io_thread = std::move(std::unique_ptr<IOThread>(new IOThread()));
+            m_io_thread =std::make_unique<IOThread>();
         }
     }
 

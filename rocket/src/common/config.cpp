@@ -29,12 +29,12 @@ namespace rocket {
 
     void Config::SetGlobalConfig(const char *xmlfile) {
         if (g_config == nullptr) {
-            g_config = std::move(std::unique_ptr<Config>(new Config(xmlfile)));
+            g_config = std::make_unique<Config>(xmlfile);
         }
     }
 
     Config::Config(const char *xmlfile) {
-        m_xml_document = std::move(std::unique_ptr<TiXmlDocument>(new TiXmlDocument()));
+        m_xml_document = std::make_unique<TiXmlDocument>();
         bool rt = m_xml_document->LoadFile(xmlfile);
         if (!rt) {
             printf("Start rocket server error, failed to read config file %s, error info[%s] \n", xmlfile,

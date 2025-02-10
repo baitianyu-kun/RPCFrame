@@ -40,7 +40,7 @@ namespace rocket {
 
         void handle(HTTPRequest::ptr request, HTTPResponse::ptr response);
 
-        static ptr t_current_rpc_dispatcher;
+        static thread_local ptr t_current_rpc_dispatcher;
 
         static ptr GetCurrentRPCDispatcher();
 

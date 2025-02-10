@@ -9,6 +9,11 @@
 #include <unordered_map>
 #include <memory>
 
+#define RPC_METHOD_PATH "/method"
+#define RPC_REGISTER_UPDATE_SERVER_PATH "/update"
+#define RPC_SERVER_REGISTER_PATH "/register"
+#define RPC_CLIENT_REGISTER_DISCOVERY_PATH "/discovery"
+
 namespace rocket {
 
     // 在这里使用cpp里面的值，方便给其他引入该头文件的使用
@@ -83,6 +88,51 @@ namespace rocket {
         std::string m_response_info;
         HTTPHeaderProp m_response_properties;
         std::string m_response_body;
+    };
+
+    class HTTPManager {
+    public:
+        enum class MSGType : uint8_t {
+            // 调用RPC方法后的请求与响应
+            RPC_METHOD_REQUEST,
+            RPC_METHOD_RESPONSE,
+
+            // 心跳机制，定时更新，只不过没有发送心跳包
+            RPC_REGISTER_UPDATE_SERVER_REQUEST, // 注册中心请求服务端更新信息
+            RPC_REGISTER_UPDATE_SERVER_RESPONSE, // 服务端相应注册中心更新信息
+
+            // 服务注册
+            RPC_SERVER_REGISTER_REQUEST, // 注册到注册中心
+            RPC_SERVER_REGISTER_RESPONSE, // 注册完成后给予回应
+
+            // 服务发现
+            RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, // 客户端从注册中心中进行请求
+            RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE, // 注册中心给客户端响应
+        };
+
+        using body_type = std::unordered_map<std::string, std::string>;
+
+        static HTTPRequest::ptr createRequest(MSGType type, body_type body);
+
+        static HTTPResponse::ptr createResponse(MSGType type, body_type body);
+
+    private:
+
+        static HTTPRequest::ptr createMethodRequest(body_type body);
+
+        static HTTPRequest::ptr createUpdateRequest(body_type body);
+
+        static HTTPRequest::ptr createRegisterRequest(body_type body);
+
+        static HTTPRequest::ptr createDiscoveryRequest(body_type body);
+
+        static HTTPResponse::ptr createMethodResponse(body_type body);
+
+        static HTTPResponse::ptr createUpdateResponse(body_type body);
+
+        static HTTPResponse::ptr createRegisterResponse(body_type body);
+
+        static HTTPResponse::ptr createDiscoveryResponse(body_type body);
     };
 
 }

@@ -18,6 +18,7 @@ include_directories(${PROJECT_SOURCE_DIR}/rocket/include)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/common SRC_COMMON_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/event SRC_EVENT_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/rpc SRC_RPC_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/rpc/servlet SRC_RPC_SERVLET_LIST)
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net SRC_NET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/protocol SRC_NET_PROTOCOL_LIST)
@@ -27,7 +28,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/tcp SRC_NET_TCP_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/rocket/src/net/socket SRC_NET_SOCKET_LIST)
 
 # 本项目的lib
-add_library(rocket ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_LIST} ${SRC_NET_PROTOCOL_LIST}
+add_library(rocket ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_RPC_SERVLET_LIST} ${SRC_NET_LIST} ${SRC_NET_PROTOCOL_LIST}
         ${SRC_NET_HTTP_LIST} ${SRC_NET_TINYPB_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_SOCKET_LIST})
 install(TARGETS rocket DESTINATION ${PATH_LIB})
 
@@ -49,6 +50,9 @@ add_executable(test_eventloop
         rocket/include/rpc/rpc_dispatcher.h
         rocket/include/rpc/register_center.h
         rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
 )
 target_link_libraries(test_eventloop ${ALL_LIBS})
 
@@ -61,6 +65,9 @@ add_executable(test_http_parse_encode
         rocket/include/rpc/rpc_dispatcher.h
         rocket/include/rpc/register_center.h
         rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
 )
 target_link_libraries(test_http_parse_encode ${ALL_LIBS})
 
@@ -73,6 +80,9 @@ add_executable(test_http_servlet
         rocket/include/rpc/rpc_dispatcher.h
         rocket/include/rpc/register_center.h
         rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
 )
 target_link_libraries(test_http_servlet ${ALL_LIBS})
 
@@ -80,5 +90,8 @@ add_executable(test_rpc_dispatcher
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_dispatcher.cpp
         rocket/include/rpc/register_center.h
         rocket/include/rpc/servlet/register_center_servlet.h
+        rocket/src/rpc/servlet/register_center_servlet.cpp
+        rocket/include/rpc/servlet/server_servlet.h
+        rocket/src/rpc/servlet/server_servlet.cpp
 )
 target_link_libraries(test_rpc_dispatcher ${ALL_LIBS})

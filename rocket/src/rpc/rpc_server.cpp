@@ -18,10 +18,10 @@ namespace rocket {
     void RPCServer::initServlet() {
         // 客户端访问服务器
         // 注册中心访问服务器
-        auto s3 = std::make_shared<ClientServerServlet>();
-        auto s4 = std::make_shared<RegisterUpdateServer>();
-        addServlet(RPC_METHOD_PATH, s3);
-        addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, s4);
+        m_client_server_servlet = std::make_shared<ClientServerServlet>();
+        m_register_update_server_servlet = std::make_shared<RegisterUpdateServer>();
+        addServlet(RPC_METHOD_PATH, m_client_server_servlet);
+        addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, m_register_update_server_servlet);
     }
 
     void RPCServer::registerToCenter() {
@@ -32,7 +32,7 @@ namespace rocket {
         HTTPManager::body_type body;
         body["server_ip"] = m_local_addr->getStringIP();
         body["server_port"] = m_local_addr->getStringPort();
-        body["all_method_full_names"] = "Order";
+        body["all_method_full_names"] = m_client_server_servlet->getAllServiceNamesStr();
         HTTPRequest::ptr request = HTTPManager::createRequest(HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
 
         client->connect([&client, request]() {
@@ -50,8 +50,8 @@ namespace rocket {
         });
     }
 
-    void RPCServer::addService() {
-
+    void RPCServer::addService(ClientServerServlet::protobuf_service_ptr service) {
+        m_client_server_servlet->addService(service);
     }
 
     void RPCServer::startRPC() {

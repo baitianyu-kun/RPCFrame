@@ -14,7 +14,7 @@ int main() {
 
     auto client = std::make_shared<TCPClient>(addr);
 
-    std::string request_str = "POST /discovery HTTP/1.0\r\n"
+    std::string request_str = "POST /method HTTP/1.0\r\n"
                               "Host: 10.101.101.10\r\n"
                               "Content-Length: 30\r\n"
                               "Content-Type: text/html;charset=utf-8\r\n"

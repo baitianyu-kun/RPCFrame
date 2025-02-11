@@ -57,6 +57,8 @@ add_executable(test_eventloop
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_eventloop ${ALL_LIBS})
 
@@ -76,6 +78,8 @@ add_executable(test_http_parse_encode
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_http_parse_encode ${ALL_LIBS})
 
@@ -95,6 +99,8 @@ add_executable(test_http_servlet
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_http_servlet ${ALL_LIBS})
 
@@ -109,6 +115,8 @@ add_executable(test_rpc_dispatcher
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_rpc_dispatcher ${ALL_LIBS})
 
@@ -123,6 +131,8 @@ add_executable(test_rpc_server
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_rpc_server ${ALL_LIBS})
 
@@ -137,5 +147,7 @@ add_executable(test_rpc_client
         rocket/include/net/tcp/tcp_server.h
         rocket/include/net/tcp/tcp_client.h
         rocket/include/rpc/rpc_server.h
+        rocket/include/rpc/rpc_controller.h
+        rocket/include/rpc/rpc_closure.h
 )
 target_link_libraries(test_rpc_client ${ALL_LIBS})

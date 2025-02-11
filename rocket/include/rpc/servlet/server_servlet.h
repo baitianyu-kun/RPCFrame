@@ -21,9 +21,15 @@ namespace rocket {
 
         void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
 
-        void registerService(const protobuf_service_ptr &service);
+        void addService(const protobuf_service_ptr &service);
 
         std::vector<std::string> getAllServiceNames();
+
+        std::string getAllServiceNamesStr();
+
+    private:
+        static bool
+        parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
     private:
         std::unordered_map<std::string, protobuf_service_ptr> m_service_maps;

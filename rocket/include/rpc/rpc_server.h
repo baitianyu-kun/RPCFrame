@@ -18,7 +18,7 @@ namespace rocket {
 
         void initServlet();
 
-        void addService();
+        void addService(ClientServerServlet::protobuf_service_ptr service);
 
         void registerToCenter();
 
@@ -30,6 +30,8 @@ namespace rocket {
         NetAddr::ptr m_register_addr; // 注册中心地址
 
         ClientServerServlet::ptr m_client_server_servlet;
+
+        RegisterUpdateServer::ptr m_register_update_server_servlet;
 
 
     };

@@ -137,6 +137,18 @@ namespace rocket {
         return response;
     }
 
+    HTTPResponse::ptr HTTPManager::createDefaultResponse() {
+        auto response = std::make_shared<HTTPResponse>();
+        std::string body_str = default_html_template;
+        response->m_response_body = body_str;
+        response->m_response_version = "HTTP/1.1";
+        response->m_response_code = HTTPCode::HTTP_OK;
+        response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+        response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+        response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
+        return response;
+    }
+
     HTTPRequest::ptr HTTPManager::createMethodRequest(HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
@@ -242,6 +254,16 @@ namespace rocket {
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
         return response;
+    }
+
+    void HTTPManager::copy(HTTPResponse::ptr first, HTTPResponse::ptr second) {
+        first->m_response_body = second->m_response_body;
+        first->m_response_version = second->m_response_version;
+        first->m_response_code = second->m_response_code;
+        first->m_response_info = second->m_response_info;
+        first->m_response_properties = second->m_response_properties;
+        first->m_msg_id = second->m_msg_id;
+        first->m_response_body_data_map = second->m_response_body_data_map;
     }
 }
 

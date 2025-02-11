@@ -7,7 +7,7 @@
 
 namespace rocket {
 
-    void ClientServerServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
+    void ClientServerServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         // 处理具体业务
         auto method_full_name = request->m_request_body_data_map["method_full_name"];
         auto pb_data = request->m_request_body_data_map["pb_data"];
@@ -15,7 +15,7 @@ namespace rocket {
         std::string method_name;
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
             // 做测试返回空网页用
-            HTTPManager::copy(response, HTTPManager::createDefaultResponse());
+            HTTPManager::createDefaultResponse(response);
             return;
         }
 
@@ -47,11 +47,24 @@ namespace rocket {
                 service->GetResponsePrototype(method).New());
 
         auto controller = std::make_shared<RPCController>();
-        controller->SetLocalAddr();
-        controller->SetPeerAddr();
-        controller->SetMsgId();
+        controller->SetLocalAddr(session->getLocalAddr());
+        controller->SetPeerAddr(session->getPeerAddr());
+        controller->SetMsgId(request->m_msg_id);
 
+        service->CallMethod(method, controller.get(), request_rpc_message.get(), response_rpc_message.get(), nullptr);
 
+        std::string res_pb_data;
+        response_rpc_message->SerializeToString(&res_pb_data);
+
+        HTTPManager::body_type body;
+        body["method_full_name"] = method_full_name;
+        body["pb_data"] = res_pb_data;
+        body["msg_id"] = request->m_msg_id;
+        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_METHOD_RESPONSE, body);
+
+        INFOLOG("%s | http dispatch success, request[%s], response[%s]",
+                request->m_msg_id.c_str(), request_rpc_message->ShortDebugString().c_str(),
+                response_rpc_message->ShortDebugString().c_str());
     }
 
     void ClientServerServlet::addService(const ClientServerServlet::protobuf_service_ptr &service) {
@@ -95,7 +108,7 @@ namespace rocket {
         return true;
     }
 
-    void RegisterUpdateServer::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
+    void RegisterUpdateServer::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         response->m_response_body = "RegisterUpdateServer::handle(HTTPRequest::ptr request, HTTPResponse::ptr response)";
     }
 }

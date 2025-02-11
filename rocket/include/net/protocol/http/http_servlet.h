@@ -21,7 +21,7 @@ namespace rocket {
 
         virtual ~Servlet() {};
 
-        virtual void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) = 0;
+        virtual void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) = 0;
 
         const std::string &getName() const { return m_name; }
 
@@ -32,11 +32,11 @@ namespace rocket {
     class CallBacksServlet : public Servlet {
     public:
         using ptr = std::shared_ptr<CallBacksServlet>;
-        using callback = std::function<void(HTTPRequest::ptr request, HTTPResponse::ptr response)>;
+        using callback = std::function<void(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session)>;
 
         explicit CallBacksServlet(callback cb) : Servlet("CallBacksServlet"), m_callback(cb) {};
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
 
     private:
         callback m_callback;
@@ -51,7 +51,7 @@ namespace rocket {
 
         DispatchServlet();
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
 
         void addServlet(const std::string &uri, Servlet::ptr slt);
 
@@ -77,7 +77,7 @@ namespace rocket {
 
         explicit NotFoundServlet(const std::string &name);
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
 
     private:
         std::string m_name;

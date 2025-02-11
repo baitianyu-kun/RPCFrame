@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
+#include "net/tcp/net_addr.h"
 
 #define RPC_METHOD_PATH "/method"
 #define RPC_REGISTER_UPDATE_SERVER_PATH "/update"
@@ -94,6 +95,24 @@ namespace rocket {
         std::unordered_map<std::string, std::string> m_response_body_data_map;
     };
 
+    class HTTPSession {
+    public:
+        using ptr = std::shared_ptr<HTTPSession>;
+
+        HTTPSession(NetAddr::ptr local_addr,
+                    NetAddr::ptr peer_addr) : m_local_addr(local_addr), m_peer_addr(peer_addr) {}
+
+        ~HTTPSession() = default;
+
+        NetAddr::ptr getLocalAddr() const { return m_local_addr; }
+
+        NetAddr::ptr getPeerAddr() const { return m_peer_addr; }
+
+    private:
+        NetAddr::ptr m_local_addr;
+        NetAddr::ptr m_peer_addr;
+    };
+
     class HTTPManager {
     public:
         enum class MSGType : uint8_t {
@@ -116,36 +135,29 @@ namespace rocket {
 
         using body_type = std::unordered_map<std::string, std::string>;
 
-        static HTTPRequest::ptr createRequest(MSGType type, body_type &body);
+        static void createRequest(HTTPRequest::ptr request, MSGType type, body_type &body);
 
-        static HTTPResponse::ptr createResponse(MSGType type, body_type &body);
+        static void createResponse(HTTPResponse::ptr response, MSGType type, body_type &body);
 
-        static HTTPRequest::ptr createEmptyRequest();
-
-        static HTTPResponse::ptr createEmptyResponse();
-
-        static HTTPResponse::ptr createDefaultResponse();
-
-        // copy second data to first
-        static void copy(HTTPResponse::ptr first,HTTPResponse::ptr second);
+        static void createDefaultResponse(HTTPResponse::ptr response);
 
     private:
 
-        static HTTPRequest::ptr createMethodRequest(body_type &body);
+        static void createMethodRequest(HTTPRequest::ptr request, body_type &body);
 
-        static HTTPRequest::ptr createUpdateRequest(body_type &body);
+        static void createUpdateRequest(HTTPRequest::ptr request, body_type &body);
 
-        static HTTPRequest::ptr createRegisterRequest(body_type &body);
+        static void createRegisterRequest(HTTPRequest::ptr request, body_type &body);
 
-        static HTTPRequest::ptr createDiscoveryRequest(body_type &body);
+        static void createDiscoveryRequest(HTTPRequest::ptr request, body_type &body);
 
-        static HTTPResponse::ptr createMethodResponse(body_type &body);
+        static void createMethodResponse(HTTPResponse::ptr response, body_type &body);
 
-        static HTTPResponse::ptr createUpdateResponse(body_type &body);
+        static void createUpdateResponse(HTTPResponse::ptr response, body_type &body);
 
-        static HTTPResponse::ptr createRegisterResponse(body_type &body);
+        static void createRegisterResponse(HTTPResponse::ptr response, body_type &body);
 
-        static HTTPResponse::ptr createDiscoveryResponse(body_type &body);
+        static void createDiscoveryResponse(HTTPResponse::ptr response, body_type &body);
     };
 
 }

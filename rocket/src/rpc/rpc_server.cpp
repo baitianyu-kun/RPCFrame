@@ -33,8 +33,8 @@ namespace rocket {
         body["server_ip"] = m_local_addr->getStringIP();
         body["server_port"] = m_local_addr->getStringPort();
         body["all_method_full_names"] = m_client_server_servlet->getAllServiceNamesStr();
-        HTTPRequest::ptr request = HTTPManager::createRequest(HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
-
+        auto request = std::make_shared<HTTPRequest>();
+        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
         client->connect([&client, request]() {
             client->sendRequest(request, [&client, request](HTTPRequest::ptr msg) {
                 client->recvResponse(request->m_msg_id, [&client, request](HTTPResponse::ptr msg) {

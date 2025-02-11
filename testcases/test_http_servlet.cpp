@@ -18,7 +18,7 @@ int main() {
     auto dispatcher = std::make_shared<DispatchServlet>();
 
     Servlet::ptr call_back_servlet = std::make_shared<CallBacksServlet>(
-            [](HTTPRequest::ptr reqeust, HTTPResponse::ptr response) {
+            [](HTTPRequest::ptr reqeust, HTTPResponse::ptr response, HTTPSession::ptr session) {
                 DEBUGLOG("call back dispatcher success")
                 std::string str2 = "HTTP/1.1 200 OK\r\n"
                                    "Server: Apache-Coyote/1.1\r\n"
@@ -48,7 +48,11 @@ int main() {
     requestParser.parse(str);
 
     auto res = std::make_shared<HTTPResponse>();
-    dispatcher->handle(requestParser.getRequest(), res);
+
+    IPNetAddr::ptr local_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    IPNetAddr::ptr peer_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    auto session = std::make_shared<HTTPSession>(local_addr, peer_addr);
+    dispatcher->handle(requestParser.getRequest(), res, session);
 
     DEBUGLOG("success get res");
     DEBUGLOG("%s", res->toString().c_str());

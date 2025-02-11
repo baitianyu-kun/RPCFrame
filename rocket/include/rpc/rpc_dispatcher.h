@@ -14,7 +14,7 @@ namespace rocket {
 
         ~RPCDispatcher();
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response);
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
         static ptr t_current_rpc_dispatcher;
 

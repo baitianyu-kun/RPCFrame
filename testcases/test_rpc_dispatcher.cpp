@@ -87,7 +87,10 @@ int main() {
         HTTPRequestParser requestParser;
         requestParser.parse(item);
         auto res = std::make_shared<HTTPResponse>();
-        RPCDispatcher::GetCurrentRPCDispatcher()->handle(requestParser.getRequest(), res);
+        IPNetAddr::ptr local_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+        IPNetAddr::ptr peer_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+        auto session = std::make_shared<HTTPSession>(local_addr, peer_addr);
+        RPCDispatcher::GetCurrentRPCDispatcher()->handle(requestParser.getRequest(), res, session);
         DEBUGLOG("%s", res->m_response_body.c_str());
     }
     return 0;

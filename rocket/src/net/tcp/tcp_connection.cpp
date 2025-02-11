@@ -88,9 +88,10 @@ namespace rocket {
             // 服务器端
             // 解析请求
             m_request_parser->parse(tmp_str);
-            auto response = HTTPManager::createEmptyResponse();
+            auto response = std::make_shared<HTTPResponse>();
+            auto session = std::make_shared<HTTPSession>(m_local_addr, m_peer_addr);
             // 执行业务并写入response
-            m_dispatcher->handle(m_request_parser->getRequest(), response);
+            m_dispatcher->handle(m_request_parser->getRequest(), response,session);
             // 编码结果并监听可写
             auto response_str = response->toString();
             m_out_buffer->writeToBuffer(response_str.c_str(), response_str.size());

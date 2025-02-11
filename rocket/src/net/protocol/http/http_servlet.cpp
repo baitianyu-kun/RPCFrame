@@ -8,18 +8,18 @@
 
 namespace rocket {
 
-    void CallBacksServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
-        m_callback(request, response);
+    void CallBacksServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+        m_callback(request, response,session);
     }
 
     DispatchServlet::DispatchServlet() : Servlet("DispatchServlet") {
         m_default.reset(new NotFoundServlet("404 not found"));
     }
 
-    void DispatchServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
+    void DispatchServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         auto servlet = getServlet(request->m_request_path);
         if (servlet) {
-            servlet->handle(request, response);
+            servlet->handle(request, response, session);
         }
     }
 
@@ -59,7 +59,7 @@ namespace rocket {
                                               "</html>";
     }
 
-    void NotFoundServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
+    void NotFoundServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         response->m_response_code = HTTP_NOTFOUND;
         response->m_response_body = m_content;
         response->m_response_properties.setKeyValue("Content-Type", "text/html");

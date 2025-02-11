@@ -27,8 +27,8 @@ namespace rocket {
 
     }
 
-    void RPCDispatcher::handle(HTTPRequest::ptr request, HTTPResponse::ptr response) {
-        m_dispatch_servlet->handle(request, response);
+    void RPCDispatcher::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+        m_dispatch_servlet->handle(request, response, session);
     }
 
 }

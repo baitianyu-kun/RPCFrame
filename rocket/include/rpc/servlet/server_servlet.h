@@ -19,7 +19,7 @@ namespace rocket {
 
         ClientServerServlet() : Servlet("ClientServerServlet") {}
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
 
         void addService(const protobuf_service_ptr &service);
 
@@ -41,7 +41,7 @@ namespace rocket {
 
         RegisterUpdateServer() : Servlet("RegisterUpdateServer") {}
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
     };
 }
 

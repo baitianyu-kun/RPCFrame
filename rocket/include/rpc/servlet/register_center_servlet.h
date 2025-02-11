@@ -17,7 +17,7 @@ namespace rocket {
 
         ServerRegisterServlet() : Servlet("ServerRegisterServlet") {}
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
     };
 
     class ClientRegisterServlet : public Servlet {
@@ -26,7 +26,7 @@ namespace rocket {
 
         ClientRegisterServlet() : Servlet("ClientRegisterServlet") {}
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response) override;
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
     };
 }
 

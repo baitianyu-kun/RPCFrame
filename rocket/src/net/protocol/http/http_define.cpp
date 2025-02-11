@@ -98,47 +98,42 @@ namespace rocket {
         return ss.str();
     }
 
-    HTTPRequest::ptr HTTPManager::createRequest(HTTPManager::MSGType type, HTTPManager::body_type &body) {
+    void HTTPManager::createRequest(HTTPRequest::ptr request, HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_REQUEST:
-                return createMethodRequest(body);
+                createMethodRequest(request,body);
+                return;
             case MSGType::RPC_REGISTER_UPDATE_SERVER_REQUEST:
-                return createUpdateRequest(body);
+                createUpdateRequest(request,body);
+                return;
             case MSGType::RPC_SERVER_REGISTER_REQUEST:
-                return createRegisterRequest(body);
+                createRegisterRequest(request,body);
+                return;
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST:
-                return createDiscoveryRequest(body);
+                createDiscoveryRequest(request,body);
+                return;
         }
     }
 
-    HTTPResponse::ptr HTTPManager::createResponse(HTTPManager::MSGType type, HTTPManager::body_type &body) {
+    void
+    HTTPManager::createResponse(HTTPResponse::ptr response, HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_RESPONSE:
-                return createMethodResponse(body);
+                createMethodResponse(response,body);
+                return;
             case MSGType::RPC_REGISTER_UPDATE_SERVER_RESPONSE:
-                return createUpdateResponse(body);
+                createUpdateResponse(response,body);
+                return;
             case MSGType::RPC_SERVER_REGISTER_RESPONSE:
-                return createRegisterResponse(body);
+                createRegisterResponse(response,body);
+                return;
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE:
-                return createDiscoveryResponse(body);
+                createDiscoveryResponse(response,body);
+                return;
         }
     }
 
-    HTTPRequest::ptr HTTPManager::createEmptyRequest() {
-        return nullptr;
-    }
-
-    HTTPResponse::ptr HTTPManager::createEmptyResponse() {
-        auto response = std::make_shared<HTTPResponse>();
-        response->m_response_version = "HTTP/1.1";
-        response->m_response_code = HTTPCode::HTTP_OK;
-        response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
-        response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
-        return response;
-    }
-
-    HTTPResponse::ptr HTTPManager::createDefaultResponse() {
-        auto response = std::make_shared<HTTPResponse>();
+    void HTTPManager::createDefaultResponse(HTTPResponse::ptr response) {
         std::string body_str = default_html_template;
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
@@ -146,124 +141,97 @@ namespace rocket {
         response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
-        return response;
     }
 
-    HTTPRequest::ptr HTTPManager::createMethodRequest(HTTPManager::body_type &body) {
+    void HTTPManager::createMethodRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
-        auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
         request->m_request_path = RPC_METHOD_PATH;
         request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
-        return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createUpdateRequest(HTTPManager::body_type &bodyy) {
+    void HTTPManager::createUpdateRequest(HTTPRequest::ptr request, HTTPManager::body_type &bodyy) {
         std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
-        auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
         request->m_request_path = RPC_REGISTER_UPDATE_SERVER_PATH;
         request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
-        return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createRegisterRequest(HTTPManager::body_type &body) {
+    void HTTPManager::createRegisterRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
                                + "all_method_full_names" + body["all_method_full_names"] + g_CRLF
                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
-        auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
         request->m_request_path = RPC_SERVER_REGISTER_PATH;
         request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
-        return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createDiscoveryRequest(HTTPManager::body_type &body) {
+    void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
-        auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
         request->m_request_path = RPC_CLIENT_REGISTER_DISCOVERY_PATH;
         request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
-        return request;
     }
 
-    HTTPResponse::ptr HTTPManager::createMethodResponse(HTTPManager::body_type &body) {
+    void HTTPManager::createMethodResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
-        auto response = std::make_shared<HTTPResponse>();
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;
         response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
-        return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createUpdateResponse(HTTPManager::body_type &body) {
+    void HTTPManager::createUpdateResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
         std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
-        auto response = std::make_shared<HTTPResponse>();
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;
         response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
-        return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createRegisterResponse(HTTPManager::body_type &body) {
+    void HTTPManager::createRegisterResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
         std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
-        auto response = std::make_shared<HTTPResponse>();
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;
         response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
-        return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createDiscoveryResponse(HTTPManager::body_type &body) {
+    void HTTPManager::createDiscoveryResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
                                + "msg_id:" + body["msg_id"];;
-        auto response = std::make_shared<HTTPResponse>();
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;
         response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
-        return response;
-    }
-
-    void HTTPManager::copy(HTTPResponse::ptr first, HTTPResponse::ptr second) {
-        first->m_response_body = second->m_response_body;
-        first->m_response_version = second->m_response_version;
-        first->m_response_code = second->m_response_code;
-        first->m_response_info = second->m_response_info;
-        first->m_response_properties = second->m_response_properties;
-        first->m_msg_id = second->m_msg_id;
-        first->m_response_body_data_map = second->m_response_body_data_map;
     }
 }
 

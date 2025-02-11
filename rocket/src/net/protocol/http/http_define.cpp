@@ -98,7 +98,7 @@ namespace rocket {
         return ss.str();
     }
 
-    HTTPRequest::ptr HTTPManager::createRequest(HTTPManager::MSGType type, HTTPManager::body_type body) {
+    HTTPRequest::ptr HTTPManager::createRequest(HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_REQUEST:
                 return createMethodRequest(body);
@@ -111,7 +111,7 @@ namespace rocket {
         }
     }
 
-    HTTPResponse::ptr HTTPManager::createResponse(HTTPManager::MSGType type, HTTPManager::body_type body) {
+    HTTPResponse::ptr HTTPManager::createResponse(HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_RESPONSE:
                 return createMethodResponse(body);
@@ -137,7 +137,7 @@ namespace rocket {
         return response;
     }
 
-    HTTPRequest::ptr HTTPManager::createMethodRequest(HTTPManager::body_type body) {
+    HTTPRequest::ptr HTTPManager::createMethodRequest(HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + MSGIDUtil::GenerateMSGID();
@@ -151,7 +151,7 @@ namespace rocket {
         return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createUpdateRequest(HTTPManager::body_type body) {
+    HTTPRequest::ptr HTTPManager::createUpdateRequest(HTTPManager::body_type &bodyy) {
         std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
         auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
@@ -163,7 +163,7 @@ namespace rocket {
         return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createRegisterRequest(HTTPManager::body_type body) {
+    HTTPRequest::ptr HTTPManager::createRegisterRequest(HTTPManager::body_type &body) {
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
                                + "all_method_full_names" + body["all_method_full_names"] + g_CRLF
@@ -178,7 +178,7 @@ namespace rocket {
         return request;
     }
 
-    HTTPRequest::ptr HTTPManager::createDiscoveryRequest(HTTPManager::body_type body) {
+    HTTPRequest::ptr HTTPManager::createDiscoveryRequest(HTTPManager::body_type &body) {
         std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
         auto request = std::make_shared<HTTPRequest>();
         request->m_request_body = body_str;
@@ -190,7 +190,7 @@ namespace rocket {
         return request;
     }
 
-    HTTPResponse::ptr HTTPManager::createMethodResponse(HTTPManager::body_type body) {
+    HTTPResponse::ptr HTTPManager::createMethodResponse(HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
@@ -204,7 +204,7 @@ namespace rocket {
         return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createUpdateResponse(HTTPManager::body_type body) {
+    HTTPResponse::ptr HTTPManager::createUpdateResponse(HTTPManager::body_type &body) {
         std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         auto response = std::make_shared<HTTPResponse>();
@@ -217,7 +217,7 @@ namespace rocket {
         return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createRegisterResponse(HTTPManager::body_type body) {
+    HTTPResponse::ptr HTTPManager::createRegisterResponse(HTTPManager::body_type &body) {
         std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         auto response = std::make_shared<HTTPResponse>();
@@ -230,7 +230,7 @@ namespace rocket {
         return response;
     }
 
-    HTTPResponse::ptr HTTPManager::createDiscoveryResponse(HTTPManager::body_type body) {
+    HTTPResponse::ptr HTTPManager::createDiscoveryResponse(HTTPManager::body_type &body) {
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
                                + "msg_id:" + body["msg_id"];;

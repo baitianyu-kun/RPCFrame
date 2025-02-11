@@ -99,15 +99,13 @@ namespace rocket {
             // 客户端
             // 接收response，并调用相应的回调函数
             m_response_parser->parse(tmp_str);
-            std::unordered_map<std::string, std::string> response_body_data_map;
-            splitStrToMap(m_response_parser->getResponse()->m_response_body, g_CRLF, ":", response_body_data_map);
-            auto iter = m_read_dones.find(response_body_data_map["msg_id"]);
+            auto iter = m_read_dones.find(m_response_parser->getResponse()->m_msg_id);
             if (iter != m_read_dones.end()) {
                 auto done = iter->second;
                 m_read_dones.erase(iter);
                 done(m_response_parser->getResponse());
             } else {
-                DEBUGLOG("not found response_msg_id: %s", response_body_data_map["msg_id"].c_str());
+                DEBUGLOG("not found response_msg_id: %s", m_response_parser->getResponse()->m_msg_id.c_str());
             }
         }
     }

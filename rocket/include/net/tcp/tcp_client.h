@@ -15,7 +15,9 @@ namespace rocket {
     public:
         using ptr = std::shared_ptr<TCPClient>;
 
-        TCPClient(NetAddr::ptr peer_addr);
+        // 默认获取当前线程的eventloop
+        // 也可以指定获取哪个线程的eventloop
+        TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop = EventLoop::GetCurrentEventLoop());
 
         ~TCPClient();
 

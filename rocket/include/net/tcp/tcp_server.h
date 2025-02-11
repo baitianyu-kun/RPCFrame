@@ -27,6 +27,8 @@ namespace rocket {
 
         void addServlet(const std::string &uri, Servlet::ptr slt);
 
+        std::unique_ptr<IOThreadPool> &getIOThreadPool();
+
     private:
         void init();
 

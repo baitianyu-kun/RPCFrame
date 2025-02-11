@@ -69,5 +69,9 @@ namespace rocket {
             }
         }
     }
+
+    std::unique_ptr<IOThreadPool> &TCPServer::getIOThreadPool() {
+        return m_io_thread_pool;
+    }
 }
 

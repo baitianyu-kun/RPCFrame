@@ -52,6 +52,11 @@ bool rocket::HTTPRequestParser::parse(std::string &str) {
     if (!is_parse_request_content) {
         return false;
     }
+
+    std::unordered_map<std::string, std::string> request_body_data_map;
+    splitStrToMap(m_request->m_request_body, g_CRLF, ":", request_body_data_map);
+    m_request->m_msg_id = request_body_data_map["msg_id"];
+
     DEBUGLOG("HTTP request decode success");
     return true;
 }
@@ -181,6 +186,11 @@ bool rocket::HTTPResponseParser::parse(std::string &str) {
     if (!is_parse_response_content) {
         return false;
     }
+
+    std::unordered_map<std::string, std::string> response_body_data_map;
+    splitStrToMap(m_response->m_response_body, g_CRLF, ":", response_body_data_map);
+    m_response->m_msg_id = response_body_data_map["msg_id"];
+
     DEBUGLOG("HTTP response decode success");
     return true;
 }

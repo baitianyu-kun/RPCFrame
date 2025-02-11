@@ -72,6 +72,7 @@ namespace rocket {
         std::string m_request_version; // http版本，例如HTTP/1.1
         HTTPHeaderProp m_request_properties; // 其他请求参数
         std::string m_request_body;
+        std::string m_msg_id;
         bool parse_success{false};
     };
 
@@ -88,6 +89,7 @@ namespace rocket {
         std::string m_response_info;
         HTTPHeaderProp m_response_properties;
         std::string m_response_body;
+        std::string m_msg_id;
     };
 
     class HTTPManager {
@@ -112,9 +114,9 @@ namespace rocket {
 
         using body_type = std::unordered_map<std::string, std::string>;
 
-        static HTTPRequest::ptr createRequest(MSGType type, body_type body);
+        static HTTPRequest::ptr createRequest(MSGType type, body_type &body);
 
-        static HTTPResponse::ptr createResponse(MSGType type, body_type body);
+        static HTTPResponse::ptr createResponse(MSGType type, body_type &body);
 
         static HTTPRequest::ptr createEmptyRequest();
 
@@ -122,21 +124,21 @@ namespace rocket {
 
     private:
 
-        static HTTPRequest::ptr createMethodRequest(body_type body);
+        static HTTPRequest::ptr createMethodRequest(body_type &body);
 
-        static HTTPRequest::ptr createUpdateRequest(body_type body);
+        static HTTPRequest::ptr createUpdateRequest(body_type &body);
 
-        static HTTPRequest::ptr createRegisterRequest(body_type body);
+        static HTTPRequest::ptr createRegisterRequest(body_type &body);
 
-        static HTTPRequest::ptr createDiscoveryRequest(body_type body);
+        static HTTPRequest::ptr createDiscoveryRequest(body_type &body);
 
-        static HTTPResponse::ptr createMethodResponse(body_type body);
+        static HTTPResponse::ptr createMethodResponse(body_type &body);
 
-        static HTTPResponse::ptr createUpdateResponse(body_type body);
+        static HTTPResponse::ptr createUpdateResponse(body_type &body);
 
-        static HTTPResponse::ptr createRegisterResponse(body_type body);
+        static HTTPResponse::ptr createRegisterResponse(body_type &body);
 
-        static HTTPResponse::ptr createDiscoveryResponse(body_type body);
+        static HTTPResponse::ptr createDiscoveryResponse(body_type &body);
     };
 
 }

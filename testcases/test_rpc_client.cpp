@@ -23,10 +23,8 @@ int main() {
     HTTPRequestParser::ptr requestParser = std::make_shared<HTTPRequestParser>();
     requestParser->parse(request_str);
     auto request = requestParser->getRequest();
-    std::unordered_map<std::string, std::string> request_body_data_map;
-    splitStrToMap(request->m_request_body, g_CRLF, ":", request_body_data_map);
 
-    auto msg_id = request_body_data_map["msg_id"];
+    auto msg_id = requestParser->getRequest()->m_msg_id;
     client->connect([client, request, msg_id]() {
         INFOLOG("%s | success connect. peer addr [%s], local addr[%s]",
                 msg_id.c_str(),
@@ -41,10 +39,8 @@ int main() {
                     client->getLocalAddr()->toString().c_str());
 
             client->recvResponse(msg_id, [client, request](HTTPResponse::ptr msg) {
-                std::unordered_map<std::string, std::string> response_body_map;
-                splitStrToMap(msg->m_response_body, g_CRLF, ":", response_body_map);
                 INFOLOG("%s | success get rpc response, rsp_protocol_body [%s], peer addr [%s], local addr[%s], response [%s]",
-                        response_body_map["msg_id"].c_str(), msg->m_response_body.c_str(),
+                        msg->m_msg_id.c_str(), msg->m_response_body.c_str(),
                         client->getPeerAddr()->toString().c_str(),
                         client->getLocalAddr()->toString().c_str(),
                         msg->toString().c_str());

@@ -22,6 +22,10 @@ namespace rocket {
         m_dispatcher->addServlet(uri, slt);
     }
 
+    void TCPServer::addServlet(const std::string &uri, CallBacksServlet::callback cb) {
+        m_dispatcher->addServlet(uri, cb);
+    }
+
     void TCPServer::start() {
         m_io_thread_pool->start();
         m_main_event_loop->loop();

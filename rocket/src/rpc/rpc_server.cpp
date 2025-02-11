@@ -7,20 +7,9 @@
 
 namespace rocket {
 
-    RPCServer *RPCServer::t_current_rpc_server = nullptr;
-
     RPCServer::RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr)
             : TCPServer(local_addr), m_local_addr(local_addr), m_register_addr(register_addr) {
         initServlet();
-        t_current_rpc_server = this;
-    }
-
-    RPCServer *RPCServer::GetRPCServerPtr() {
-        if (t_current_rpc_server == nullptr) {
-            DEBUGLOG("RPCServer is not start");
-            return nullptr;
-        }
-        return t_current_rpc_server;
     }
 
     RPCServer::~RPCServer() {
@@ -29,9 +18,15 @@ namespace rocket {
 
     void RPCServer::initServlet() {
         // 客户端访问服务器
-        addServlet(RPC_METHOD_PATH, std::make_shared<ClientServerServlet>());
+        addServlet(RPC_METHOD_PATH, std::bind(&RPCServer::handleService, this,
+                                              std::placeholders::_1,
+                                              std::placeholders::_2,
+                                              std::placeholders::_3));
         // 注册中心访问服务器
-        addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, std::make_shared<RegisterUpdateServer>());
+        addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, std::bind(&RPCServer::handleUpdate, this,
+                                                              std::placeholders::_1,
+                                                              std::placeholders::_2,
+                                                              std::placeholders::_3));
     }
 
     void RPCServer::registerToCenter() {
@@ -64,7 +59,7 @@ namespace rocket {
         start();
     }
 
-    void RPCServer::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+    void RPCServer::handleService(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         // 处理具体业务
         auto method_full_name = request->m_request_body_data_map["method_full_name"];
         auto pb_data = request->m_request_body_data_map["pb_data"];
@@ -122,6 +117,10 @@ namespace rocket {
         INFOLOG("%s | http dispatch success, request [%s], response [%s]",
                 request->m_msg_id.c_str(), request_rpc_message->ShortDebugString().c_str(),
                 response_rpc_message->ShortDebugString().c_str());
+    }
+
+    void RPCServer::handleUpdate(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+
     }
 
     bool

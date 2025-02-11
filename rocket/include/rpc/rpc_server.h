@@ -5,9 +5,11 @@
 #ifndef RPCFRAME_RPC_SERVER_H
 #define RPCFRAME_RPC_SERVER_H
 
+#include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
 #include "net/tcp/tcp_server.h"
 #include "net/tcp/tcp_client.h"
-#include "rpc/servlet/server_servlet.h"
 
 // Servlet执行业务的时候调用这里的函数
 namespace rocket {
@@ -19,10 +21,6 @@ namespace rocket {
 
     public:
         using ptr = std::unique_ptr<RPCServer>;
-
-        static RPCServer *t_current_rpc_server;
-
-        static RPCServer *GetRPCServerPtr();
 
         RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr);
 
@@ -42,7 +40,9 @@ namespace rocket {
         parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
     public:
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleService(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+
+        void handleUpdate(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
         void addService(const protobuf_service_ptr &service);
 

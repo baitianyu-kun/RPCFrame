@@ -19,6 +19,10 @@ namespace rocket {
         m_dispatch_servlet->addServlet(uri, slt);
     }
 
+    void RPCDispatcher::addServlet(const std::string &uri, CallBacksServlet::callback cb) {
+        m_dispatch_servlet->addServlet(uri, cb);
+    }
+
     RPCDispatcher::ptr RPCDispatcher::GetCurrentRPCDispatcher() {
         return t_current_rpc_dispatcher;
     }

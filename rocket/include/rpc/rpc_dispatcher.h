@@ -22,6 +22,8 @@ namespace rocket {
 
         void addServlet(const std::string &uri, Servlet::ptr slt);
 
+        void addServlet(const std::string &uri, CallBacksServlet::callback cb);
+
     private:
         // 适用于小型、生命周期明确的变量。在栈上创建
         // 适用于较大对象、需要动态管理生命周期的对象，在堆上创建

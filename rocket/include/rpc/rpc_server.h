@@ -32,8 +32,6 @@ namespace rocket {
         ClientServerServlet::ptr m_client_server_servlet;
 
         RegisterUpdateServer::ptr m_register_update_server_servlet;
-
-
     };
 }
 

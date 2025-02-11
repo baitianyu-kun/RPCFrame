@@ -1,29 +1,48 @@
 //
-// Created by baitianyu on 25-2-10.
+// Created by baitianyu on 2/11/25.
 //
-#include "net/tcp/tcp_server.h"
-#include "rpc/servlet/register_center_servlet.h"
-#include "rpc/servlet/server_servlet.h"
+#include <google/protobuf/service.h>
+#include <google/protobuf/stubs/callback.h>
+#include "rpc/rpc_server.h"
+#include "order.pb.h"
 
 using namespace rocket;
+
+class OrderImpl : public Order {
+public:
+    OrderImpl() = default;
+
+    ~OrderImpl() override = default;
+
+    void makeOrder(google::protobuf::RpcController *controller,
+                   const ::makeOrderRequest *request,
+                   ::makeOrderResponse *response,
+                   ::google::protobuf::Closure *done) override {
+        if (request->price() < 10) {
+            response->set_ret_code(-1);
+            response->set_res_info("short balance");
+            return;
+        }
+        response->set_order_id("20230514");
+        if (done) {
+            done->Run();
+            delete done;
+            done = nullptr;
+        }
+    }
+};
 
 int main() {
     Config::SetGlobalConfig("../conf/rocket.xml");
     Logger::InitGlobalLogger(0);
 
-    auto s1 = std::make_shared<ServerRegisterServlet>();
-    auto s2 = std::make_shared<ClientRegisterServlet>();
-    auto s3 = std::make_shared<ClientServerServlet>();
-    auto s4 = std::make_shared<RegisterUpdateServer>();
+    auto local_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    auto register_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr);
 
-    IPNetAddr::ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    auto tcp_server = std::make_shared<rocket::TCPServer>(addr);
+    auto service = std::make_shared<OrderImpl>();
+    rpc_server->addService(service);
 
-    tcp_server->addServlet(RPC_SERVER_REGISTER_PATH, s1);
-    tcp_server->addServlet(RPC_CLIENT_REGISTER_DISCOVERY_PATH, s2);
-    tcp_server->addServlet(RPC_METHOD_PATH, s3);
-    tcp_server->addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, s4);
-
-    tcp_server->start();
+    rpc_server->startRPC();
     return 0;
 }

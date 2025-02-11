@@ -186,8 +186,6 @@ bool rocket::HTTPResponseParser::parse(std::string &str) {
         return false;
     }
 
-    DEBUGLOG("==== %s =====",m_response->m_response_body.c_str());
-
     splitStrToMap(m_response->m_response_body, g_CRLF, ":", m_response->m_response_body_data_map);
     m_response->m_msg_id = m_response->m_response_body_data_map["msg_id"];
 

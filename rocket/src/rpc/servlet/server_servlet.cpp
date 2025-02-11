@@ -62,7 +62,7 @@ namespace rocket {
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_METHOD_RESPONSE, body);
 
-        INFOLOG("%s | http dispatch success, request[%s], response[%s]",
+        INFOLOG("%s | http dispatch success, request [%s], response [%s]",
                 request->m_msg_id.c_str(), request_rpc_message->ShortDebugString().c_str(),
                 response_rpc_message->ShortDebugString().c_str());
     }

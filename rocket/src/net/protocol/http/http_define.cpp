@@ -101,16 +101,16 @@ namespace rocket {
     void HTTPManager::createRequest(HTTPRequest::ptr request, HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_REQUEST:
-                createMethodRequest(request,body);
+                createMethodRequest(request, body);
                 return;
             case MSGType::RPC_REGISTER_UPDATE_SERVER_REQUEST:
-                createUpdateRequest(request,body);
+                createUpdateRequest(request, body);
                 return;
             case MSGType::RPC_SERVER_REGISTER_REQUEST:
-                createRegisterRequest(request,body);
+                createRegisterRequest(request, body);
                 return;
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST:
-                createDiscoveryRequest(request,body);
+                createDiscoveryRequest(request, body);
                 return;
         }
     }
@@ -119,16 +119,16 @@ namespace rocket {
     HTTPManager::createResponse(HTTPResponse::ptr response, HTTPManager::MSGType type, HTTPManager::body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_RESPONSE:
-                createMethodResponse(response,body);
+                createMethodResponse(response, body);
                 return;
             case MSGType::RPC_REGISTER_UPDATE_SERVER_RESPONSE:
-                createUpdateResponse(response,body);
+                createUpdateResponse(response, body);
                 return;
             case MSGType::RPC_SERVER_REGISTER_RESPONSE:
-                createRegisterResponse(response,body);
+                createRegisterResponse(response, body);
                 return;
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE:
-                createDiscoveryResponse(response,body);
+                createDiscoveryResponse(response, body);
                 return;
         }
     }
@@ -146,7 +146,7 @@ namespace rocket {
     void HTTPManager::createMethodRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
-                               + "msg_id:" + MSGIDUtil::GenerateMSGID();
+                               + "msg_id:" + request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";

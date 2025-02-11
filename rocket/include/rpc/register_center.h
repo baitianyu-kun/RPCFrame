@@ -19,7 +19,7 @@ namespace rocket {
     public:
         using ptr = std::unique_ptr<RegisterCenter>;
 
-        RegisterCenter(NetAddr::ptr local_addr);
+        explicit RegisterCenter(NetAddr::ptr local_addr);
 
         ~RegisterCenter();
 
@@ -34,6 +34,7 @@ namespace rocket {
         std::unordered_map<std::string, std::unordered_set<NetAddr::ptr, CompNetAddr>> m_service_servers;
         // IP -> Service，每个ip对应的服务，遍历这个集合检测IP是否有效，无效的话获取该IP对应的Service，然后m_service_servers[Service].erase(IP)
         std::unordered_map<NetAddr::ptr, std::string> m_servers_service;
+        RWMutex m_mutex;
     public:
         // 添加的话需要进行加锁
         void handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);

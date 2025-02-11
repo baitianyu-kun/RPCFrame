@@ -68,7 +68,6 @@ namespace rocket {
     private:
         std::map<std::string, Servlet::ptr> m_all_servlets;
         Servlet::ptr m_default;
-        RWMutex m_mutex;
     };
 
     class NotFoundServlet : public Servlet {

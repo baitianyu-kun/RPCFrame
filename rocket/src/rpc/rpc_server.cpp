@@ -43,8 +43,8 @@ namespace rocket {
         client->connect([&client, request]() {
             client->sendRequest(request, [&client, request](HTTPRequest::ptr msg) {
                 client->recvResponse(request->m_msg_id, [&client, request](HTTPResponse::ptr msg) {
-                    INFOLOG("%s | success register to center, rsp_protocol_body [%s], peer addr [%s], local addr[%s], response [%s]",
-                            msg->m_msg_id.c_str(), msg->m_response_body.c_str(),
+                    INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], response [%s]",
+                            msg->m_msg_id.c_str(),
                             client->getPeerAddr()->toString().c_str(),
                             client->getLocalAddr()->toString().c_str(),
                             msg->toString().c_str());

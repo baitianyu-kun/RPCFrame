@@ -15,24 +15,11 @@ namespace rocket {
     public:
         using ptr = std::shared_ptr<ClientServerServlet>;
 
-        using protobuf_service_ptr = std::shared_ptr<google::protobuf::Service>;
 
         ClientServerServlet() : Servlet("ClientServerServlet") {}
 
         void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
 
-        void addService(const protobuf_service_ptr &service);
-
-        std::vector<std::string> getAllServiceNames();
-
-        std::string getAllServiceNamesStr();
-
-    private:
-        static bool
-        parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
-
-    private:
-        std::unordered_map<std::string, protobuf_service_ptr> m_service_maps;
     };
 
     class RegisterUpdateServer : public Servlet {

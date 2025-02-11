@@ -9,29 +9,48 @@
 #include "net/tcp/tcp_client.h"
 #include "rpc/servlet/server_servlet.h"
 
+// Servlet执行业务的时候调用这里的函数
 namespace rocket {
     class RPCServer : public TCPServer {
+
+    private:
+        NetAddr::ptr m_local_addr; // 本地监听地址
+        NetAddr::ptr m_register_addr; // 注册中心地址
+
     public:
+        using ptr = std::unique_ptr<RPCServer>;
+
+        static RPCServer *t_current_rpc_server;
+
+        static RPCServer *GetRPCServerPtr();
+
         RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr);
 
         ~RPCServer();
 
         void initServlet();
 
-        void addService(ClientServerServlet::protobuf_service_ptr service);
-
         void registerToCenter();
 
         void startRPC();
 
     private:
+        using protobuf_service_ptr = std::shared_ptr<google::protobuf::Service>;
+        std::unordered_map<std::string, protobuf_service_ptr> m_service_maps; // 存储所有service
 
-        NetAddr::ptr m_local_addr; // 本地监听地址
-        NetAddr::ptr m_register_addr; // 注册中心地址
+        static bool
+        parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
-        ClientServerServlet::ptr m_client_server_servlet;
+    public:
+        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
-        RegisterUpdateServer::ptr m_register_update_server_servlet;
+        void addService(const protobuf_service_ptr &service);
+
+        std::vector<std::string> getAllServiceNames();
+
+        std::string getAllServiceNamesStr();
+
+
     };
 }
 

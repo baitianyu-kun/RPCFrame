@@ -58,13 +58,10 @@ namespace rocket {
 
         google::protobuf::Closure *getClosure();
 
-        TCPClient *getClient();
-
     private:
         void updateCache(const std::string &service_name, std::string &server_list);
 
     private:
-        TCPClient::ptr m_client{nullptr};
         NetAddr::ptr m_register_center_addr; // 本地注册中心地址，临时将注册中心用作server地址，来测试基本功能
         bool m_is_init{false}; // 是否初始化
         google_rpc_controller_ptr m_controller{nullptr};

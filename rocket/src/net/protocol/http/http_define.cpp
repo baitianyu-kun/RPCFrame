@@ -171,7 +171,7 @@ namespace rocket {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
-                               + "all_method_full_names:" + body["all_method_full_names"] + g_CRLF
+                               + "all_services_names:" + body["all_services_names"] + g_CRLF
                                + "msg_id:" + request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;

@@ -41,24 +41,24 @@ namespace rocket {
     }
 
     void
-    RegisterCenter::updateServiceServer(std::vector<std::string> all_method_full_names_vec, NetAddr::ptr server_addr) {
-        for (const auto &method_full_name: all_method_full_names_vec) {
-            m_service_servers[method_full_name].emplace(server_addr);
+    RegisterCenter::updateServiceServer(std::vector<std::string> all_services_names_vec, NetAddr::ptr server_addr) {
+        for (const auto &service: all_services_names_vec) {
+            m_service_servers[service].emplace(server_addr);
         }
-        m_servers_service.emplace(server_addr, all_method_full_names_vec);
+        m_servers_service.emplace(server_addr, all_services_names_vec);
     }
 
     void RegisterCenter::handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response,
                                               HTTPSession::ptr session) {
         RWMutex::WriteLock lock(m_mutex);
-        auto all_method_full_names = request->m_request_body_data_map["all_method_full_names"];
-        std::vector<std::string> all_method_full_names_vec;
-        splitStrToVector(all_method_full_names, ",", all_method_full_names_vec);
+        auto all_services_names = request->m_request_body_data_map["all_services_names"];
+        std::vector<std::string> all_services_names_vec;
+        splitStrToVector(all_services_names, ",", all_services_names_vec);
         auto server_addr = std::make_shared<IPNetAddr>(request->m_request_body_data_map["server_ip"],
                                                        std::stoi(request->m_request_body_data_map["server_port"]));
-        updateServiceServer(all_method_full_names_vec, server_addr);
+        updateServiceServer(all_services_names_vec, server_addr);
         HTTPManager::body_type body;
-        body["add_service_count"] = std::to_string(all_method_full_names_vec.size());
+        body["add_service_count"] = std::to_string(all_services_names_vec.size());
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_SERVER_REGISTER_RESPONSE, body);
         INFOLOG("%s | server register success, server addr [%s], services [%s]", request->m_msg_id.c_str(),

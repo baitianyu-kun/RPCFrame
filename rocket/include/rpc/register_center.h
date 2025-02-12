@@ -37,7 +37,7 @@ namespace rocket {
         std::unordered_map<NetAddr::ptr, std::vector<std::string>> m_servers_service;
         RWMutex m_mutex;
 
-        void updateServiceServer(std::vector<std::string> all_method_full_names_vec,
+        void updateServiceServer(std::vector<std::string> all_services_names_vec,
                                  NetAddr::ptr server_addr);
 
     public:

@@ -50,21 +50,16 @@ namespace rocket {
         auto channel = shared_from_this();
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
         register_client->connect([register_client, request, channel, service_name]() {
-            register_client->sendRequest(request,
-                                         [register_client, request, channel, service_name](HTTPRequest::ptr msg) {
-                                             register_client->recvResponse(request->m_msg_id,
-                                                                           [register_client, request, channel, service_name](
-                                                                                   HTTPResponse::ptr msg) {
-                                                                               register_client->getEventLoop()->stop();
-                                                                               // 更新本地缓存
-                                                                               auto server_list_str = msg->m_response_body_data_map["server_list"];
-                                                                               channel->updateCache(service_name,
-                                                                                                    server_list_str);
-                                                                               INFOLOG("%s | get server cache from register center, server list [%s]",
-                                                                                       msg->m_msg_id.c_str(),
-                                                                                       channel->getAllServerList().c_str());
-                                                                           });
-                                         });
+            register_client->sendRequest(request, [](HTTPRequest::ptr req) {});
+            register_client->recvResponse(request->m_msg_id,
+                                          [register_client, request, channel, service_name](HTTPResponse::ptr msg) {
+                                              register_client->getEventLoop()->stop();
+                                              // 更新本地缓存
+                                              auto server_list_str = msg->m_response_body_data_map["server_list"];
+                                              channel->updateCache(service_name, server_list_str);
+                                              INFOLOG("%s | get server cache from register center, server list %s",
+                                                      msg->m_msg_id.c_str(), channel->getAllServerList().c_str());
+                                          });
         });
         io_thread->start();
     }
@@ -90,8 +85,7 @@ namespace rocket {
             serviceDiscovery(method->service()->full_name());
         }
         // 选择服务器地址
-        m_client.reset();
-        m_client = std::make_shared<TCPClient>(*m_service_servers_cache["Order"].begin());
+        auto client = std::make_shared<TCPClient>(*m_service_servers_cache["Order"].begin());
 
         auto request_protocol = std::make_shared<HTTPRequest>();
         auto rpc_controller = dynamic_cast<RPCController *>(controller);
@@ -121,23 +115,24 @@ namespace rocket {
         INFOLOG("%s | call method name [%s]", request_protocol->m_msg_id.c_str(), method_full_name.c_str());
 
         auto this_channel = shared_from_this();
-        m_client->connect([this_channel, request_protocol]() {
+        client->connect([this_channel, request_protocol, client]() {
             // 发送请求
-            this_channel->getClient()->sendRequest(request_protocol, [](HTTPRequest::ptr req) {});
+            client->sendRequest(request_protocol, [](HTTPRequest::ptr req) {});
             // 接收响应
-            this_channel->getClient()->recvResponse(request_protocol->m_msg_id,
-                                                    [this_channel, request_protocol](HTTPResponse::ptr res) {
-                                                        this_channel->getResponse()->ParseFromString(
-                                                                res->m_response_body_data_map["pb_data"]);
-                                                        INFOLOG("%s | success get rpc response, rsp_protocol_body [%s], peer addr [%s], local addr[%s], response [%s]",
-                                                                res->m_msg_id.c_str(), res->m_response_body.c_str(),
-                                                                this_channel->getClient()->getPeerAddr()->toString().c_str(),
-                                                                this_channel->getClient()->getLocalAddr()->toString().c_str(),
-                                                                this_channel->getResponse()->ShortDebugString().c_str());
-                                                        if (this_channel->getClosure()) {
-                                                            this_channel->getClosure()->Run();
-                                                        }
-                                                    });
+            client->recvResponse(request_protocol->m_msg_id,
+                                 [this_channel, request_protocol, client](HTTPResponse::ptr res) {
+                                     this_channel->getResponse()->ParseFromString(
+                                             res->m_response_body_data_map["pb_data"]);
+                                     INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",
+                                             res->m_msg_id.c_str(),
+                                             client->getPeerAddr()->toString().c_str(),
+                                             client->getLocalAddr()->toString().c_str(),
+                                             this_channel->getResponse()->ShortDebugString().c_str());
+                                     if (this_channel->getClosure()) {
+                                         this_channel->getClosure()->Run();
+                                     }
+                                     client->getEventLoop()->stop();
+                                 });
         });
     }
 
@@ -155,9 +150,5 @@ namespace rocket {
 
     google::protobuf::Closure *RPCChannel::getClosure() {
         return m_closure.get();
-    }
-
-    TCPClient *RPCChannel::getClient() {
-        return m_client.get();
     }
 }

@@ -41,8 +41,6 @@ int main() {
                      controller->GetErrorInfo().c_str());
         }
         INFOLOG("now exit client event loop");
-        channel->getClient()->getEventLoop()->stop();
-        channel.reset();
     });
 
     controller->SetTimeout(2000); // 设置超时时间

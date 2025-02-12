@@ -144,6 +144,7 @@ namespace rocket {
     }
 
     void HTTPManager::createMethodRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + request->m_msg_id;
@@ -155,8 +156,9 @@ namespace rocket {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createUpdateRequest(HTTPRequest::ptr request, HTTPManager::body_type &bodyy) {
-        std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
+    void HTTPManager::createUpdateRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" +  request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
@@ -166,10 +168,11 @@ namespace rocket {
     }
 
     void HTTPManager::createRegisterRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
-                               + "all_method_full_names" + body["all_method_full_names"] + g_CRLF
-                               + "msg_id:" + MSGIDUtil::GenerateMSGID();
+                               + "all_method_full_names:" + body["all_method_full_names"] + g_CRLF
+                               + "msg_id:" + request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
@@ -179,7 +182,8 @@ namespace rocket {
     }
 
     void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
-        std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID() + g_CRLF
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
                                + "method_full_name:" + body["method_full_name"];
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
@@ -202,7 +206,7 @@ namespace rocket {
     }
 
     void HTTPManager::createUpdateResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
-        std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
+        std::string body_str = "add_service_count:" + body["add_service_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
@@ -213,7 +217,7 @@ namespace rocket {
     }
 
     void HTTPManager::createRegisterResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
-        std::string body_str = "add_method_count:" + body["add_method_count"] + g_CRLF
+        std::string body_str = "add_service_count:" + body["add_service_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";

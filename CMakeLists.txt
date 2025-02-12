@@ -63,3 +63,9 @@ add_executable(test_rpc_channel
         testcases/order.pb.cc
         testcases/order.pb.h)
 target_link_libraries(test_rpc_channel ${ALL_LIBS})
+
+add_executable(test_rpc_register_center
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register_center.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_register_center ${ALL_LIBS})

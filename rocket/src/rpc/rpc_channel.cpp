@@ -39,12 +39,6 @@ namespace rocket {
             ERRORLOG("failed call method, RpcController convert error");
             return;
         }
-        if (rpc_controller->GetMSGID().empty()) {
-            request_protocol->m_msg_id = MSGIDUtil::GenerateMSGID();
-            rpc_controller->SetMsgId(request_protocol->m_msg_id);
-        } else {
-            request_protocol->m_msg_id = rpc_controller->GetMSGID();
-        }
 
         auto method_full_name = method->full_name();
         INFOLOG("%s | call method name [%s]", request_protocol->m_msg_id.c_str(), method_full_name.c_str());
@@ -54,9 +48,16 @@ namespace rocket {
         HTTPManager::body_type body;
         body["method_full_name"] = method_full_name;
         body["pb_data"] = req_pb_data;
-        body["msg_id"] = request_protocol->m_msg_id;
 
         HTTPManager::createRequest(request_protocol, HTTPManager::MSGType::RPC_METHOD_REQUEST, body);
+
+        if (rpc_controller->GetMSGID().empty()) {
+            // 外部没有设置controller 的msg id的话用这个覆盖
+            rpc_controller->SetMsgId(request_protocol->m_msg_id);
+        } else {
+            // 否则用外部的controller覆盖默认生成的request msg id
+            request_protocol->m_msg_id = rpc_controller->GetMSGID();
+        }
 
         auto this_channel = shared_from_this();
         m_client->connect([this_channel, request_protocol]() {

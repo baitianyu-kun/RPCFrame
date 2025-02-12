@@ -34,13 +34,15 @@ namespace rocket {
         std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_servers;
         // IP -> Service，每个ip对应的服务，遍历这个集合检测IP是否有效，无效的话获取该IP对应的Service，然后m_service_servers[Service].erase(IP)
         // 一个IP可能提供多个服务
-        std::unordered_map<NetAddr::ptr, std::set<std::string>> m_servers_service;
+        std::unordered_map<NetAddr::ptr, std::vector<std::string>> m_servers_service;
         RWMutex m_mutex;
 
         void updateServiceServer(std::vector<std::string> all_method_full_names_vec,
                                  NetAddr::ptr server_addr);
 
     public:
+        std::string getAllServiceNamesStr();
+
         void handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
         void handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);

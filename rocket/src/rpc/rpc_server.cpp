@@ -40,22 +40,23 @@ namespace rocket {
         body["all_method_full_names"] = getAllServiceNamesStr();
         auto request = std::make_shared<HTTPRequest>();
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
-        client->connect([&client, request]() {
-            client->sendRequest(request, [&client, request](HTTPRequest::ptr msg) {
-                client->recvResponse(request->m_msg_id, [&client, request](HTTPResponse::ptr msg) {
+        client->connect([client, request]() {
+            client->sendRequest(request, [client, request](HTTPRequest::ptr msg) {
+                client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr msg) {
+                    client->getEventLoop()->stop();
                     INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], response [%s]",
                             msg->m_msg_id.c_str(),
                             client->getPeerAddr()->toString().c_str(),
                             client->getLocalAddr()->toString().c_str(),
                             msg->toString().c_str());
-                    client->getEventLoop()->stop();
-                    client.reset();
                 });
             });
         });
+        io_thread->start();
     }
 
     void RPCServer::startRPC() {
+        registerToCenter();
         start();
     }
 

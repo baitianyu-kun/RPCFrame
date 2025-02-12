@@ -153,8 +153,12 @@ namespace rocket {
     // 如果要停止，此时阻塞在epoll wait中，需要打破阻塞，然后while检测到stop flag，所以可以直接退出
     // 要记得wakeup，否则会暂时阻塞在event loop里面没人唤醒
     void rocket::EventLoop::stop() {
-        m_stop_flag = true;
-        wakeup();
+        // 先判断，否则可能会在不同的地方停止两次，例如在client中停止一次，设置停止符并wakeup，然后有可能
+        // 在io thread中再次停止一次，那么此时wakeup就不会执行了，因为eventloop已经停止了
+        if (!m_stop_flag) {
+            m_stop_flag = true;
+            wakeup();
+        }
     }
 
     // 初始化wakeup fd
@@ -180,8 +184,7 @@ namespace rocket {
             // 该错误经常出现在当应用程序进行一些非阻塞(non-blocking)操作(对文件或socket)的时候。
             // 以O_NONBLOCK的标志打开文件/socket/FIFO，如果你连续做read操作而没有数据可读，此时程序不会阻塞起来等待数据准备就绪返回
             // read函数会返回一个错误EAGAIN，提示你的应用程序现在没有数据可读请稍后再试。
-            while (read(m_wakeup_fd, buff, 8) != -1 && errno != EAGAIN) {
-            }
+            while (read(m_wakeup_fd, buff, 8) != -1 && errno != EAGAIN) {}
             DEBUGLOG("wake up succeed! read full bytes from wakeup fd[%d]", m_wakeup_fd);
         });
         // 添加到epoll event中

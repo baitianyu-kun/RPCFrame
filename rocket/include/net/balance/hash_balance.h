@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include "net/tcp/net_addr.h"
 
-#define VIRTUAL_NODE_NUM 32
+#define VIRTUAL_NODE_NUM 200
 
 namespace rocket {
     class ConsistentHash {

@@ -3,6 +3,10 @@
 //
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #include "rpc/rpc_channel.h"
 #include "rpc/rpc_controller.h"
 #include "common/log.h"
@@ -35,10 +39,41 @@ namespace rocket {
         std::vector<std::string> server_list_vec;
         splitStrToVector(server_list, ",", server_list_vec);
         std::set<NetAddr::ptr, CompNetAddr> server_list_set;
+        auto find = m_service_servers_cache.find(service_name);
+        if (find == m_service_servers_cache.end()) {
+            auto con_hash = std::make_shared<ConsistentHash>();
+            m_service_balance.emplace(service_name, con_hash);
+        }
         for (const auto &server: server_list_vec) {
             server_list_set.emplace(std::make_shared<IPNetAddr>(server));
+            // 插入到负载均衡中
+            m_service_balance[service_name]->addNewPhysicalNode(server, VIRTUAL_NODE_NUM);
         }
         m_service_servers_cache.emplace(service_name, server_list_set);
+    }
+
+    std::string RPCChannel::getLocalIP() {
+        int sockfd;
+        ifconf ifconf;
+        ifreq *ifreq = nullptr;
+        char buf[512];
+        ifconf.ifc_len = 512;
+        ifconf.ifc_buf = buf;
+        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+            return std::string{};
+        }
+        ioctl(sockfd, SIOCGIFCONF, &ifconf); // 设备所有接口
+        ifreq = (struct ifreq *) ifconf.ifc_buf;
+        for (int i = (ifconf.ifc_len / sizeof(ifreq)); i > 0; i--) {
+            if (ifreq->ifr_flags == AF_INET) {
+                // 找到ipv4的设备，并且为网卡，需要设置网卡名称
+                if (ifreq->ifr_name == std::string(NETWORK_CARD_NAME)) {
+                    return std::string(inet_ntoa(((sockaddr_in *) &(ifreq->ifr_addr))->sin_addr));
+                }
+                ifreq++;
+            }
+        }
+        return std::string{};
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {
@@ -80,12 +115,16 @@ namespace rocket {
     void RPCChannel::CallMethod(const google::protobuf::MethodDescriptor *method,
                                 google::protobuf::RpcController *controller, const google::protobuf::Message *request,
                                 google::protobuf::Message *response, google::protobuf::Closure *done) {
-        // 为空即去执行注册
+        // 为空即去执行服务发现
         if (m_service_servers_cache.empty()) {
             serviceDiscovery(method->service()->full_name());
         }
+        // 获取本地ip地址，根据该ip地址去进行hash选择
+        auto local_ip = getLocalIP();
+        auto server_addr = m_service_balance[method->service()->full_name()]->getServer(local_ip);
+        DEBUGLOG("local ip [%s], choosing server [%s]", local_ip.c_str(), server_addr->toString().c_str());
         // 选择服务器地址
-        auto client = std::make_shared<TCPClient>(*m_service_servers_cache["Order"].begin());
+        auto client = std::make_shared<TCPClient>(server_addr);
 
         auto request_protocol = std::make_shared<HTTPRequest>();
         auto rpc_controller = dynamic_cast<RPCController *>(controller);
@@ -104,13 +143,16 @@ namespace rocket {
 
         HTTPManager::createRequest(request_protocol, HTTPManager::MSGType::RPC_METHOD_REQUEST, body);
 
-        if (rpc_controller->GetMSGID().empty()) {
-            // 外部没有设置controller 的msg id的话用这个覆盖
-            rpc_controller->SetMsgId(request_protocol->m_msg_id);
-        } else {
-            // 否则用外部的controller覆盖默认生成的request msg id
-            request_protocol->m_msg_id = rpc_controller->GetMSGID();
-        }
+        // TODO 需要修改
+        rpc_controller->SetMsgId(request_protocol->m_msg_id);
+
+//        if (rpc_controller->GetMSGID().empty()) {
+//            // 外部没有设置controller 的msg id的话用这个覆盖
+//
+//        } else {
+//            // 否则用外部的controller覆盖默认生成的request msg id
+//            request_protocol->m_msg_id = rpc_controller->GetMSGID();
+//        }
 
         INFOLOG("%s | call method name [%s]", request_protocol->m_msg_id.c_str(), method_full_name.c_str());
 

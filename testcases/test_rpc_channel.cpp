@@ -1,6 +1,7 @@
 //
 // Created by baitianyu on 2/11/25.
 //
+#include <unistd.h>
 #include <google/protobuf/service.h>
 #include <google/protobuf/stubs/callback.h>
 #include "rpc/rpc_server.h"
@@ -46,5 +47,8 @@ int main() {
     controller->SetTimeout(2000); // 设置超时时间
     channel->init(controller, request_msg, response_msg, closure);
     Order_Stub stub(channel.get());
-    stub.makeOrder(controller.get(), request_msg.get(), response_msg.get(), closure.get());
+    while (1){
+        stub.makeOrder(controller.get(), request_msg.get(), response_msg.get(), closure.get());
+        usleep(3000000); // 休眠3秒
+    }
 }

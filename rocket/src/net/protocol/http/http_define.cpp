@@ -158,7 +158,7 @@ namespace rocket {
 
     void HTTPManager::createUpdateRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
-        std::string body_str = "msg_id:" +  request->m_msg_id;
+        std::string body_str = "msg_id:" + request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
@@ -184,7 +184,7 @@ namespace rocket {
     void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
-                               + "method_full_name:" + body["method_full_name"];
+                               + "service_name:" + body["service_name"];
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
@@ -228,9 +228,8 @@ namespace rocket {
     }
 
     void HTTPManager::createDiscoveryResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
-        std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
-                               + "server_port:" + body["server_port"] + g_CRLF
-                               + "msg_id:" + body["msg_id"];;
+        std::string body_str = "server_list:" + body["server_list"] + g_CRLF
+                               + "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;

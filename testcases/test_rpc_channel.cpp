@@ -15,7 +15,7 @@ int main() {
     Config::SetGlobalConfig("../conf/rocket.xml");
     Logger::InitGlobalLogger(0);
 
-    auto addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
+    auto addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
     auto channel = std::make_shared<RPCChannel>(addr);
 
     auto request_msg = std::make_shared<makeOrderRequest>();

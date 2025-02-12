@@ -68,7 +68,24 @@ namespace rocket {
     void RegisterCenter::handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response,
                                                HTTPSession::ptr session) {
         RWMutex::ReadLock lock(m_mutex);
-
+        auto service_name = request->m_request_body_data_map["service_name"];
+        HTTPManager::body_type body;
+        auto find = m_service_servers.find(service_name);
+        if (find == m_service_servers.end()) {
+            // 没有提供这个服务的server list
+        } else {
+            auto server_list = find->second;
+            std::string server_list_str;
+            for (const auto &item: server_list) {
+                server_list_str += item->toString() + ",";
+            }
+            server_list_str = server_list_str.substr(0, server_list_str.size() - 1);
+            body["server_list"] = server_list_str;
+            body["msg_id"] = request->m_msg_id;
+            HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE, body);
+            INFOLOG("%s | service discovery success, peer addr [%s], server_lists {%s}", request->m_msg_id.c_str(),
+                    session->getPeerAddr()->toString().c_str(), server_list_str.c_str());
+        }
     }
 
     void RegisterCenter::notifyClientServerFailed() {

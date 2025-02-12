@@ -24,6 +24,7 @@
             channel->init(controller, request, response, closure); \
             stub_name(channel.get()).method_name(controller.get(), request.get(), response.get(), closure.get()); \
         }
+
 // channel连接注册中心进行discovery，注册中心收到后记录下channel的地址，然后向channel推送消息
 // channel是tcpclient，也是tcpserver，用来接收注册中心推送的消息
 namespace rocket {
@@ -41,6 +42,10 @@ namespace rocket {
         void init(google_rpc_controller_ptr controller, google_message_ptr request,
                   google_message_ptr response, google_closure_ptr done);
 
+        void serviceDiscovery(const std::string &service_name);
+
+        std::string getAllServerList();
+
         void CallMethod(const google::protobuf::MethodDescriptor *method,
                         google::protobuf::RpcController *controller, const google::protobuf::Message *request,
                         google::protobuf::Message *response, google::protobuf::Closure *done) override;
@@ -56,6 +61,9 @@ namespace rocket {
         TCPClient *getClient();
 
     private:
+        void updateCache(const std::string &service_name, std::string &server_list);
+
+    private:
         TCPClient::ptr m_client{nullptr};
         NetAddr::ptr m_register_center_addr; // 本地注册中心地址，临时将注册中心用作server地址，来测试基本功能
         bool m_is_init{false}; // 是否初始化
@@ -63,8 +71,9 @@ namespace rocket {
         google_message_ptr m_request{nullptr};
         google_message_ptr m_response{nullptr};
         google_closure_ptr m_closure{nullptr};
-//        std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_method_server_cache; // method对应的多少个server
-//        std::unordered_map<std::string, ConsistentHash::ptr> m_method_balance; // 一个方法对应一个balance
+
+        std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_servers_cache; // method对应的多少个server
+        std::unordered_map<std::string, ConsistentHash::ptr> m_method_balance; // 一个方法对应一个balance
     };
 }
 

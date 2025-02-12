@@ -30,7 +30,7 @@ namespace rocket {
     }
 
     void RPCServer::registerToCenter() {
-        auto &io_thread = getIOThreadPool()->getIOThread();
+        auto io_thread = std::make_unique<IOThread>();
         // 放到线程里执行，因为TCPClient里面的TCPConnection用的eventloop和当前RPCServer是一个(因为都是主线程)，所以把这个
         // 函数放到子线程中去执行，就不是一个eventloop了，防止造成影响
         auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop());

@@ -179,7 +179,8 @@ namespace rocket {
     }
 
     void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
-        std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" + MSGIDUtil::GenerateMSGID() + g_CRLF
+                               + "method_full_name:" + body["method_full_name"];
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";

@@ -31,12 +31,16 @@ namespace rocket {
         // Order.makeOrder, 提供Order的所有服务器，{Order:{Server1, Server2...}}
         // 全部返回给客户端，客户端使用负载均衡进行选择
         // Service -> IPS
-        std::unordered_map<std::string, std::unordered_set<NetAddr::ptr, CompNetAddr>> m_service_servers;
+        std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_servers;
         // IP -> Service，每个ip对应的服务，遍历这个集合检测IP是否有效，无效的话获取该IP对应的Service，然后m_service_servers[Service].erase(IP)
-        std::unordered_map<NetAddr::ptr, std::string> m_servers_service;
+        // 一个IP可能提供多个服务
+        std::unordered_map<NetAddr::ptr, std::set<std::string>> m_servers_service;
         RWMutex m_mutex;
+
+        void updateServiceServer(std::vector<std::string> all_method_full_names_vec,
+                                 NetAddr::ptr server_addr);
+
     public:
-        // 添加的话需要进行加锁
         void handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
         void handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);

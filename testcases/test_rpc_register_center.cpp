@@ -3,10 +3,10 @@
 //
 #include "rpc/register_center.h"
 
-using namespace rocket;
+using namespace mrpc;
 
 int main() {
-    Config::SetGlobalConfig("../conf/rocket.xml");
+    Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
     auto local_addr = std::make_shared<IPNetAddr>("127.0.0.1", 22225);
 

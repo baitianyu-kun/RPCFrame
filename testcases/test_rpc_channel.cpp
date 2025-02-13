@@ -10,13 +10,13 @@
 #include "rpc/rpc_closure.h"
 #include "order.pb.h"
 
-using namespace rocket;
+using namespace mrpc;
 
 int main() {
-    Config::SetGlobalConfig("../conf/rocket.xml");
+    Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    auto addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
     auto channel = std::make_shared<RPCChannel>(addr);
 
     auto request_msg = std::make_shared<makeOrderRequest>();
@@ -28,7 +28,7 @@ int main() {
 
     auto closure = std::make_shared<RPCClosure>([request_msg, response_msg, channel, controller]() mutable {
         if (controller->GetErrorCode() == 0) {
-            INFOLOG("call rpc success, request[%s], response[%s]",
+            INFOLOG("call rpc success, request [%s], response [%s]",
                     request_msg->ShortDebugString().c_str(),
                     response_msg->ShortDebugString().c_str());
             // 执行业务逻辑
@@ -36,7 +36,7 @@ int main() {
                 INFOLOG("========= Success Call RPC ==============");
             }
         } else {
-            ERRORLOG("call rpc failed, request[%s], error code[%d], error info[%s]",
+            ERRORLOG("call rpc failed, request [%s], error code [%d], error info [%s]",
                      response_msg->ShortDebugString().c_str(),
                      controller->GetErrorCode(),
                      controller->GetErrorInfo().c_str());

@@ -5,11 +5,11 @@
 #include "net/protocol/http/http_parse.h"
 #include "common/log.h"
 
-using namespace rocket;
+using namespace mrpc;
 
 int main() {
 
-    Config::SetGlobalConfig("../conf/rocket.xml");
+    Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 //
 //    std::string str = "POST /mysite/index.html HTTP/1.0\r\n"

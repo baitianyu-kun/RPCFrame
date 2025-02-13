@@ -8,11 +8,11 @@
 #include "common/log.h"
 #include <iostream>
 
-using namespace rocket;
+using namespace mrpc;
 
 int main() {
 
-    Config::SetGlobalConfig("../conf/rocket.xml");
+    Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
     auto dispatcher = std::make_shared<DispatchServlet>();
@@ -49,8 +49,8 @@ int main() {
 
     auto res = std::make_shared<HTTPResponse>();
 
-    IPNetAddr::ptr local_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    IPNetAddr::ptr peer_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    IPNetAddr::ptr local_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22224);
+    IPNetAddr::ptr peer_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
     auto session = std::make_shared<HTTPSession>(local_addr, peer_addr);
     dispatcher->handle(requestParser.getRequest(), res, session);
 

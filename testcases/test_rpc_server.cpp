@@ -6,7 +6,7 @@
 #include "rpc/rpc_server.h"
 #include "order.pb.h"
 
-using namespace rocket;
+using namespace mrpc;
 
 class OrderImpl : public Order {
 public:
@@ -33,11 +33,11 @@ public:
 };
 
 int main() {
-    Config::SetGlobalConfig("../conf/rocket.xml");
+    Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto local_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22224);
-    auto register_addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 22225);
+    auto local_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22224);
+    auto register_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
     auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr);
 
     auto service = std::make_shared<OrderImpl>();

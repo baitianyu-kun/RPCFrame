@@ -9,11 +9,11 @@
 #include <unistd.h>
 #include <memory>
 #include <cassert>
-#include "../rocket/include/common/log.h"
-#include "../rocket/include/event/fd_event.h"
-#include "../rocket/include/event/eventloop.h"
-#include "../rocket/include/event/io_thread.h"
-#include "../rocket/include/event/io_thread_pool.h"
+#include "../mrpc/include/common/log.h"
+#include "../mrpc/include/event/fd_event.h"
+#include "../mrpc/include/event/eventloop.h"
+#include "../mrpc/include/event/io_thread.h"
+#include "../mrpc/include/event/io_thread_pool.h"
 
 void iothread_test() {
     int port = 22226;
@@ -36,8 +36,8 @@ void iothread_test() {
     assert(ret != -1);
 
     // 创建listen event，如果此事件发生变化的话，应该执行该event的回调函数
-    rocket::FDEvent::ptr event = std::make_shared<rocket::FDEvent>(listenfd);
-    event->listen(rocket::FDEvent::IN_EVENT, [listenfd]() {
+    mrpc::FDEvent::ptr event = std::make_shared<mrpc::FDEvent>(listenfd);
+    event->listen(mrpc::FDEvent::IN_EVENT, [listenfd]() {
         // 如果发生in事件的话，那么应该执行该event的回调函数
         // 这里就是执行接收连接并打印client的地址
         sockaddr_in client_address;
@@ -50,31 +50,31 @@ void iothread_test() {
 
     // 添加定时事件
     int i = 0;
-    rocket::TimerEventInfo::time_event_info_sptr_t_ time_event = std::make_shared<rocket::TimerEventInfo>(
+    mrpc::TimerEventInfo::time_event_info_sptr_t_ time_event = std::make_shared<mrpc::TimerEventInfo>(
             1000, true, [&i]() {
                 INFOLOG("trigger timer event, count=%d", i++);
             }
     );
 
     int x = 0;
-    rocket::TimerEventInfo::time_event_info_sptr_t_ time_event2 = std::make_shared<rocket::TimerEventInfo>(
+    mrpc::TimerEventInfo::time_event_info_sptr_t_ time_event2 = std::make_shared<mrpc::TimerEventInfo>(
             2000, true, [&x]() {
                 INFOLOG("trigger timer event2, count=%d", x++);
             }
     );
 
     // 创建eventloop
-    rocket::Config::SetGlobalConfig("../conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger(0,false);
+    mrpc::Config::SetGlobalConfig("../conf/mrpc.xml");
+    mrpc::Logger::InitGlobalLogger(0,false);
 
-    rocket::IOThread io_thread;
+    mrpc::IOThread io_thread;
 //    io_thread.getEventLoop()->addEpollEvent(event); // 添加监听事件
     io_thread.getEventLoop()->addTimerEvent(time_event2); // 添加定时事件
     io_thread.start(); // 启动
     io_thread.join(); // 等待执行完成
 
     // 测试线程池
-//    rocket::IOThreadPool io_thread_pool(2);
+//    mrpc::IOThreadPool io_thread_pool(2);
 //    auto &io_thread1 = io_thread_pool.getIOThread();
 //    io_thread1->getEventLoop()->addTimerEvent(time_event);
 //    io_thread1->getEventLoop()->addEpollEvent(event);

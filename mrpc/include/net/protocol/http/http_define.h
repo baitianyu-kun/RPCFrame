@@ -11,7 +11,7 @@
 #include "net/tcp/net_addr.h"
 
 #define RPC_METHOD_PATH "/method"
-#define RPC_REGISTER_UPDATE_SERVER_PATH "/update"
+#define RPC_REGISTER_HEART_SERVER_PATH "/heart"
 #define RPC_SERVER_REGISTER_PATH "/register"
 #define RPC_CLIENT_REGISTER_DISCOVERY_PATH "/discovery"
 #define RPC_REGISTER_SUBSCRIBE_PATH "/subscribe"
@@ -122,9 +122,9 @@ namespace mrpc {
             RPC_METHOD_REQUEST,
             RPC_METHOD_RESPONSE,
 
-            // 心跳机制，定时更新，只不过没有发送心跳包
-            RPC_REGISTER_UPDATE_SERVER_REQUEST, // 注册中心请求服务端更新信息
-            RPC_REGISTER_UPDATE_SERVER_RESPONSE, // 服务端相应注册中心更新信息
+            // 心跳机制
+            RPC_REGISTER_HEART_SERVER_REQUEST, // 注册中心向服务端发送heart pack
+            RPC_REGISTER_HEART_SERVER_RESPONSE, // 服务端向注册中心回应heart pack
 
             // 服务注册
             RPC_SERVER_REGISTER_REQUEST, // 注册到注册中心
@@ -155,7 +155,7 @@ namespace mrpc {
 
         static void createMethodRequest(HTTPRequest::ptr request, body_type &body);
 
-        static void createUpdateRequest(HTTPRequest::ptr request, body_type &body);
+        static void createHeartRequest(HTTPRequest::ptr request, body_type &body);
 
         static void createRegisterRequest(HTTPRequest::ptr request, body_type &body);
 
@@ -167,7 +167,7 @@ namespace mrpc {
 
         static void createMethodResponse(HTTPResponse::ptr response, body_type &body);
 
-        static void createUpdateResponse(HTTPResponse::ptr response, body_type &body);
+        static void createHeartResponse(HTTPResponse::ptr response, body_type &body);
 
         static void createRegisterResponse(HTTPResponse::ptr response, body_type &body);
 

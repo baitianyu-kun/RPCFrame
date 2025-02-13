@@ -103,8 +103,8 @@ namespace mrpc {
             case MSGType::RPC_METHOD_REQUEST:
                 createMethodRequest(request, body);
                 return;
-            case MSGType::RPC_REGISTER_UPDATE_SERVER_REQUEST:
-                createUpdateRequest(request, body);
+            case MSGType::RPC_REGISTER_HEART_SERVER_REQUEST:
+                createHeartRequest(request, body);
                 return;
             case MSGType::RPC_SERVER_REGISTER_REQUEST:
                 createRegisterRequest(request, body);
@@ -127,8 +127,8 @@ namespace mrpc {
             case MSGType::RPC_METHOD_RESPONSE:
                 createMethodResponse(response, body);
                 return;
-            case MSGType::RPC_REGISTER_UPDATE_SERVER_RESPONSE:
-                createUpdateResponse(response, body);
+            case MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE:
+                createHeartResponse(response, body);
                 return;
             case MSGType::RPC_SERVER_REGISTER_RESPONSE:
                 createRegisterResponse(response, body);
@@ -168,13 +168,13 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createUpdateRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createHeartRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "msg_id:" + request->m_msg_id;
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";
-        request->m_request_path = RPC_REGISTER_UPDATE_SERVER_PATH;
+        request->m_request_path = RPC_REGISTER_HEART_SERVER_PATH;
         request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
@@ -243,9 +243,8 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createUpdateResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
-        std::string body_str = "add_service_count:" + body["add_service_count"] + g_CRLF
-                               + "msg_id:" + body["msg_id"];
+    void HTTPManager::createHeartResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+        std::string body_str = "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
         response->m_response_code = HTTPCode::HTTP_OK;

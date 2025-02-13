@@ -60,7 +60,7 @@ namespace mrpc {
         connection->setState(Connected);
         m_client_connections.insert(connection);
         // 轮询添加到线程池中的线程中
-        INFOLOG("TcpServer succeed get client, fd: %d, peer addr: %s, now client counts: %d", client_fd,
+        INFOLOG("TCPServer succeed get client, fd: %d, peer addr: %s, now client counts: %d", client_fd,
                 peer_addr->toString().c_str(), m_client_connections.size());
     }
 

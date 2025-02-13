@@ -71,6 +71,8 @@ namespace mrpc {
     mrpc::EventLoop::~EventLoop() {
         // 需要处理fd的关闭和指针的释放，但是这里都是智能指针所以不用管
         close(m_epoll_fd);
+        close(m_timer->getFD());
+        close(m_wakeup_fd);
     }
 
     void mrpc::EventLoop::loop() {

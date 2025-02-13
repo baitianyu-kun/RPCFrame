@@ -23,7 +23,7 @@ namespace mrpc {
                                               std::placeholders::_2,
                                               std::placeholders::_3));
         // 注册中心访问服务器
-        addServlet(RPC_REGISTER_UPDATE_SERVER_PATH, std::bind(&RPCServer::handleUpdate, this,
+        addServlet(RPC_REGISTER_HEART_SERVER_PATH, std::bind(&RPCServer::handleUpdate, this,
                                                               std::placeholders::_1,
                                                               std::placeholders::_2,
                                                               std::placeholders::_3));

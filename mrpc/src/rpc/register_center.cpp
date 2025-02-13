@@ -125,7 +125,10 @@ namespace mrpc {
         body["service_name"] = service_name;
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST, body);
         client->connect([client, request, service_name]() {
-            client->sendRequest(request, [](HTTPRequest::ptr req) {});
+            client->sendRequest(request, [client](HTTPRequest::ptr req) {
+                INFOLOG("%s | publish message to peer addr %s", req->m_msg_id.c_str(),
+                        client->getPeerAddr()->toString().c_str());
+            });
             client->recvResponse(request->m_msg_id,
                                  [client, request, service_name](HTTPResponse::ptr rsp) {
                                      client->getEventLoop()->stop();
@@ -137,7 +140,7 @@ namespace mrpc {
     }
 
     void RegisterCenter::testPublishTimer() {
-        m_test_timer_event = std::make_shared<TimerEventInfo>(15000, false,
+        m_test_timer_event = std::make_shared<TimerEventInfo>(8000, true,
                                                               std::bind(&RegisterCenter::publishClientMessage, this));
         getMainEventLoop()->addTimerEvent(m_test_timer_event);
     }

@@ -19,7 +19,7 @@ namespace mrpc {
     public:
         using ptr = std::shared_ptr<TCPServer>;
 
-        TCPServer(NetAddr::ptr local_addr, EventLoop::ptr specific_eventloop = EventLoop::GetCurrentEventLoop());
+        TCPServer(NetAddr::ptr local_addr);
 
         ~TCPServer();
 

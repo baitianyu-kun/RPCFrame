@@ -70,34 +70,27 @@ namespace mrpc {
                                           });
         });
         io_thread->start();
+
         // start listener at register client addr, call back is handlePublish，在handlePublish中重新执行从注册中心拉取操作
-        // 实现推拉结合，在这里会进行阻塞，所以需要再次启动一个线程来进行
-
-        // 后台线程中跑一个tcp server，然后这个后台线程tcp server中会创建线程中的线程池
-        tmp_register_client_addr = register_client->getLocalAddr();
-
-        pthread_t m_thread{0}; // 线程句柄，用来保存和操作线程的
-        pthread_create(&m_thread, nullptr, RPCChannel::runner, this);
-    }
-
-    void *RPCChannel::runner(void *arg) {
-        auto channel = reinterpret_cast<RPCChannel *>(arg);
-        auto listener = std::make_shared<PublishListener>(channel->getTmpAddr(),
-                                                          std::bind(&RPCChannel::handlePublish, channel,
-                                                                    std::placeholders::_1,
-                                                                    std::placeholders::_2,
-                                                                    std::placeholders::_3));
-        return nullptr;
+        // 实现推拉结合，在这里会进行阻塞，所以需要再次启动一个线程来进行，启动线程已经在PublishListener中进行封装
+        m_publish_listener = std::make_shared<PublishListener>(register_client->getLocalAddr(),
+                                                               std::bind(&RPCChannel::handlePublish,
+                                                                         this,
+                                                                         std::placeholders::_1,
+                                                                         std::placeholders::_2,
+                                                                         std::placeholders::_3));
     }
 
     void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
         HTTPManager::body_type body;
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
-        INFOLOG("success get publish message from register center, register center addr: [%s], local addr: [%s] request body: [%s]",
+        INFOLOG(" %s | success get publish message from register center, register center addr: [%s], local addr: [%s] request body: [%s]",
+                request->m_msg_id.c_str(),
                 session->getPeerAddr()->toString().c_str(),
                 session->getLocalAddr()->toString().c_str(),
                 request->m_request_body.c_str());
+        DEBUGLOG("==== Success get register publish message ==== ")
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {

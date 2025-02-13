@@ -79,13 +79,6 @@ namespace mrpc {
 
         void handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
-        static void *runner(void *arg);
-
-        NetAddr::ptr getTmpAddr() { return tmp_register_client_addr; };
-
-    private:
-        NetAddr::ptr tmp_register_client_addr;
-
     private:
         PublishListener::ptr m_publish_listener;
     };

@@ -50,7 +50,9 @@ namespace mrpc {
         char buf[512];
         ifconf.ifc_len = 512;
         ifconf.ifc_buf = buf;
+        // 这里使用完sockfd没有进行关闭，造成fd泄露
         if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+            close(sockfd);
             return std::string{};
         }
         ioctl(sockfd, SIOCGIFCONF, &ifconf); // 设备所有接口
@@ -59,11 +61,13 @@ namespace mrpc {
             if (ifreq->ifr_flags == AF_INET) {
                 // 找到ipv4的设备，并且为网卡，需要设置网卡名称
                 if (ifreq->ifr_name == std::string(NETWORK_CARD_NAME)) {
+                    close(sockfd);
                     return std::string(inet_ntoa(((sockaddr_in *) &(ifreq->ifr_addr))->sin_addr));
                 }
                 ifreq++;
             }
         }
+        close(sockfd);
         return std::string{};
     }
 }

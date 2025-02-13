@@ -49,8 +49,6 @@ namespace mrpc {
         std::vector<std::string> getAllServiceNames();
 
         std::string getAllServiceNamesStr();
-
-
     };
 }
 

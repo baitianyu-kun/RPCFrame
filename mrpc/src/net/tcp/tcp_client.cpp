@@ -12,6 +12,8 @@ namespace mrpc {
     TCPClient::TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop)
             : m_peer_addr(peer_addr), m_event_loop(specific_eventloop) {
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
+        int val = 1;
+        setSocketOption(SOL_SOCKET, SO_REUSEADDR, &val); // reuse addr
         if (m_client_fd < 0) {
             ERRORLOG("TcpClient::TcpClient() error, failed to create fd");
             return;
@@ -143,5 +145,10 @@ namespace mrpc {
 
     EventLoop::ptr TCPClient::getEventLoop() {
         return m_event_loop;
+    }
+
+    bool TCPClient::setSocketOption(int level, int option, void *result, size_t len) {
+        int rt = setsockopt(m_client_fd, level, option, result, (socklen_t) len);
+        return true;
     }
 }

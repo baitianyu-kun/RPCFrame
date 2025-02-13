@@ -43,6 +43,13 @@ namespace mrpc {
 
         EventLoop::ptr getEventLoop();
 
+        bool setSocketOption(int level, int option, void* result, size_t len);
+
+        template<class T>
+        bool setSocketOption(int level, int option, T* result)  {
+            return setSocketOption(level, option, result, sizeof(T));
+        }
+
     private:
         NetAddr::ptr m_peer_addr;
         NetAddr::ptr m_local_addr;

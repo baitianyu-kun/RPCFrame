@@ -50,14 +50,14 @@ void iothread_test() {
 
     // 添加定时事件
     int i = 0;
-    mrpc::TimerEventInfo::time_event_info_sptr_t_ time_event = std::make_shared<mrpc::TimerEventInfo>(
+    mrpc::TimerEventInfo::ptr time_event = std::make_shared<mrpc::TimerEventInfo>(
             1000, true, [&i]() {
                 INFOLOG("trigger timer event, count=%d", i++);
             }
     );
 
     int x = 0;
-    mrpc::TimerEventInfo::time_event_info_sptr_t_ time_event2 = std::make_shared<mrpc::TimerEventInfo>(
+    mrpc::TimerEventInfo::ptr time_event2 = std::make_shared<mrpc::TimerEventInfo>(
             2000, true, [&x]() {
                 INFOLOG("trigger timer event2, count=%d", x++);
             }

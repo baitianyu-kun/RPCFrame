@@ -37,8 +37,15 @@ namespace mrpc {
         std::unordered_map<NetAddr::ptr, std::vector<std::string>> m_servers_service;
         RWMutex m_mutex;
 
+        // 维护一个客户端列表，用来做服务推送，key：订阅的服务名，value：哪些客户端订阅了
+        std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_clients;
+
         void updateServiceServer(std::vector<std::string> all_services_names_vec,
                                  NetAddr::ptr server_addr);
+
+        TimerEventInfo::ptr m_test_timer_event;
+
+        void testPublishTimer();
 
     public:
         std::string getAllServiceNamesStr();
@@ -47,10 +54,11 @@ namespace mrpc {
 
         void handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
 
+        void handleClientSubscribe(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+
     public:
         void notifyClientServerFailed(); // 主动通知客户端服务器失效
 
-    private:
         void publishClientMessage();
     };
 

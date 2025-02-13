@@ -265,11 +265,11 @@ namespace mrpc {
     }
 
 
-    void EventLoop::addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+    void EventLoop::addTimerEvent(TimerEventInfo::ptr time_event) {
         m_timer->addTimerEvent(std::move(time_event));
     }
 
-    void EventLoop::deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+    void EventLoop::deleteTimerEvent(TimerEventInfo::ptr time_event) {
         m_timer->deleteTimerEvent(std::move(time_event));
     }
 

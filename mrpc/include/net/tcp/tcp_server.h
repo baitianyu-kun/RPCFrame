@@ -19,7 +19,7 @@ namespace mrpc {
     public:
         using ptr = std::shared_ptr<TCPServer>;
 
-        explicit TCPServer(NetAddr::ptr local_addr);
+        TCPServer(NetAddr::ptr local_addr, EventLoop::ptr specific_eventloop = EventLoop::GetCurrentEventLoop());
 
         ~TCPServer();
 
@@ -30,6 +30,8 @@ namespace mrpc {
         void addServlet(const std::string &uri, CallBacksServlet::callback cb);
 
         std::unique_ptr<IOThreadPool> &getIOThreadPool();
+
+        EventLoop::ptr getMainEventLoop();
 
     private:
         void init();
@@ -46,7 +48,7 @@ namespace mrpc {
         EventLoop::ptr m_main_event_loop;
         std::unique_ptr<IOThreadPool> m_io_thread_pool;
         FDEvent::ptr m_listen_fd_event;
-        TimerEventInfo::time_event_info_sptr_t_ m_clear_client_timer_event;
+        TimerEventInfo::ptr m_clear_client_timer_event;
         std::set<TCPConnection::ptr> m_client_connections;
         RPCDispatcher::ptr m_dispatcher;
     };

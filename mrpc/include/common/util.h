@@ -7,6 +7,9 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <string>
+
+#define NETWORK_CARD_NAME "ens33"
 
 namespace mrpc {
 
@@ -21,6 +24,7 @@ namespace mrpc {
     // 当需要精确控制整数宽度和范围时，或者与其他系统进行交互时，使用 int32_t 是一个好的选择。
     int32_t getInt32FromNetByte(const char *buff);
 
+    std::string getLocalIP();
 }
 
 #endif //RPCFRAME_UTIL_H

@@ -3,18 +3,16 @@
 //
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <unistd.h>
-#include <arpa/inet.h>
 #include "rpc/rpc_channel.h"
 #include "rpc/rpc_controller.h"
 #include "common/log.h"
 #include "common/string_util.h"
 #include "event/io_thread.h"
+#include "common/util.h"
 
 namespace mrpc {
 
+    // subscribe方法就发送一个请求，用这个请求的地址当作服务端进行监听服务器的publish
     RPCChannel::RPCChannel(NetAddr::ptr register_center_addr) : m_register_center_addr(register_center_addr) {
 
     }
@@ -52,28 +50,49 @@ namespace mrpc {
         m_service_servers_cache.emplace(service_name, server_list_set);
     }
 
-    std::string RPCChannel::getLocalIP() {
-        int sockfd;
-        ifconf ifconf;
-        ifreq *ifreq = nullptr;
-        char buf[512];
-        ifconf.ifc_len = 512;
-        ifconf.ifc_buf = buf;
-        if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-            return std::string{};
-        }
-        ioctl(sockfd, SIOCGIFCONF, &ifconf); // 设备所有接口
-        ifreq = (struct ifreq *) ifconf.ifc_buf;
-        for (int i = (ifconf.ifc_len / sizeof(ifreq)); i > 0; i--) {
-            if (ifreq->ifr_flags == AF_INET) {
-                // 找到ipv4的设备，并且为网卡，需要设置网卡名称
-                if (ifreq->ifr_name == std::string(NETWORK_CARD_NAME)) {
-                    return std::string(inet_ntoa(((sockaddr_in *) &(ifreq->ifr_addr))->sin_addr));
-                }
-                ifreq++;
-            }
-        }
-        return std::string{};
+    void RPCChannel::subscribe(const std::string &service_name) {
+        auto request = std::make_shared<HTTPRequest>();
+        HTTPManager::body_type body;
+        body["service_name"] = service_name;
+        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST, body);
+        auto io_thread = std::make_unique<IOThread>();
+        auto register_client = std::make_shared<TCPClient>(m_register_center_addr, io_thread->getEventLoop());
+        register_client->connect([register_client, request, service_name]() {
+            register_client->sendRequest(request, [](HTTPRequest::ptr req) {});
+            register_client->recvResponse(request->m_msg_id,
+                                          [register_client, request, service_name](HTTPResponse::ptr rsp) {
+                                              register_client->getEventLoop()->stop();
+                                              if (rsp->m_response_body_data_map["subscribe_success"] ==
+                                                  std::to_string(true)) {
+                                                  INFOLOG("%s | success subscribe service name %s",
+                                                          rsp->m_msg_id.c_str(), service_name.c_str());
+                                              }
+                                          });
+        });
+        io_thread->start();
+        // start listener at register client addr, call back is handlePublish，在handlePublish中重新执行从注册中心拉取操作
+        // 实现推拉结合，在这里会进行阻塞，所以需要再次启动一个线程来进行
+        io_thread->join();
+        io_thread.reset();
+        io_thread = std::make_unique<IOThread>();
+        m_publish_listener = std::make_shared<PublishListener>(register_client->getLocalAddr(),
+                                                               std::bind(&RPCChannel::handlePublish, this,
+                                                                         std::placeholders::_1,
+                                                                         std::placeholders::_2,
+                                                                         std::placeholders::_3),
+                                                               io_thread->getEventLoop());
+        io_thread->start();
+        DEBUGLOG("===== HELLO ======");
+    }
+
+    void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+        HTTPManager::body_type body;
+        body["msg_id"] = request->m_msg_id;
+        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
+        INFOLOG("success get publish message from register center, register center addr: [%s], local addr: [%s] request body: [%s]",
+                session->getPeerAddr()->toString().c_str(),
+                session->getLocalAddr()->toString().c_str(),
+                request->m_request_body.c_str());
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {
@@ -87,13 +106,13 @@ namespace mrpc {
         register_client->connect([register_client, request, channel, service_name]() {
             register_client->sendRequest(request, [](HTTPRequest::ptr req) {});
             register_client->recvResponse(request->m_msg_id,
-                                          [register_client, request, channel, service_name](HTTPResponse::ptr msg) {
+                                          [register_client, request, channel, service_name](HTTPResponse::ptr rsp) {
                                               register_client->getEventLoop()->stop();
                                               // 更新本地缓存
-                                              auto server_list_str = msg->m_response_body_data_map["server_list"];
+                                              auto server_list_str = rsp->m_response_body_data_map["server_list"];
                                               channel->updateCache(service_name, server_list_str);
                                               INFOLOG("%s | get server cache from register center, server list %s",
-                                                      msg->m_msg_id.c_str(), channel->getAllServerList().c_str());
+                                                      rsp->m_msg_id.c_str(), channel->getAllServerList().c_str());
                                           });
         });
         io_thread->start();
@@ -149,11 +168,11 @@ namespace mrpc {
             client->sendRequest(request_protocol, [](HTTPRequest::ptr req) {});
             // 接收响应
             client->recvResponse(request_protocol->m_msg_id,
-                                 [this_channel, request_protocol, client](HTTPResponse::ptr res) {
+                                 [this_channel, request_protocol, client](HTTPResponse::ptr rsp) {
                                      this_channel->getResponse()->ParseFromString(
-                                             res->m_response_body_data_map["pb_data"]);
+                                             rsp->m_response_body_data_map["pb_data"]);
                                      INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",
-                                             res->m_msg_id.c_str(),
+                                             rsp->m_msg_id.c_str(),
                                              client->getPeerAddr()->toString().c_str(),
                                              client->getLocalAddr()->toString().c_str(),
                                              this_channel->getResponse()->ShortDebugString().c_str());

@@ -38,7 +38,7 @@ namespace mrpc {
 
     }
 
-    void TimerFDEvent::addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+    void TimerFDEvent::addTimerEvent(TimerEventInfo::ptr time_event) {
         // 1. 如果pending events为空的话，说明没有任务，所以不用设置触发时间，在resetTimerEventArriveTime中会直接进行返回
         // 2. 如果来的新任务比当第一个任务(已经根据到达时间排序在multimap中)的时间还小
         // 说明是一个过期的任务，应该给他设置一个较快的间隔时间例如100ms来让他在后面快速执行
@@ -61,7 +61,7 @@ namespace mrpc {
         }
     }
 
-    void TimerFDEvent::deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event) {
+    void TimerFDEvent::deleteTimerEvent(TimerEventInfo::ptr time_event) {
         time_event->setCanceled(true);
         // 从pending events中删除
         ScopeMutext<Mutex> lock(m_mutex);
@@ -94,7 +94,7 @@ namespace mrpc {
         char buff[WAKE_UP_BUFF_LEN];
         while ((read(m_fd, buff, WAKE_UP_BUFF_LEN)) == -1 && errno == EAGAIN) {}
         // 获取定时任务，就是定时任务的时间<=当前时间的任务
-        std::vector<TimerEventInfo::time_event_info_sptr_t_> tmp_events;
+        std::vector<TimerEventInfo::ptr> tmp_events;
         std::vector<std::pair<int64_t, std::function<void()>>> tasks;
         auto now_time = getNowMs();
 

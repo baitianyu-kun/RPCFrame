@@ -50,9 +50,9 @@ namespace mrpc {
 
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 
-        void addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+        void addTimerEvent(TimerEventInfo::ptr time_event);
 
-        void deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+        void deleteTimerEvent(TimerEventInfo::ptr time_event);
 
     private:
         void dealWakeup();

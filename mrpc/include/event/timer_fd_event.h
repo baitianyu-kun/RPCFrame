@@ -19,7 +19,7 @@ namespace mrpc {
     public:
         // 给TimerEventInfo的智能指针起一个别名，多个地方都有可能会用到，所以用shared ptr
         // typedef和using差不多，只不过using可以给template的函数设置别名
-        using time_event_info_sptr_t_ = std::shared_ptr<TimerEventInfo>;
+        using ptr = std::shared_ptr<TimerEventInfo>;
 
         TimerEventInfo(int interval, bool is_repeated, std::function<void()> callback);
 
@@ -68,10 +68,10 @@ namespace mrpc {
         ~TimerFDEvent();
 
         // 添加定时任务信息到FDEvent中
-        void addTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+        void addTimerEvent(TimerEventInfo::ptr time_event);
 
         // 删除定时任务
-        void deleteTimerEvent(TimerEventInfo::time_event_info_sptr_t_ time_event);
+        void deleteTimerEvent(TimerEventInfo::ptr time_event);
 
         // 定时时间到了之后开始执行的函数，包括从task中取出任务，删除旧的时间任务，重新放入可重复的任务，并执行相应的回调函数
         void onTimer();
@@ -85,7 +85,7 @@ namespace mrpc {
 
     private:
         // 存储当前的所有定时任务，根据到达时间进行排序
-        std::multimap<int64_t, TimerEventInfo::time_event_info_sptr_t_> m_pending_events;
+        std::multimap<int64_t, TimerEventInfo::ptr> m_pending_events;
         Mutex m_mutex; // 给pending events上锁
     };
 

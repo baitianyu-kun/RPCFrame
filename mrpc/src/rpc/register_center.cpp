@@ -1,6 +1,7 @@
 //
 // Created by baitianyu on 25-2-10.
 //
+#include <unistd.h>
 #include "rpc/register_center.h"
 #include "common/mutex.h"
 #include "common/string_util.h"
@@ -26,9 +27,16 @@ namespace mrpc {
                                                        std::placeholders::_1,
                                                        std::placeholders::_2,
                                                        std::placeholders::_3));
+        // 客户端订阅注册中心
+        addServlet(RPC_REGISTER_SUBSCRIBE_PATH, std::bind(&RegisterCenter::handleClientSubscribe, this,
+                                                          std::placeholders::_1,
+                                                          std::placeholders::_2,
+                                                          std::placeholders::_3));
     }
 
     void RegisterCenter::startRegisterCenter() {
+        // TODO 需要去掉
+        testPublishTimer();
         start();
     }
 
@@ -88,12 +96,50 @@ namespace mrpc {
         }
     }
 
+    void RegisterCenter::handleClientSubscribe(HTTPRequest::ptr request, HTTPResponse::ptr response,
+                                               HTTPSession::ptr session) {
+        RWMutex::WriteLock lock(m_mutex);
+        // TODO 加入不存在该service name的情况，因为注册中心中可能不包含要注册的service
+        auto service_name = request->m_request_body_data_map["service_name"];
+        m_service_clients[service_name].emplace(session->getPeerAddr());
+        HTTPManager::body_type body;
+        body["service_name"] = service_name;
+        body["msg_id"] = request->m_msg_id;
+        body["subscribe_success"] = std::to_string(true);
+        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_RESPONSE, body);
+        INFOLOG("%s | service subscribe success, peer addr [%s], service_name {%s}", request->m_msg_id.c_str(),
+                session->getPeerAddr()->toString().c_str(), service_name.c_str());
+    }
+
     void RegisterCenter::notifyClientServerFailed() {
 
     }
 
     void RegisterCenter::publishClientMessage() {
+        auto io_thread = std::make_unique<IOThread>();
+        auto client = std::make_shared<TCPClient>(*m_service_clients["Order"].begin(),
+                                                  io_thread->getEventLoop());
+        auto request = std::make_shared<HTTPRequest>();
+        HTTPManager::body_type body;
+        std::string service_name = "Order";
+        body["service_name"] = service_name;
+        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST, body);
+        client->connect([client, request, service_name]() {
+            client->sendRequest(request, [](HTTPRequest::ptr req) {});
+            client->recvResponse(request->m_msg_id,
+                                 [client, request, service_name](HTTPResponse::ptr rsp) {
+                                     client->getEventLoop()->stop();
+                                     INFOLOG("%s | success publish peer addr %s", rsp->m_msg_id.c_str(),
+                                             client->getPeerAddr()->toString().c_str());
+                                 });
+        });
+        io_thread->start();
+    }
 
+    void RegisterCenter::testPublishTimer() {
+        m_test_timer_event = std::make_shared<TimerEventInfo>(10000, false,
+                                                              std::bind(&RegisterCenter::publishClientMessage, this));
+        getMainEventLoop()->addTimerEvent(m_test_timer_event);
     }
 }
 

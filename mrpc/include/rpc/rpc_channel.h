@@ -9,6 +9,7 @@
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_client.h"
 #include "net/balance/hash_balance.h"
+#include "rpc/rpc_publish_listener.h"
 
 #define NEW_MESSAGE(type, var_name) \
         std::shared_ptr<type> var_name = std::make_shared<type>(); \
@@ -24,8 +25,6 @@
             channel->init(controller, request, response, closure); \
             stub_name(channel.get()).method_name(controller.get(), request.get(), response.get(), closure.get()); \
         }
-
-#define NETWORK_CARD_NAME "ens33"
 
 // channel连接注册中心进行discovery，注册中心收到后记录下channel的地址，然后向channel推送消息
 // channel是tcpclient，也是tcpserver，用来接收注册中心推送的消息
@@ -63,18 +62,25 @@ namespace mrpc {
     private:
         void updateCache(const std::string &service_name, std::string &server_list);
 
-        static std::string getLocalIP();
-
     private:
-        NetAddr::ptr m_register_center_addr; // 本地注册中心地址，临时将注册中心用作server地址，来测试基本功能
-        bool m_is_init{false}; // 是否初始化
         google_rpc_controller_ptr m_controller{nullptr};
         google_message_ptr m_request{nullptr};
         google_message_ptr m_response{nullptr};
         google_closure_ptr m_closure{nullptr};
 
+        NetAddr::ptr m_register_center_addr;
+        bool m_is_init{false}; // 是否初始化
+
         std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_servers_cache; // service对应的多少个server
         std::unordered_map<std::string, ConsistentHash::ptr> m_service_balance; // 一个service对应一个balance
+
+    public:
+        void subscribe(const std::string &service_name);
+
+        void handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+
+    private:
+        PublishListener::ptr m_publish_listener;
     };
 }
 

@@ -168,7 +168,7 @@ namespace mrpc {
         // 具体业务的信息
         AsyncLogger::async_logger_sptr_t_ m_async_app_logger;
 
-        TimerEventInfo::time_event_info_sptr_t_ m_timer_event;
+        TimerEventInfo::ptr m_timer_event;
         int m_type{0}; // 为0就是只在控制台输出，1是输出到文件
         bool m_is_server{true};
 

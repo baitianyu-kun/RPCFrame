@@ -5,9 +5,9 @@
 
 namespace mrpc {
 
-    TCPServer::TCPServer(NetAddr::ptr local_addr) : m_local_addr(local_addr) {
+    TCPServer::TCPServer(NetAddr::ptr local_addr, EventLoop::ptr specific_eventloop) :
+            m_local_addr(local_addr), m_main_event_loop(specific_eventloop) {
         m_acceptor = std::make_shared<TCPAcceptor>(m_local_addr);
-        m_main_event_loop = EventLoop::GetCurrentEventLoop();
         m_io_thread_pool = std::make_unique<IOThreadPool>(MAX_THREAD_POOL_SIZE);
         m_listen_fd_event = std::make_shared<FDEvent>(m_acceptor->getListenFD());
         m_dispatcher = RPCDispatcher::GetCurrentRPCDispatcher();
@@ -76,6 +76,10 @@ namespace mrpc {
 
     std::unique_ptr<IOThreadPool> &TCPServer::getIOThreadPool() {
         return m_io_thread_pool;
+    }
+
+    EventLoop::ptr TCPServer::getMainEventLoop() {
+        return m_main_event_loop;
     }
 }
 

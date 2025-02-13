@@ -14,6 +14,8 @@
 #define RPC_REGISTER_UPDATE_SERVER_PATH "/update"
 #define RPC_SERVER_REGISTER_PATH "/register"
 #define RPC_CLIENT_REGISTER_DISCOVERY_PATH "/discovery"
+#define RPC_REGISTER_SUBSCRIBE_PATH "/subscribe"
+#define RPC_REGISTER_PUBLISH_PATH "/publish"
 
 namespace mrpc {
 
@@ -131,6 +133,14 @@ namespace mrpc {
             // 服务发现
             RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, // 客户端从注册中心中进行请求
             RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE, // 注册中心给客户端响应
+
+            // 服务订阅
+            RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST, // 客户端订阅相关service name
+            RPC_CLIENT_REGISTER_SUBSCRIBE_RESPONSE, // 该service name中服务器列表发生变化主动通知客户端
+
+            // 服务推送
+            RPC_REGISTER_CLIENT_PUBLISH_REQUEST, // 注册中心推送消给息客户端
+            RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, // 客户端收到推送
         };
 
         using body_type = std::unordered_map<std::string, std::string>;
@@ -151,6 +161,10 @@ namespace mrpc {
 
         static void createDiscoveryRequest(HTTPRequest::ptr request, body_type &body);
 
+        static void createSubscribeRequest(HTTPRequest::ptr request, body_type &body);
+
+        static void createPublishRequest(HTTPRequest::ptr request, body_type &body);
+
         static void createMethodResponse(HTTPResponse::ptr response, body_type &body);
 
         static void createUpdateResponse(HTTPResponse::ptr response, body_type &body);
@@ -158,6 +172,10 @@ namespace mrpc {
         static void createRegisterResponse(HTTPResponse::ptr response, body_type &body);
 
         static void createDiscoveryResponse(HTTPResponse::ptr response, body_type &body);
+
+        static void createSubscribeResponse(HTTPResponse::ptr response, body_type &body);
+
+        static void createPublishResponse(HTTPResponse::ptr response, body_type &body);
     };
 
 }

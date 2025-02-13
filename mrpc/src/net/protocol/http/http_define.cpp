@@ -112,6 +112,12 @@ namespace mrpc {
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST:
                 createDiscoveryRequest(request, body);
                 return;
+            case MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST:
+                createSubscribeRequest(request, body);
+                return;
+            case MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST:
+                createPublishRequest(request, body);
+                return;
         }
     }
 
@@ -129,6 +135,12 @@ namespace mrpc {
                 return;
             case MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE:
                 createDiscoveryResponse(response, body);
+                return;
+            case MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_RESPONSE:
+                createSubscribeResponse(response, body);
+                return;
+            case MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE:
+                createPublishResponse(response, body);
                 return;
         }
     }
@@ -193,6 +205,32 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
+    void HTTPManager::createSubscribeRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
+                               + "service_name:" + body["service_name"];
+        request->m_request_body = body_str;
+        request->m_request_method = HTTPMethod::POST;
+        request->m_request_version = "HTTP/1.1";
+        request->m_request_path = RPC_REGISTER_SUBSCRIBE_PATH;
+        request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
+        request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+    }
+
+    void HTTPManager::createPublishRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+        // 注册中心告诉客户端哪个service name有变化，证明已经有服务器掉线，然后客户端去重新拉，推拉结合
+        // 后期可以订阅其他东西，实现自定义推送内容
+        request->m_msg_id = MSGIDUtil::GenerateMSGID();
+        std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
+                               + "service_name:" + body["service_name"];
+        request->m_request_body = body_str;
+        request->m_request_method = HTTPMethod::POST;
+        request->m_request_version = "HTTP/1.1";
+        request->m_request_path = RPC_REGISTER_PUBLISH_PATH;
+        request->m_request_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
+        request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
+    }
+
     void HTTPManager::createMethodResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
@@ -237,6 +275,31 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
+
+    void HTTPManager::createSubscribeResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+        std::string body_str = "msg_id:" + body["msg_id"] + g_CRLF
+                               + "service_name:" + body["service_name"] + g_CRLF
+                               + "subscribe_success:" + body["subscribe_success"];
+        response->m_response_body = body_str;
+        response->m_response_version = "HTTP/1.1";
+        response->m_response_code = HTTPCode::HTTP_OK;
+        response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+        response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
+        response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+    }
+
+    void HTTPManager::createPublishResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+        // 客户端告诉注册中心已经收到
+        std::string body_str = "msg_id:" + body["msg_id"];
+        response->m_response_body = body_str;
+        response->m_response_version = "HTTP/1.1";
+        response->m_response_code = HTTPCode::HTTP_OK;
+        response->m_response_info = HTTPCodeToString(HTTPCode::HTTP_OK);
+        response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
+        response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
+    }
+
+
 }
 
 

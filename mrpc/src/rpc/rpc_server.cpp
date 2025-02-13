@@ -42,13 +42,13 @@ namespace mrpc {
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
         client->connect([client, request]() {
             client->sendRequest(request, [](HTTPRequest::ptr req) {});
-            client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr msg) {
+            client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr rsp) {
                 client->getEventLoop()->stop();
                 INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], add_service_count [%s]",
-                        msg->m_msg_id.c_str(),
+                        rsp->m_msg_id.c_str(),
                         client->getPeerAddr()->toString().c_str(),
                         client->getLocalAddr()->toString().c_str(),
-                        msg->m_response_body_data_map["add_service_count"].c_str());
+                        rsp->m_response_body_data_map["add_service_count"].c_str());
             });
         });
         io_thread->start();

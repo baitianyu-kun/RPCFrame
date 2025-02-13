@@ -41,8 +41,7 @@ set(ALL_LIBS mrpc ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
 
 # test rpc server
 add_executable(test_eventloop
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_eventloop.cpp
-        mrpc/include/rpc/rpc_publish_listener.h)
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_eventloop.cpp)
 target_link_libraries(test_eventloop ${ALL_LIBS})
 
 add_executable(test_http_parse_encode
@@ -75,3 +74,19 @@ add_executable(test_rpc_register_center
         testcases/order.pb.h
         mrpc/include/rpc/rpc_publish_listener.h)
 target_link_libraries(test_rpc_register_center ${ALL_LIBS})
+
+add_executable(test_rpc_channel_subscribe
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_subscribe.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h
+        mrpc/include/rpc/rpc_publish_listener.h
+)
+target_link_libraries(test_rpc_channel_subscribe ${ALL_LIBS})
+
+add_executable(test_rpc_register_center_subscribe_publish
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register_center_subscribe_publish.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h
+        mrpc/include/rpc/rpc_publish_listener.h
+)
+target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})

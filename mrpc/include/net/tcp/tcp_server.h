@@ -12,7 +12,7 @@
 #include "net/tcp/tcp_connection.h"
 
 #define MAX_THREAD_POOL_SIZE 4
-#define TIMER_EVENT_INTERVAL 5000
+#define TIMER_EVENT_INTERVAL 1000
 
 namespace mrpc {
     class TCPServer {

@@ -33,6 +33,7 @@ namespace mrpc {
 
 
     TCPConnection::~TCPConnection() {
+        clear();
         DEBUGLOG("~TCPConnection");
     }
 
@@ -91,7 +92,7 @@ namespace mrpc {
             auto response = std::make_shared<HTTPResponse>();
             auto session = std::make_shared<HTTPSession>(m_local_addr, m_peer_addr);
             // 执行业务并写入response
-            m_dispatcher->handle(m_request_parser->getRequest(), response,session);
+            m_dispatcher->handle(m_request_parser->getRequest(), response, session);
             // 编码结果并监听可写
             auto response_str = response->toString();
             m_out_buffer->writeToBuffer(response_str.c_str(), response_str.size());

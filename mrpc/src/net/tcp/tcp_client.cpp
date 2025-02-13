@@ -14,8 +14,13 @@ namespace mrpc {
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         int val = 1;
         setSocketOption(SOL_SOCKET, SO_REUSEADDR, &val); // reuse addr
+        // 设置linger，close的时候立即退出，设置超时时间，超过时间自动丢弃
+        linger so_linger;
+        so_linger.l_onoff = true;
+        so_linger.l_linger = 2; // 2秒超时时间
+        setSocketOption(SOL_SOCKET, SO_LINGER, &so_linger);
         if (m_client_fd < 0) {
-            ERRORLOG("TcpClient::TcpClient() error, failed to create fd");
+            ERRORLOG("TCPClient::TCPClient() error, failed to create fd");
             return;
         }
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(m_client_fd);
@@ -34,8 +39,12 @@ namespace mrpc {
 
     TCPClient::~TCPClient() {
         if (m_client_fd > 0) {
+            m_fd_event->cancel_listen(FDEvent::IN_EVENT);
+            m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
             m_event_loop->deleteEpollEvent(m_fd_event);
+            close(m_fd_event->getFD());
             close(m_client_fd);
+            DEBUGLOG("~TCPClient, close: %d", m_client_fd);
         }
         DEBUGLOG("~TCPClient");
     }

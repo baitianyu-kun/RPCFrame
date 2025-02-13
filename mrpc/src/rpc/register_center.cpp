@@ -137,7 +137,7 @@ namespace mrpc {
     }
 
     void RegisterCenter::testPublishTimer() {
-        m_test_timer_event = std::make_shared<TimerEventInfo>(10000, false,
+        m_test_timer_event = std::make_shared<TimerEventInfo>(15000, false,
                                                               std::bind(&RegisterCenter::publishClientMessage, this));
         getMainEventLoop()->addTimerEvent(m_test_timer_event);
     }

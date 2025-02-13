@@ -72,17 +72,22 @@ namespace mrpc {
         io_thread->start();
         // start listener at register client addr, call back is handlePublish，在handlePublish中重新执行从注册中心拉取操作
         // 实现推拉结合，在这里会进行阻塞，所以需要再次启动一个线程来进行
-        io_thread->join();
-        io_thread.reset();
-        io_thread = std::make_unique<IOThread>();
-        m_publish_listener = std::make_shared<PublishListener>(register_client->getLocalAddr(),
-                                                               std::bind(&RPCChannel::handlePublish, this,
-                                                                         std::placeholders::_1,
-                                                                         std::placeholders::_2,
-                                                                         std::placeholders::_3),
-                                                               io_thread->getEventLoop());
-        io_thread->start();
-        DEBUGLOG("===== HELLO ======");
+
+        // 后台线程中跑一个tcp server，然后这个后台线程tcp server中会创建线程中的线程池
+        tmp_register_client_addr = register_client->getLocalAddr();
+
+        pthread_t m_thread{0}; // 线程句柄，用来保存和操作线程的
+        pthread_create(&m_thread, nullptr, RPCChannel::runner, this);
+    }
+
+    void *RPCChannel::runner(void *arg) {
+        auto channel = reinterpret_cast<RPCChannel *>(arg);
+        auto listener = std::make_shared<PublishListener>(channel->getTmpAddr(),
+                                                          std::bind(&RPCChannel::handlePublish, channel,
+                                                                    std::placeholders::_1,
+                                                                    std::placeholders::_2,
+                                                                    std::placeholders::_3));
+        return nullptr;
     }
 
     void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {

@@ -29,6 +29,7 @@ namespace mrpc {
     void TCPServer::start() {
         m_io_thread_pool->start();
         m_main_event_loop->loop();
+        DEBUGLOG("==== END START =====");
     }
 
     void TCPServer::init() {

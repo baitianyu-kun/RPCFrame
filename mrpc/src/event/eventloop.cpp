@@ -19,8 +19,9 @@
         INFOLOG("epoll_event.events = %d", (int) tmp_epoll_event.events);\
         int ret = epoll_ctl(m_epoll_fd, op, fd_event->getFD(), &tmp_epoll_event);\
         if (ret == -1) {\
-            ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno));\
-        }\
+            ERRORLOG("failed epoll_ctl when add fd, errno [%d], error [%s], op [%d]", errno, strerror(errno),op);\
+            ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, fd_event->getFD(), &tmp_epoll_event);                         \
+        }                        \
         m_listen_fds.emplace(fd_event->getFD());\
         DEBUGLOG("add event success, fd[%d]", fd_event->getFD());\
     }while(0)
@@ -28,13 +29,14 @@
 #define DELETE_FROM_EPOLL() \
     do{                \
         auto it = m_listen_fds.find(fd_event->getFD());\
-        if (it == m_listen_fds.end()) {\
+        if (it == m_listen_fds.end()) {                \
+            ERRORLOG("==== it == m_listen_fds.end() ====");                \
             return;\
         }\
         int op = EPOLL_CTL_DEL;\
         int ret = epoll_ctl(m_epoll_fd, op, fd_event->getFD(), nullptr);\
         if (ret == -1) {\
-            ERRORLOG("failed epoll_ctl when add fd, errno=%d, error=%s", errno, strerror(errno));\
+            ERRORLOG("failed epoll_ctl when delete fd, errno [%d], error [%s]", errno, strerror(errno));\
         }\
         m_listen_fds.erase(fd_event->getFD());\
         DEBUGLOG("delete event success, fd[%d]", fd_event->getFD());\
@@ -58,14 +60,14 @@ namespace mrpc {
         // 之前需要确定有多少个需要加入，现在新版本size被忽略，因为kernel使用了可扩展的data structure
         m_epoll_fd = epoll_create(10);
         if (m_epoll_fd == -1) {
-            ERRORLOG("failed to create event loop, epoll create error, error code: [%d]", errno);
+            ERRORLOG("failed to create event loop, epoll create error, error code [%d]", errno);
             exit(0);
         }
         // 初始化唤醒fd
         initWakeUpFDEevent();
         // 初始化定时任务
         initTimer();
-        INFOLOG("succeed create event loop in thread %d", m_pid);
+        INFOLOG("succeed create event loop in thread [%d]", m_pid);
     }
 
     mrpc::EventLoop::~EventLoop() {
@@ -101,7 +103,7 @@ namespace mrpc {
             // 需要在stop的时候给epoll wait进行wake up
             auto ret = epoll_wait(m_epoll_fd, result_events, g_epoll_max_events, timeout);
             if (ret < 0) {
-                ERRORLOG("epoll_wait error, errno = %d, error = %s", errno, strerror(errno));
+                ERRORLOG("epoll_wait error, errno [%d], error [%s]", errno, strerror(errno));
             } else {
                 // 处理就绪时间，由于epoll wait就绪时候会复制到result events中，ret就是就绪的数量
                 // 就绪了实际上就是把callback注册到task中，方便loop下一次进行处理
@@ -173,10 +175,10 @@ namespace mrpc {
         // 先创建eventfd来执行唤醒操作
         m_wakeup_fd = eventfd(0, EFD_NONBLOCK);
         if (m_wakeup_fd < 0) {
-            ERRORLOG("failed to create event loop, eventfd create error, error info[%d]", errno);
+            ERRORLOG("failed to create event loop, eventfd create error, error info [%d]", errno);
             exit(0);
         }
-        INFOLOG("wakeup fd = %d", m_wakeup_fd);
+        INFOLOG("wakeup fd [%d]", m_wakeup_fd);
         // 创建wake up event事件，确定监听类型，并使用lambda固定回调函数
         m_wakeup_fd_event = std::make_shared<WakeUpFDEvent>(m_wakeup_fd);
         // 通过“函数体”后面的‘()’传入参数 auto x = [](int a){cout << a << endl;}(123);

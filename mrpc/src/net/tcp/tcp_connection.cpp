@@ -5,7 +5,6 @@
 #include "net/tcp/tcp_connection.h"
 #include "common/log.h"
 #include "common/string_util.h"
-#include "net/tcp/tcp_ring_buffer.h"
 #include "event/fd_event_pool.h"
 
 namespace mrpc {
@@ -22,8 +21,8 @@ namespace mrpc {
               m_connection_type(type) {
         m_request_parser = std::make_shared<HTTPRequestParser>();
         m_response_parser = std::make_shared<HTTPResponseParser>();
-        m_in_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
-        m_out_buffer = std::make_shared<TCPRingBuffer>(buffer_size);
+        m_in_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
+        m_out_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
         m_fd_event->setNonBlock();
         if (m_connection_type == TCPConnectionByServer) {
@@ -33,7 +32,6 @@ namespace mrpc {
 
 
     TCPConnection::~TCPConnection() {
-        clear();
         DEBUGLOG("~TCPConnection");
     }
 
@@ -41,18 +39,27 @@ namespace mrpc {
         if (m_state != Connected) {
             ERRORLOG("onRead error, client has already disconneced, addr [%s], clientfd [%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
+            ERRORLOG("==== TCPConnection::onRead m_state != Connected ===== %d", m_state);
             return;
         }
+        // 是否从socket上读取并全部写入到in buffer中
         bool is_read_and_write_all = false;
         bool is_close = false;
         while (!is_read_and_write_all) {
+            // 没有读完就一直读，没有写入位置了就扩充
+            if (m_in_buffer->writeAbleSize() == 0) {
+                m_in_buffer->resizeBuffer(2 * m_in_buffer->getBufferSize());
+            }
             int write_count = m_in_buffer->writeAbleSize();
-            char tmp[write_count];
-            int ret = read(m_client_fd, tmp, write_count);
-            m_in_buffer->writeToBuffer(tmp, ret);
+            int write_index = m_in_buffer->getWriteIndex();
+            // 返回读取到的字节数
+            int ret = read(m_client_fd, &(m_in_buffer->getRefBuffer()[write_index]), write_count);
             DEBUGLOG("success read %d bytes from addr [%s], client fd [%d]", ret, m_peer_addr->toString().c_str(),
                      m_client_fd);
             if (ret > 0) {
+                // 将write指针向后移动刚刚读取的字节数个位置
+                // 比如你要求从里面读取100byte，但是ret返回了50个，说明只有50个可以读了，所以ret < write count的话证明已经读完了
+                m_in_buffer->moveWriteIndex(ret);
                 if (ret == write_count) {
                     continue;
                 } else if (ret < write_count) {
@@ -67,11 +74,13 @@ namespace mrpc {
                 // 此时程序不会阻塞起来等待数据准备就绪返回，read函数会返回一个错误EAGAIN，提示你的应用程序现在没有数据可读请稍后再试。
                 is_read_and_write_all = true;
                 break;
+            }else if (ret == -1 && errno != EAGAIN){
+                ERRORLOG("===== ret == -1 && errno != EAGAIN =====");
             }
         }
         if (is_close) {
             INFOLOG("peer closed, peer addr [%s], clientfd [%d]", m_peer_addr->toString().c_str(), m_client_fd);
-            clear();
+            clear(); // 取消各种读写监听以及删除当前的m_fd_event
             return;
         }
         if (!is_read_and_write_all) {
@@ -114,9 +123,18 @@ namespace mrpc {
 
     void TCPConnection::onWrite() {
         if (m_state != Connected) {
-            ERRORLOG("onWrite error, client has already disconnected, addr[%s], clientfd[%d]",
+            ERRORLOG("onWrite error, client has already disconnected, addr [%s], clientfd [%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
+            ERRORLOG("==== TCPConnection::onWrite m_state != Connected ===== %d", m_state);
             clear();
+            if (m_connection_type == TCPConnectionByClient) {
+                for (const auto &write_done: m_write_dones) {
+                    auto other = write_done.first;
+                    other->m_request_body = "error";
+                    write_done.second(other);
+                }
+                m_write_dones.clear(); // 清空回调函数
+            }
             return;
         }
         if (m_connection_type == TCPConnectionByClient) {
@@ -131,16 +149,15 @@ namespace mrpc {
             }
         }
         bool is_read_and_write_all = false;
-        while (!is_read_and_write_all) {
+        while (true) {
             if (m_out_buffer->readAbleSize() == 0) {
                 DEBUGLOG("no more data need to send to client [%s]", m_peer_addr->toString().c_str());
                 is_read_and_write_all = true;
                 break;
             }
-            std::vector<char> tmp;
             int read_count = m_out_buffer->readAbleSize();
-            m_out_buffer->readFromBuffer(tmp, read_count);
-            int ret = write(m_client_fd, &tmp[0], tmp.size());
+            int read_index = m_out_buffer->getReadIndex();
+            int ret = write(m_client_fd, &(m_out_buffer->getRefBuffer()[read_index]), read_count);
             if (ret >= read_count) {
                 DEBUGLOG("no more data need to send to client [%s]", m_peer_addr->toString().c_str());
                 is_read_and_write_all = true;
@@ -153,13 +170,11 @@ namespace mrpc {
             }
         }
         if (is_read_and_write_all) {
-            // 取消监听fd event，写完以后得去除掉，否则会一直进行触发，写只需要发送数据时候才需要监听，即只在execute中添加进行监听
             m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
+            ERRORLOG("==== TCPConnection::onWrite =====");
             m_event_loop->addEpollEvent(m_fd_event);
+            ERRORLOG("==== TCPConnection::onWrite =====");
         }
-        // 作为客户端
-        // 发送完成后，需要调用m write dones的回调
-        // 回调是request，以及该request对应的回调函数，方便在回调中对该request进行处理
         if (m_connection_type == TCPConnectionByClient) {
             for (const auto &write_done: m_write_dones) {
                 write_done.second(write_done.first);
@@ -187,9 +202,9 @@ namespace mrpc {
 
     void TCPConnection::clear() {
         // 取消所有监听，并设置state
-        if (m_state == Closed) {
-            return;
-        }
+//        if (m_state == Closed) {
+//            return;
+//        }
         m_fd_event->cancel_listen(FDEvent::IN_EVENT);
         m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
         m_event_loop->deleteEpollEvent(m_fd_event);
@@ -216,12 +231,16 @@ namespace mrpc {
 
     void TCPConnection::listenWrite() {
         m_fd_event->listen(FDEvent::OUT_EVENT, std::bind(&TCPConnection::onWrite, this));
+        ERRORLOG("==== TCPConnection::listenWrite =====");
         m_event_loop->addEpollEvent(m_fd_event);
+        ERRORLOG("==== TCPConnection::listenWrite =====");
     }
 
     void TCPConnection::listenRead() {
         m_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPConnection::onRead, this));
+        ERRORLOG("==== TCPConnection::listenRead =====");
         m_event_loop->addEpollEvent(m_fd_event);
+        ERRORLOG("==== TCPConnection::listenRead =====");
     }
 
     NetAddr::ptr TCPConnection::getLocalAddr() {

@@ -8,6 +8,7 @@
 #include <memory>
 #include "net/tcp/net_addr.h"
 #include "net/tcp/abstract_tcp_buffer.h"
+#include "net/tcp/tcp_vector_buffer.h"
 #include "net/protocol/http/http_parse.h"
 #include "event/eventloop.h"
 #include "rpc/rpc_dispatcher.h"
@@ -75,8 +76,8 @@ namespace mrpc {
         EventLoop::ptr m_event_loop;
         NetAddr::ptr m_local_addr;
         NetAddr::ptr m_peer_addr;
-        TCPBuffer::ptr m_in_buffer; // 接收缓冲区
-        TCPBuffer::ptr m_out_buffer; // 发送缓冲区
+        TCPVectorBuffer::ptr m_in_buffer; // 接收缓冲区
+        TCPVectorBuffer::ptr m_out_buffer; // 发送缓冲区
         FDEvent::ptr m_fd_event{nullptr};
         TCPState m_state;
         int m_client_fd{0};

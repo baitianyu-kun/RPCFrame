@@ -15,10 +15,10 @@ namespace mrpc {
         int val = 1;
         setSocketOption(SOL_SOCKET, SO_REUSEADDR, &val); // reuse addr
         // 设置linger，close的时候立即退出，设置超时时间，超过时间自动丢弃
-        linger so_linger;
-        so_linger.l_onoff = true;
-        so_linger.l_linger = 2; // 2秒超时时间
-        setSocketOption(SOL_SOCKET, SO_LINGER, &so_linger);
+//        linger so_linger;
+//        so_linger.l_onoff = true;
+//        so_linger.l_linger = 2; // 2秒超时时间
+//        setSocketOption(SOL_SOCKET, SO_LINGER, &so_linger);
         if (m_client_fd < 0) {
             ERRORLOG("TCPClient::TCPClient() error, failed to create fd");
             return;

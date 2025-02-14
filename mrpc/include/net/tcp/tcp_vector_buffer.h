@@ -43,7 +43,7 @@ namespace mrpc {
         int writeAbleSize() const override {return m_buffer.size() - m_write_index;};
 
 
-    private:
+    public:
         void resizeBuffer(int new_size);
 
         // read index左边的数据就不要了，整体都移动到开头，并设置read index为0，notion中回收调整

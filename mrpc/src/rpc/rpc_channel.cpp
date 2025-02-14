@@ -163,7 +163,12 @@ namespace mrpc {
         auto this_channel = shared_from_this();
         client->connect([this_channel, request_protocol, client]() {
             // 发送请求
-            client->sendRequest(request_protocol, [](HTTPRequest::ptr req) {});
+            client->sendRequest(request_protocol, [client](HTTPRequest::ptr req) {
+                if (req->m_request_body == "error")
+                    INFOLOG("===== client->sendRequest failed! =====");
+                client->getEventLoop()->stop();
+                return;
+            });
             // 接收响应
             client->recvResponse(request_protocol->m_msg_id,
                                  [this_channel, request_protocol, client](HTTPResponse::ptr rsp) {

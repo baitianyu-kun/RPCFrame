@@ -38,10 +38,10 @@ namespace mrpc {
         if (m_state != Connected) {
             ERRORLOG("onRead error, client has already disconnected, addr [%s], clientfd [%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
-            clear();
-            if (m_connection_type == TCPConnectionByClient) {
-                m_client_error_done(); // 作为客户端，就直接停止执行eventloop，断开client与server的连接
-            }
+//            clear();
+//            if (m_connection_type == TCPConnectionByClient) {
+//                m_client_error_done(); // 作为客户端，就直接停止执行eventloop，断开client与server的连接
+//            }
             return;
         }
         // 是否从socket上读取并全部写入到in buffer中

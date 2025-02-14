@@ -170,7 +170,9 @@ namespace mrpc {
 
     void HTTPManager::createHeartRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
-        std::string body_str = "msg_id:" + request->m_msg_id;
+        std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
+                               + "server_ip:" + body["server_ip"] + g_CRLF
+                               + "server_port:" + body["server_port"];
         request->m_request_body = body_str;
         request->m_request_method = HTTPMethod::POST;
         request->m_request_version = "HTTP/1.1";

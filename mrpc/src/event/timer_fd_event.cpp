@@ -12,6 +12,7 @@ namespace mrpc {
 
     mrpc::TimerEventInfo::TimerEventInfo(int interval, bool is_repeated, std::function<void()> callback) : m_interval(
             interval), m_is_repeated(is_repeated), m_task_callback(std::move(callback)) {
+        DEBUGLOG("=== M INTERVAL %ld ==== %ld", interval, m_interval);
         setArriveTime();
     }
 
@@ -74,17 +75,33 @@ namespace mrpc {
         // int num[6]={1,2,4,7,15,34};
         // lower_bound(num,num+6,7(要查找的数));    //返回数组中第一个大于或等于被查数的值 => 7
         // upper_bound(num,num+6,7(要查找的数));    //返回数组中第一个大于被查数的值 => 15，这样可以快速定位key-value容器的value的位置
-        auto begin = m_pending_events.lower_bound(time_event->getArriveTime());
-        auto end = m_pending_events.upper_bound(time_event->getArriveTime());
-        auto iter = begin;
-        for (iter = begin; iter != end; ++iter) {
-            if (iter->second == time_event) {
+//        auto iter = m_pending_events.begin();
+//        for (; iter != m_pending_events.end(); ++iter) {
+//            if (iter->second->getinterval() == 10000) {
+//                m_pending_events.erase(iter);
+//                break;
+//            }
+//        }
+
+        auto iter = m_pending_events.begin();
+        for (; iter != m_pending_events.end(); ++iter) {
+            if (iter->second.get() == time_event.get() && iter->second->getinterval() == 10000) {
+                m_pending_events.erase(iter);
                 break;
             }
         }
-        if (iter != end) {
-            m_pending_events.erase(iter);
-        }
+
+//        auto begin = m_pending_events.lower_bound(time_event->getArriveTime());
+//        auto end = m_pending_events.upper_bound(time_event->getArriveTime());
+//        auto iter = begin;
+//        for (iter = begin; iter != end; ++iter) {
+//            if (iter->second == time_event) {
+//                break;
+//            }
+//        }
+//        if (iter != end) {
+//            m_pending_events.erase(iter);
+//        }
         lock.unlock();
         DEBUGLOG("success delete TimerEvent at arrive time %lld", time_event->getArriveTime());
     }
@@ -122,7 +139,6 @@ namespace mrpc {
             }
         }
 
-        // 为了保险重新设置时间，我感觉应该不设置也行
         resetTimerEventArriveTime();
 
         // 开始执行任务
@@ -134,27 +150,70 @@ namespace mrpc {
 
     }
 
+    void TimerFDEvent::resetTimerEvent(TimerEventInfo::ptr time_event) {
+        ScopeMutext<Mutex> lock(m_mutex);
+//        auto begin = m_pending_events.lower_bound(time_event->getArriveTime());
+//        auto end = m_pending_events.upper_bound(time_event->getArriveTime());
+//        auto iter = m_pending_events.lower_bound(time_event->getArriveTime());
+        auto iter = m_pending_events.begin();
+        for (; iter != m_pending_events.end(); ++iter) {
+            if (iter->second.get() == time_event.get() &&iter->second->getinterval() == 10000) {
+//                break;
+                auto tmp = iter->second->getArriveTime();
+                DEBUGLOG("====== before: %lld ==== inter: %lld", iter->second->getArriveTime(),
+                         iter->second->getinterval());
+                m_pending_events.erase(iter);
+                time_event->setArriveTimeHand(getNowMs() + 10000);
+                DEBUGLOG("====== after: %lld ==== minus: %lld, time event inter: %lld", time_event->getArriveTime(),
+                         time_event->getArriveTime() - tmp, time_event->getinterval());
+                m_pending_events.emplace(time_event->getArriveTime(), time_event);
+            }
+        }
+//        if (iter != m_pending_events.end()) {
+//            auto tmp = iter->second->getArriveTime();
+//            DEBUGLOG("====== before: %lld ==== inter: %lld", iter->second->getArriveTime(),
+//                     iter->second->getinterval());
+//            m_pending_events.erase(iter);
+//            time_event->setArriveTimeHand(getNowMs() + 10000);
+//            DEBUGLOG("====== after: %lld ==== minus: %lld, time event inter: %lld", time_event->getArriveTime(),
+//                     time_event->getArriveTime() - tmp, time_event->getinterval());
+//            m_pending_events.emplace(time_event->getArriveTime(), time_event);
+//        } else {
+//            DEBUGLOG("==== AT END ====");
+//        }
+        lock.unlock();
+        resetTimerEventArriveTime();
+    }
+
     void TimerFDEvent::resetTimerEventArriveTime() {
         // 1. 如果pending events为空的话，说明没有任务，所以不用设置触发时间，在resetTimerEventArriveTime中会直接进行返回
         // 2. 如果来的新任务比当第一个任务(已经根据到达时间排序在multimap中)的时间还小
         // 说明是一个过期的任务，应该给他设置一个较快的间隔时间例如100ms来让他在后面快速执行
         // 然后multimap是按照从小到大的到达时间来进行排序的，如果第一个大于now time的话，那么说明所有的都大于。所以下一次触发超时时间为第一个的到达时间减去当前时间。
         ScopeMutext<Mutex> lock(m_mutex);
-        auto tmp_events = m_pending_events;
+//        auto tmp_events = m_pending_events;
         lock.unlock();
-        if (tmp_events.empty()) {
+        if (m_pending_events.empty()) {
             return;
         }
         auto now_time = getNowMs();
         int64_t next_interval = 0;
-        auto iter = tmp_events.begin();
+        auto iter = m_pending_events.begin();
         if (iter->second->getArriveTime() > now_time) {
             // 如果第一个即所有的到达时间都大于现在的时间的话，
             // 那么下一次触发的时间间隔就是到达的时间-现在的时间，就是隔多长时间需要唤醒内置的timerfd
             next_interval = iter->second->getArriveTime() - now_time;
+            if (iter->second->getinterval() == 10000) {
+                DEBUGLOG("== iter->second->getArriveTime() %lld, now_time %lld, minus %lld",
+                         iter->second->getArriveTime(), now_time, next_interval);
+            }
         } else {
             // 如果第一个到达时间小于等于现在的时间的话，说明是个过期任务，需要给个快速执行的时间
             next_interval = 100;
+            if (iter->second->getinterval() == 10000) {
+                DEBUGLOG("== fast iter->second->getArriveTime() %lld, now_time %lld, minus %lld",
+                         iter->second->getArriveTime(), now_time, next_interval);
+            }
         }
 
         // 重新设置timerfd

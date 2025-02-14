@@ -9,6 +9,10 @@ namespace mrpc {
 
     RPCServer::RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr)
             : TCPServer(local_addr), m_local_addr(local_addr), m_register_addr(register_addr) {
+        m_heart_timer_event = std::make_shared<TimerEventInfo>(500,
+                                                               true,
+                                                               std::bind(&RPCServer::heartToCenter, this));
+        getMainEventLoop()->addTimerEvent(m_heart_timer_event);
         initServlet();
     }
 
@@ -22,11 +26,27 @@ namespace mrpc {
                                               std::placeholders::_1,
                                               std::placeholders::_2,
                                               std::placeholders::_3));
-        // 注册中心访问服务器
-        addServlet(RPC_REGISTER_HEART_SERVER_PATH, std::bind(&RPCServer::handleUpdate, this,
-                                                              std::placeholders::_1,
-                                                              std::placeholders::_2,
-                                                              std::placeholders::_3));
+    }
+
+    void RPCServer::heartToCenter() {
+        auto io_thread = std::make_unique<IOThread>();
+        auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop());
+        auto request = std::make_shared<HTTPRequest>();
+        HTTPManager::body_type body;
+        body["server_ip"] = m_local_addr->getStringIP();
+        body["server_port"] = m_local_addr->getStringPort();
+        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_HEART_SERVER_REQUEST, body);
+        client->connect([client, request]() {
+            client->sendRequest(request, [](HTTPRequest::ptr req) {});
+            client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr rsp) {
+                client->getEventLoop()->stop();
+                INFOLOG("%s | success heart to center, peer addr [%s], local addr[%s]",
+                        rsp->m_msg_id.c_str(),
+                        client->getPeerAddr()->toString().c_str(),
+                        client->getLocalAddr()->toString().c_str());
+            });
+        });
+        io_thread->start();
     }
 
     void RPCServer::registerToCenter() {
@@ -117,10 +137,6 @@ namespace mrpc {
         INFOLOG("%s | http dispatch success, request [%s], response [%s]",
                 request->m_msg_id.c_str(), request_rpc_message->ShortDebugString().c_str(),
                 response_rpc_message->ShortDebugString().c_str());
-    }
-
-    void RPCServer::handleUpdate(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
-
     }
 
     bool

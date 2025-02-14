@@ -7,6 +7,8 @@
 
 #include <map>
 #include <memory>
+#include <unordered_map>
+#include <set>
 #include "common/mutex.h"
 #include "event/fd_event.h"
 
@@ -26,6 +28,8 @@ namespace mrpc {
         int64_t getArriveTime() const {
             return m_arrive_time;
         }
+
+        int64_t getinterval() const { return m_interval; }
 
         void setCanceled(bool is_canceled) {
             m_is_canceled = is_canceled;
@@ -48,6 +52,8 @@ namespace mrpc {
         // 比如现在是11:24:23，每隔1秒触发一次，所以下次就是11:24:24开始触发。
         void setArriveTime();
 
+        void setArriveTimeHand(int64_t msg){m_arrive_time = msg;};
+
     private:
         // 单位ms，前面的m代表member表示成员
         int64_t m_arrive_time;
@@ -61,7 +67,7 @@ namespace mrpc {
     class TimerFDEvent : public FDEvent {
     public:
 
-        using timer_fd_event_sptr_t_ = std::shared_ptr<TimerFDEvent>;
+        using ptr = std::shared_ptr<TimerFDEvent>;
 
         TimerFDEvent();
 
@@ -69,6 +75,8 @@ namespace mrpc {
 
         // 添加定时任务信息到FDEvent中
         void addTimerEvent(TimerEventInfo::ptr time_event);
+
+        void resetTimerEvent(TimerEventInfo::ptr time_event);
 
         // 删除定时任务
         void deleteTimerEvent(TimerEventInfo::ptr time_event);
@@ -86,6 +94,7 @@ namespace mrpc {
     private:
         // 存储当前的所有定时任务，根据到达时间进行排序
         std::multimap<int64_t, TimerEventInfo::ptr> m_pending_events;
+        std::unordered_map<std::string, TimerEventInfo::ptr> m_eventid_events;
         Mutex m_mutex; // 给pending events上锁
     };
 

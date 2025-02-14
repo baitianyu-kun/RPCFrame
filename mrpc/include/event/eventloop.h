@@ -52,6 +52,8 @@ namespace mrpc {
 
         void addTimerEvent(TimerEventInfo::ptr time_event);
 
+        void resetTimerEvent(TimerEventInfo::ptr time_event);
+
         void deleteTimerEvent(TimerEventInfo::ptr time_event);
 
     private:
@@ -81,7 +83,7 @@ namespace mrpc {
         // 需要加锁
         Mutex m_mutex;
         // time定时任务
-        TimerFDEvent::timer_fd_event_sptr_t_ m_timer{nullptr};
+        TimerFDEvent::ptr m_timer{nullptr};
     };
 
 }

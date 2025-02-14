@@ -32,11 +32,14 @@ namespace mrpc {
                                                           std::placeholders::_1,
                                                           std::placeholders::_2,
                                                           std::placeholders::_3));
+        // 服务器发送心跳包给注册中心
+        addServlet(RPC_REGISTER_HEART_SERVER_PATH, std::bind(&RegisterCenter::handleServerHeart, this,
+                                                             std::placeholders::_1,
+                                                             std::placeholders::_2,
+                                                             std::placeholders::_3));
     }
 
     void RegisterCenter::startRegisterCenter() {
-        // TODO 需要去掉
-        testPublishTimer();
         start();
     }
 
@@ -53,7 +56,7 @@ namespace mrpc {
         for (const auto &service: all_services_names_vec) {
             m_service_servers[service].emplace(server_addr);
         }
-        m_servers_service.emplace(server_addr, all_services_names_vec);
+        m_servers_service.emplace(server_addr->toString(), all_services_names_vec);
     }
 
     void RegisterCenter::handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response,
@@ -71,6 +74,14 @@ namespace mrpc {
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_SERVER_REGISTER_RESPONSE, body);
         INFOLOG("%s | server register success, server addr [%s], services [%s]", request->m_msg_id.c_str(),
                 server_addr->toString().c_str(), getAllServiceNamesStr().c_str());
+        // 给该服务器设置心跳定时器，每次server创建的client的端口号都不尽相同，所以需要rpc server在请求体中指明具体地址
+        auto tmp_heart = std::make_shared<TimerEventInfo>(10000,
+                                                          false, [server_addr, this]() {
+                    this->serverTimeOut(server_addr);
+                });
+        m_servers_timer_event.emplace(server_addr->toString(), tmp_heart);
+        getMainEventLoop()->addTimerEvent(tmp_heart);
+        DEBUGLOG("==== add: %s =====", server_addr->toString().c_str());
     }
 
     void RegisterCenter::handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response,
@@ -111,6 +122,31 @@ namespace mrpc {
                 session->getPeerAddr()->toString().c_str(), service_name.c_str());
     }
 
+    void
+    RegisterCenter::handleServerHeart(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+        RWMutex::WriteLock lock(m_mutex);
+        // 收到心跳包后重置这个server的定时器，然后回一个心跳包
+        auto server_addr = std::make_shared<IPNetAddr>(request->m_request_body_data_map["server_ip"],
+                                                       std::stoi(request->m_request_body_data_map["server_port"]));
+        auto server_addr_str = server_addr->toString();
+        getMainEventLoop()->resetTimerEvent(m_servers_timer_event[server_addr_str]);
+        HTTPManager::body_type body;
+        body["msg_id"] = request->m_msg_id;
+        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE, body);
+        INFOLOG("%s | receive peer addr [%s] heart pack", request->m_msg_id.c_str(), server_addr_str.c_str());
+    }
+
+    void RegisterCenter::serverTimeOut(NetAddr::ptr server_addr) {
+        auto server_addr_str = server_addr->toString();
+        DEBUGLOG("===== sdebugs ====== %s", server_addr_str.c_str());
+        if (m_servers_timer_event.find(server_addr_str) != m_servers_timer_event.end()) {
+            DEBUGLOG("===== server time out ====== %d, %s", m_servers_timer_event.size(), server_addr_str.c_str());
+            auto tmp = m_servers_timer_event[server_addr_str];
+            getMainEventLoop()->deleteTimerEvent(tmp);
+            m_servers_timer_event.erase(server_addr_str);
+        }
+    }
+
     void RegisterCenter::notifyClientServerFailed() {
 
     }
@@ -137,12 +173,6 @@ namespace mrpc {
                                  });
         });
         io_thread->start();
-    }
-
-    void RegisterCenter::testPublishTimer() {
-        m_test_timer_event = std::make_shared<TimerEventInfo>(2000, true,
-                                                              std::bind(&RegisterCenter::publishClientMessage, this));
-        getMainEventLoop()->addTimerEvent(m_test_timer_event);
     }
 }
 

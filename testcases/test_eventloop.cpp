@@ -16,6 +16,10 @@
 #include "../mrpc/include/event/io_thread_pool.h"
 
 void iothread_test() {
+    // 创建eventloop
+    mrpc::Config::SetGlobalConfig("../conf/mrpc.xml");
+    mrpc::Logger::InitGlobalLogger(0,false);
+
     int port = 22226;
     const char *ip = "127.0.0.1";
     int backlog = 5;
@@ -35,54 +39,30 @@ void iothread_test() {
     ret = listen(listenfd, backlog);
     assert(ret != -1);
 
-    // 创建listen event，如果此事件发生变化的话，应该执行该event的回调函数
-    mrpc::FDEvent::ptr event = std::make_shared<mrpc::FDEvent>(listenfd);
-    event->listen(mrpc::FDEvent::IN_EVENT, [listenfd]() {
-        // 如果发生in事件的话，那么应该执行该event的回调函数
-        // 这里就是执行接收连接并打印client的地址
-        sockaddr_in client_address;
-        memset(&client_address, 0, sizeof(client_address));
-        socklen_t client_addr_len = sizeof(client_address);
-        int client_fd = accept(listenfd, (sockaddr *) &client_address, &client_addr_len);
-        DEBUGLOG("success get client fd[%d], peer addr: [%s:%d]", client_fd, inet_ntoa(client_address.sin_addr),
-                 ntohs(client_address.sin_port));
-    });
+    mrpc::IOThread io_thread;
 
     // 添加定时事件
     int i = 0;
-    mrpc::TimerEventInfo::ptr time_event = std::make_shared<mrpc::TimerEventInfo>(
-            1000, true, [&i]() {
-                INFOLOG("trigger timer event, count=%d", i++);
-            }
-    );
-
-    int x = 0;
     mrpc::TimerEventInfo::ptr time_event2 = std::make_shared<mrpc::TimerEventInfo>(
-            2000, true, [&x]() {
-                INFOLOG("trigger timer event2, count=%d", x++);
+            1000, true, [&i,&io_thread,&time_event2]() {
+                INFOLOG("trigger timer event, count=%d", i++);
+                io_thread.getEventLoop()->resetTimerEvent(time_event2);
             }
     );
 
-    // 创建eventloop
-    mrpc::Config::SetGlobalConfig("../conf/mrpc.xml");
-    mrpc::Logger::InitGlobalLogger(0,false);
+//    int x = 0;
+//    mrpc::TimerEventInfo::ptr time_event2 = std::make_shared<mrpc::TimerEventInfo>(
+//            2000, true, [&x]() {
+//                INFOLOG("trigger timer event2, count=%d", x++);
+//            }
+//    );
 
-    mrpc::IOThread io_thread;
-//    io_thread.getEventLoop()->addEpollEvent(event); // 添加监听事件
+
+
     io_thread.getEventLoop()->addTimerEvent(time_event2); // 添加定时事件
     io_thread.start(); // 启动
     io_thread.join(); // 等待执行完成
 
-    // 测试线程池
-//    mrpc::IOThreadPool io_thread_pool(2);
-//    auto &io_thread1 = io_thread_pool.getIOThread();
-//    io_thread1->getEventLoop()->addTimerEvent(time_event);
-//    io_thread1->getEventLoop()->addEpollEvent(event);
-//    auto &io_thread2 = io_thread_pool.getIOThread();
-//
-//    io_thread2->getEventLoop()->addTimerEvent(time_event2);
-//    io_thread_pool.start();
-//    io_thread_pool.join();
 
 }
 

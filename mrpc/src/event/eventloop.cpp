@@ -276,5 +276,9 @@ namespace mrpc {
         m_timer->deleteTimerEvent(std::move(time_event));
     }
 
+    void EventLoop::resetTimerEvent(TimerEventInfo::ptr time_event) {
+        m_timer->resetTimerEvent(std::move(time_event));
+    }
+
 }
 

@@ -90,3 +90,10 @@ add_executable(test_rpc_register_center_subscribe_publish
         mrpc/include/rpc/rpc_publish_listener.h
 )
 target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})
+
+add_executable(test_rpc_server2
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server2.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h
+        mrpc/include/rpc/rpc_publish_listener.h)
+target_link_libraries(test_rpc_server2 ${ALL_LIBS})

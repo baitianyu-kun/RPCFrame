@@ -68,6 +68,8 @@ namespace mrpc {
 
         void listenRead();
 
+        void setClientErrorCallback(const std::function<void()> &client_error_done) { m_client_error_done = client_error_done; }
+
         NetAddr::ptr getLocalAddr();
 
         NetAddr::ptr getPeerAddr();
@@ -91,6 +93,9 @@ namespace mrpc {
 
         // key是request，value是该request对应的回调函数
         std::vector<std::pair<HTTPRequest::ptr, std::function<void(HTTPRequest::ptr)>>> m_write_dones;
+
+        // 客户端收发数据过程中出现错误需要进行处理的函数
+        std::function<void()> m_client_error_done;
     };
 
 

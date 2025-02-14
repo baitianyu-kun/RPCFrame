@@ -30,7 +30,6 @@
     do{                \
         auto it = m_listen_fds.find(fd_event->getFD());\
         if (it == m_listen_fds.end()) {                \
-            ERRORLOG("==== it == m_listen_fds.end() ====");                \
             return;\
         }\
         int op = EPOLL_CTL_DEL;\
@@ -39,7 +38,7 @@
             ERRORLOG("failed epoll_ctl when delete fd, errno [%d], error [%s]", errno, strerror(errno));\
         }\
         m_listen_fds.erase(fd_event->getFD());\
-        DEBUGLOG("delete event success, fd[%d]", fd_event->getFD());\
+        DEBUGLOG("delete event success, fd [%d]", fd_event->getFD());\
     }while(0)
 
 namespace mrpc {

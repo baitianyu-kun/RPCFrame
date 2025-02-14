@@ -27,6 +27,8 @@ namespace mrpc {
 
         void recvResponse(const std::string &msg_id, const std::function<void(HTTPResponse::ptr)> &done);
 
+        void onConnectionError();
+
         NetAddr::ptr getPeerAddr();
 
         NetAddr::ptr getLocalAddr();
@@ -43,10 +45,10 @@ namespace mrpc {
 
         EventLoop::ptr getEventLoop();
 
-        bool setSocketOption(int level, int option, void* result, size_t len);
+        bool setSocketOption(int level, int option, void *result, size_t len);
 
         template<class T>
-        bool setSocketOption(int level, int option, T* result)  {
+        bool setSocketOption(int level, int option, T *result) {
             return setSocketOption(level, option, result, sizeof(T));
         }
 

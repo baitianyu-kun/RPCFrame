@@ -66,13 +66,14 @@ namespace mrpc {
         initWakeUpFDEevent();
         // 初始化定时任务
         initTimer();
+        initTimer2();
         INFOLOG("succeed create event loop in thread [%d]", m_pid);
     }
 
     mrpc::EventLoop::~EventLoop() {
         // 需要处理fd的关闭和指针的释放，但是这里都是智能指针所以不用管
         close(m_epoll_fd);
-        close(m_timer->getFD());
+//        close(m_timer->getFD());
         close(m_wakeup_fd);
     }
 
@@ -268,16 +269,33 @@ namespace mrpc {
     }
 
 
-    void EventLoop::addTimerEvent(TimerEventInfo::ptr time_event) {
-        m_timer->addTimerEvent(std::move(time_event));
+//    void EventLoop::addTimerEvent(TimerEventInfo::ptr time_event) {
+//        m_timer->addTimerEvent(std::move(time_event));
+//    }
+
+//    void EventLoop::deleteTimerEvent(TimerEventInfo::ptr time_event) {
+//        m_timer->deleteTimerEvent(std::move(time_event));
+//    }
+//
+//    void EventLoop::resetTimerEvent(TimerEventInfo::ptr time_event) {
+//        m_timer->resetTimerEvent(std::move(time_event));
+//    }
+
+    void EventLoop::initTimer2() {
+        m_timer2 = std::make_shared<TimerQueue>();
+        addEpollEvent(m_timer2);
     }
 
-    void EventLoop::deleteTimerEvent(TimerEventInfo::ptr time_event) {
-        m_timer->deleteTimerEvent(std::move(time_event));
+    TimerId EventLoop::addTimerEvent2(TimerQueue::TimerCallback cb, Timestamp when, double interval) {
+        return m_timer2->addTimer(std::move(cb),when,interval);
     }
 
-    void EventLoop::resetTimerEvent(TimerEventInfo::ptr time_event) {
-        m_timer->resetTimerEvent(std::move(time_event));
+    void EventLoop::cancel2(TimerId timerId) {
+        m_timer2->cancel(timerId);
+    }
+
+    void EventLoop::resettimer(TimerId timerId) {
+        m_timer2->resettimer(timerId);
     }
 
 }

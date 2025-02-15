@@ -12,7 +12,9 @@ namespace mrpc {
         m_heart_timer_event = std::make_shared<TimerEventInfo>(500,
                                                                true,
                                                                std::bind(&RPCServer::heartToCenter, this));
-        getMainEventLoop()->addTimerEvent(m_heart_timer_event);
+//        getMainEventLoop()->addTimerEvent(m_heart_timer_event);
+        Timestamp timestamp1(addTime(Timestamp::now(), 5));
+        auto id1 = getMainEventLoop()->addTimerEvent2(std::bind(&RPCServer::heartToCenter, this), timestamp1, 5);
         initServlet();
     }
 

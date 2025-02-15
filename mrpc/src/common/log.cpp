@@ -42,7 +42,7 @@ namespace mrpc {
     void Logger::InitGlobalLogger(int type /*= 1*/, bool is_server /* true */) {
         LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
         printf("Init log level [%s]\n", LogLevelToString(global_log_level).c_str());
-        g_logger = std::make_unique<Logger>(global_log_level,type,is_server);
+        g_logger = std::make_unique<Logger>(global_log_level, type, is_server);
         g_logger->init_log_timer();
     }
 
@@ -103,7 +103,12 @@ namespace mrpc {
         // 没来得及运行定时任务进行输出就结束进程了，造成日志出问题 已经完成
         // ================================================NEW=======================================================
         m_event_loop = EventLoop::GetCurrentEventLoop(); // 这里也是避免上面出现的相互依赖的问题
-        m_event_loop->addTimerEvent(m_timer_event);
+        Timestamp timestamp1(addTime(Timestamp::now(), 2));
+
+        auto id1 = m_event_loop->addTimerEvent2(std::bind(&Logger::syncLoop, this), timestamp1,
+                                                2);
+
+//        m_event_loop->addTimerEvent(m_timer_event);
         // signal 函数允许程序定义当某些信号（如 SIGINT，由按下 Ctrl+C 产生）到达时要执行的处理程序。
         signal(SIGSEGV, CoreDumpHandler);
         signal(SIGABRT, CoreDumpHandler);

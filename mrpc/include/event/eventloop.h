@@ -15,6 +15,8 @@
 #include "event/wake_up_fd_event.h"
 #include "event/timer_fd_event.h"
 
+#include "event/timer_queue.h"
+
 namespace mrpc {
 
     class EventLoop {
@@ -50,7 +52,13 @@ namespace mrpc {
 
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 
-        void addTimerEvent(TimerEventInfo::ptr time_event);
+//        void addTimerEvent(TimerEventInfo::ptr time_event);
+
+        TimerId addTimerEvent2(TimerQueue::TimerCallback cb, Timestamp when, double interval);
+
+        void cancel2(TimerId timerId);
+
+        void resettimer(TimerId timerId);
 
         void resetTimerEvent(TimerEventInfo::ptr time_event);
 
@@ -62,6 +70,8 @@ namespace mrpc {
         void initWakeUpFDEevent();
 
         void initTimer();
+
+        void initTimer2();
 
     private:
         // event loop每个线程只能有一个，线程号
@@ -84,6 +94,8 @@ namespace mrpc {
         Mutex m_mutex;
         // time定时任务
         TimerFDEvent::ptr m_timer{nullptr};
+
+        TimerQueue::ptr m_timer2;
     };
 
 }

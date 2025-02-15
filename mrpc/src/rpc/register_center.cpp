@@ -61,6 +61,7 @@ namespace mrpc {
 
     void RegisterCenter::handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response,
                                               HTTPSession::ptr session) {
+        DEBUGLOG("=== HIT ONCE ====");
         RWMutex::WriteLock lock(m_mutex);
         auto all_services_names = request->m_request_body_data_map["all_services_names"];
         std::vector<std::string> all_services_names_vec;
@@ -75,13 +76,23 @@ namespace mrpc {
         INFOLOG("%s | server register success, server addr [%s], services [%s]", request->m_msg_id.c_str(),
                 server_addr->toString().c_str(), getAllServiceNamesStr().c_str());
         // 给该服务器设置心跳定时器，每次server创建的client的端口号都不尽相同，所以需要rpc server在请求体中指明具体地址
-        auto tmp_heart = std::make_shared<TimerEventInfo>(10000,
-                                                          false, [server_addr, this]() {
-                    this->serverTimeOut(server_addr);
-                });
-        m_servers_timer_event.emplace(server_addr->toString(), tmp_heart);
-        getMainEventLoop()->addTimerEvent(tmp_heart);
-        DEBUGLOG("==== add: %s =====", server_addr->toString().c_str());
+//        auto tmp_heart = std::make_shared<TimerEventInfo>(10000,
+//                                                          false, [server_addr, this]() {
+//                    this->serverTimeOut(server_addr);
+//                });
+//        tmp_heart->setname("hearts");
+//        m_servers_timer_event.emplace(server_addr->toString(), tmp_heart);
+//        getMainEventLoop()->addTimerEvent(tmp_heart);
+//        DEBUGLOG("==== add: %s =====", server_addr->toString().c_str());
+        if (m_servers_timer_event2.find(server_addr->toString()) == m_servers_timer_event2.end()) {
+            Timestamp timestamp1(addTime(Timestamp::now(), 10));
+            auto id1 = getMainEventLoop()->addTimerEvent2([server_addr, this]() {
+                this->serverTimeOut(server_addr);
+            }, timestamp1, 0);
+            m_servers_timer_event2.emplace(server_addr->toString(), id1);
+        }else{
+            DEBUGLOG("==== NOT FIRST =====");
+        }
     }
 
     void RegisterCenter::handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response,
@@ -129,7 +140,9 @@ namespace mrpc {
         auto server_addr = std::make_shared<IPNetAddr>(request->m_request_body_data_map["server_ip"],
                                                        std::stoi(request->m_request_body_data_map["server_port"]));
         auto server_addr_str = server_addr->toString();
-        getMainEventLoop()->resetTimerEvent(m_servers_timer_event[server_addr_str]);
+        DEBUGLOG("==== %s =====",server_addr_str.c_str());
+//        getMainEventLoop()->resetTimerEvent(m_servers_timer_event[server_addr_str]);
+        getMainEventLoop()->resettimer(m_servers_timer_event2[server_addr_str]);
         HTTPManager::body_type body;
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE, body);
@@ -138,12 +151,20 @@ namespace mrpc {
 
     void RegisterCenter::serverTimeOut(NetAddr::ptr server_addr) {
         auto server_addr_str = server_addr->toString();
-        DEBUGLOG("===== sdebugs ====== %s", server_addr_str.c_str());
-        if (m_servers_timer_event.find(server_addr_str) != m_servers_timer_event.end()) {
-            DEBUGLOG("===== server time out ====== %d, %s", m_servers_timer_event.size(), server_addr_str.c_str());
-            auto tmp = m_servers_timer_event[server_addr_str];
-            getMainEventLoop()->deleteTimerEvent(tmp);
-            m_servers_timer_event.erase(server_addr_str);
+        DEBUGLOG("===== server addr ====== %s", server_addr_str.c_str());
+//        if (m_servers_timer_event.find(server_addr_str) != m_servers_timer_event.end()) {
+//            DEBUGLOG("===== server time out ====== %d, %s", m_servers_timer_event.size(), server_addr_str.c_str());
+//            auto tmp = m_servers_timer_event[server_addr_str];
+//            getMainEventLoop()->deleteTimerEvent(tmp);
+//            m_servers_timer_event.erase(server_addr_str);
+//        }
+
+        if (m_servers_timer_event2.find(server_addr_str) != m_servers_timer_event2.end()) {
+            DEBUGLOG("===== server time out ======");
+//            auto tmp = m_servers_timer_event2[server_addr_str];
+//            getMainEventLoop()->deleteTimerEvent(tmp);
+            getMainEventLoop()->cancel2(m_servers_timer_event2[server_addr_str]);
+            m_servers_timer_event2.erase(server_addr_str);
         }
     }
 

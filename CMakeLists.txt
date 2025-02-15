@@ -29,11 +29,17 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/balance SRC_NET_BALANCE_
 
 # 本项目的lib
 add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_LIST} ${SRC_NET_PROTOCOL_LIST}
-        ${SRC_NET_HTTP_LIST} ${SRC_NET_TINYPB_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_SOCKET_LIST} ${SRC_NET_BALANCE_LIST})
+        ${SRC_NET_HTTP_LIST} ${SRC_NET_TINYPB_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_SOCKET_LIST} ${SRC_NET_BALANCE_LIST}
+        mrpc/include/common/timestamp.h
+        mrpc/src/common/timestamp.cpp
+        mrpc/include/event/timer.h
+        mrpc/src/event/timer.cpp
+        mrpc/include/event/timer_queue.h
+        mrpc/src/event/timer_queue.cpp)
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
-set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
+set(PROTOBUF_LIB /usr/local/lib/libprotobuf.a)
 set(TINYXML_LIB /usr/lib/libtinyxml.a)
 
 # 总lib
@@ -97,3 +103,10 @@ add_executable(test_rpc_server2
         testcases/order.pb.h
         mrpc/include/rpc/rpc_publish_listener.h)
 target_link_libraries(test_rpc_server2 ${ALL_LIBS})
+
+add_executable(test_timer_queue
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_timer_queue.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h
+        mrpc/include/rpc/rpc_publish_listener.h)
+target_link_libraries(test_timer_queue ${ALL_LIBS})

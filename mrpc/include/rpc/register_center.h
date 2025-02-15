@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include "net/tcp/tcp_server.h"
 #include "net/tcp/tcp_client.h"
+#include "common/timestamp.h"
 
 //#define HEART_TIMER_EVENT_INTERVAL 10000
 
@@ -39,6 +40,9 @@ namespace mrpc {
         std::unordered_map<std::string, std::vector<std::string>> m_servers_service;
         // 一个IP维护一个定时器，收到心跳包后重新设置计时器
         std::unordered_map<std::string, TimerEventInfo::ptr> m_servers_timer_event;
+
+
+        std::unordered_map<std::string, TimerId> m_servers_timer_event2;
 
         RWMutex m_mutex;
 

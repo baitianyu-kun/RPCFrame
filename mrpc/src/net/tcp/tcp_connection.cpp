@@ -73,11 +73,16 @@ namespace mrpc {
                 // 此时程序不会阻塞起来等待数据准备就绪返回，read函数会返回一个错误EAGAIN，提示你的应用程序现在没有数据可读请稍后再试。
                 is_read_and_write_all = true;
                 break;
-            }else{
+            } else {
                 if (m_connection_type == TCPConnectionByClient) {
                     m_client_error_done(); // 作为客户端，就直接停止执行eventloop，断开client与server的连接
                 }
             }
+        }
+        // 读取完成后取消监听，否则会触发两次回调函数
+        if (is_read_and_write_all) {
+            m_fd_event->cancel_listen(FDEvent::IN_EVENT);
+            m_event_loop->addEpollEvent(m_fd_event);
         }
         if (is_close) {
             INFOLOG("peer closed, peer addr [%s], clientfd [%d]", m_peer_addr->toString().c_str(), m_client_fd);
@@ -159,7 +164,7 @@ namespace mrpc {
                 // 等下一次再发送
                 ERRORLOG("write data error, errno EAEAGAIN and rt -1, may be send buffer is full");
                 break;
-            }else{
+            } else {
                 clear();
                 if (m_connection_type == TCPConnectionByClient) {
                     m_client_error_done(); // 作为客户端，就直接停止执行eventloop，断开client与server的连接

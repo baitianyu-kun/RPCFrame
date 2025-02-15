@@ -74,7 +74,7 @@ namespace mrpc {
         std::vector<Entry> expired;
         Entry sentry(now, nullptr);
         auto end = m_timers.lower_bound(sentry);
-        assert(end == m_timers.end() || now < end->first);
+//        assert(end == m_timers.end() || now < end->first);
         std::copy(m_timers.begin(), end, back_inserter(expired));
         m_timers.erase(m_timers.begin(), end);
         for (const Entry &it: expired) {

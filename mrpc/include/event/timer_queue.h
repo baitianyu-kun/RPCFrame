@@ -28,6 +28,8 @@ namespace mrpc {
         // 插入定时器（回调函数，到期时间，是否重复）
         TimerId addTimer(TimerCallback cb, Timestamp when, double interval);
 
+        TimerList timersz() { return timers_; };
+
         void cancel(TimerId timerId);
 
         void resettimer(TimerId timerId);

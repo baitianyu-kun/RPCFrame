@@ -61,7 +61,7 @@ namespace mrpc {
 
     void RegisterCenter::handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response,
                                               HTTPSession::ptr session) {
-        DEBUGLOG("=== HIT ONCE ====");
+//        DEBUGLOG("=== HIT ONCE ====");
         RWMutex::WriteLock lock(m_mutex);
         auto all_services_names = request->m_request_body_data_map["all_services_names"];
         std::vector<std::string> all_services_names_vec;
@@ -85,13 +85,21 @@ namespace mrpc {
 //        getMainEventLoop()->addTimerEvent(tmp_heart);
 //        DEBUGLOG("==== add: %s =====", server_addr->toString().c_str());
         if (m_servers_timer_event2.find(server_addr->toString()) == m_servers_timer_event2.end()) {
-            Timestamp timestamp1(addTime(Timestamp::now(), 10));
+            Timestamp timestamp1(addTime(Timestamp::now(), 5));
             auto id1 = getMainEventLoop()->addTimerEvent2([server_addr, this]() {
                 this->serverTimeOut(server_addr);
             }, timestamp1, 0);
             m_servers_timer_event2.emplace(server_addr->toString(), id1);
-        }else{
-            DEBUGLOG("==== NOT FIRST =====");
+//            getMainEventLoop()->timersz();
+
+//            DEBUGLOG("===========================================")
+//            for (const auto &item: getMainEventLoop()->timersz()) {
+//                DEBUGLOG("==== item: %s, %s", item.first.toFormattedString().c_str(), item.second->expiration().toFormattedString().c_str());
+//            }
+//            DEBUGLOG("===========================================")
+
+        } else {
+//            DEBUGLOG("==== NOT FIRST =====");
         }
     }
 
@@ -140,9 +148,25 @@ namespace mrpc {
         auto server_addr = std::make_shared<IPNetAddr>(request->m_request_body_data_map["server_ip"],
                                                        std::stoi(request->m_request_body_data_map["server_port"]));
         auto server_addr_str = server_addr->toString();
-        DEBUGLOG("==== %s =====",server_addr_str.c_str());
+//        DEBUGLOG("==== %s =====", server_addr_str.c_str());
 //        getMainEventLoop()->resetTimerEvent(m_servers_timer_event[server_addr_str]);
-        getMainEventLoop()->resettimer(m_servers_timer_event2[server_addr_str]);
+//        getMainEventLoop()->resettimer(m_servers_timer_event2[server_addr_str]);
+
+        getMainEventLoop()->cancel2(m_servers_timer_event2[server_addr_str]);
+//        DEBUGLOG("======= 1seq %d", m_servers_timer_event2[server_addr_str].sequence_);
+        Timestamp timestamp1(addTime(Timestamp::now(), 5));
+        auto id1 = getMainEventLoop()->addTimerEvent2([server_addr, this]() {
+            this->serverTimeOut(server_addr);
+        }, timestamp1, 0.0);
+        m_servers_timer_event2[server_addr_str] = id1;
+//        DEBUGLOG("======= 2seq %d", m_servers_timer_event2[server_addr_str].sequence_);
+//
+//        DEBUGLOG("===========================================")
+//        for (const auto &item: getMainEventLoop()->timersz()) {
+//            DEBUGLOG("==== item: %s, %s", item.first.toFormattedString().c_str(), item.second->expiration().toFormattedString().c_str());
+//        }
+//        DEBUGLOG("===========================================")
+
         HTTPManager::body_type body;
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE, body);
@@ -150,6 +174,7 @@ namespace mrpc {
     }
 
     void RegisterCenter::serverTimeOut(NetAddr::ptr server_addr) {
+        RWMutex::WriteLock lock(m_mutex);
         auto server_addr_str = server_addr->toString();
         DEBUGLOG("===== server addr ====== %s", server_addr_str.c_str());
 //        if (m_servers_timer_event.find(server_addr_str) != m_servers_timer_event.end()) {

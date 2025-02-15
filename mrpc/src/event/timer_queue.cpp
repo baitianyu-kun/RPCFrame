@@ -100,6 +100,7 @@ namespace mrpc {
     }
 
     void TimerQueue::reset(const std::vector<Entry> &expired, Timestamp now) {
+        Timestamp nextExpire;
         for (const Entry &it: expired) {
             ActiveTimer timer(it.second, it.second->sequence());
             if (it.second->repeat()
@@ -110,11 +111,27 @@ namespace mrpc {
                 // FIXME move to a free list
                 delete it.second; // FIXME: no delete please
             }
-            // 如果重新插入了定时器，需要继续重置timerfd
-            if (!timers_.empty()) {
-                resetTimerfd(m_fd, (timers_.begin()->second)->expiration());
-            }
         }
+        if (!timers_.empty()) {
+            nextExpire = timers_.begin()->second->expiration();
+            resetTimerfd(m_fd, nextExpire);
+        }
+
+//        for (const Entry &it: expired) {
+//            ActiveTimer timer(it.second, it.second->sequence());
+//            if (it.second->repeat()
+//                && cancelingTimers_.find(timer) == cancelingTimers_.end()) {
+//                it.second->restart(now);
+//                insert(it.second);
+//            } else {
+//                // FIXME move to a free list
+//                delete it.second; // FIXME: no delete please
+//            }
+//            // 如果重新插入了定时器，需要继续重置timerfd
+//            if (!timers_.empty()) {
+//                resetTimerfd(m_fd, (timers_.begin()->second)->expiration());
+//            }
+//        }
     }
 
     bool TimerQueue::insert(Timer *timer) {
@@ -128,6 +145,7 @@ namespace mrpc {
         {
             std::pair<TimerList::iterator, bool> result
                     = timers_.insert(Entry(when, timer));
+
             assert(result.second);
             (void) result;
         }
@@ -149,21 +167,22 @@ namespace mrpc {
             size_t n = timers_.erase(Entry(it->first->expiration(), it->first));
             assert(n == 1);
             (void) n;
-//            delete it->first; // 这里删除裸指针后就不能再次添加了
+            delete it->first; // 这里删除裸指针后就不能再次添加了
             activeTimers_.erase(it);
-            DEBUGLOG("==== ALREADY DELETE =====");
+//            DEBUGLOG("==== ALREADY DELETE =====");
         } else if (callingExpiredTimers_) {
             cancelingTimers_.insert(timer);
+//            DEBUGLOG("==== cancelingTimers_.insert(timer); =====");
         }
         assert(timers_.size() == activeTimers_.size());
     }
 
     void TimerQueue::resettimer(TimerId timerId) {
-        cancel(timerId);
-        auto timer = timerId.timer_;
-        Timestamp newtimp(addTime(Timestamp::now(), 10)); // 重新设置定时器，根据间隔10s
-        timer->setexpiration(newtimp);
-        addTimerInLoop(timer);
-        DEBUGLOG("===== ALREADY RESET ====");
+//        cancel(timerId);
+//        auto timer = timerId.timer_;
+//        Timestamp newtimp(addTime(Timestamp::now(), 10)); // 重新设置定时器，根据间隔10s
+//        timer->setexpiration(newtimp);
+////        addTimerInLoop(timer);
+//        DEBUGLOG("===== ALREADY RESET ====");
     }
 }

@@ -60,9 +60,11 @@ namespace mrpc {
 
         void resettimer(TimerId timerId);
 
-        void resetTimerEvent(TimerEventInfo::ptr time_event);
+//        void resetTimerEvent(TimerEventInfo::ptr time_event);
+//
+//        void deleteTimerEvent(TimerEventInfo::ptr time_event);
 
-        void deleteTimerEvent(TimerEventInfo::ptr time_event);
+        TimerQueue::TimerList timersz() { return m_timer2->timersz(); };
 
     private:
         void dealWakeup();

@@ -110,3 +110,10 @@ add_executable(test_timer_queue
         testcases/order.pb.h
         mrpc/include/rpc/rpc_publish_listener.h)
 target_link_libraries(test_timer_queue ${ALL_LIBS})
+
+add_executable(test_rpc_server3
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server3.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h
+        mrpc/include/rpc/rpc_publish_listener.h)
+target_link_libraries(test_rpc_server3 ${ALL_LIBS})

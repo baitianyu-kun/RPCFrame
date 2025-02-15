@@ -34,15 +34,9 @@ namespace mrpc {
     }
 
     void TCPServer::init() {
-        m_clear_client_timer_event = std::make_shared<TimerEventInfo>(TIMER_EVENT_INTERVAL,
-                                                                      true,
-                                                                      std::bind(&TCPServer::clearClientTimerFunc,
-                                                                                this));
-//        m_main_event_loop->addTimerEvent(m_clear_client_timer_event);
-//        Timestamp timestamp1(addTime(Timestamp::now(), 5));
-//        auto id1 = m_main_event_loop->addTimerEvent2(std::bind(&TCPServer::clearClientTimerFunc,
-//                                                               this), timestamp1, 5);
-
+        Timestamp timestamp(addTime(Timestamp::now(), 2));
+        auto new_timer_id = m_main_event_loop->addTimerEvent(std::bind(&TCPServer::clearClientTimerFunc,
+                                                               this), timestamp, 2);
         m_listen_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPServer::onAccept, this));
         m_main_event_loop->addEpollEvent(m_listen_fd_event);
     }

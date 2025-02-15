@@ -52,36 +52,22 @@ namespace mrpc {
 
         void addTask(std::function<void()> callback, bool is_wake_up = false);
 
-//        void addTimerEvent(TimerEventInfo::ptr time_event);
+        TimerId addTimerEvent(TimerQueue::TimerCallback cb, Timestamp when, double interval);
 
-        TimerId addTimerEvent2(TimerQueue::TimerCallback cb, Timestamp when, double interval);
-
-        void cancel2(TimerId timerId);
-
-        void resettimer(TimerId timerId);
-
-//        void resetTimerEvent(TimerEventInfo::ptr time_event);
-//
-//        void deleteTimerEvent(TimerEventInfo::ptr time_event);
-
-        TimerQueue::TimerList timersz() { return m_timer2->timersz(); };
+        void deleteTimerEvent(TimerId timerId);
 
     private:
         void dealWakeup();
 
-        void initWakeUpFDEevent();
+        void initWakeUpFDEvent();
 
         void initTimer();
-
-        void initTimer2();
 
     private:
         // event loop每个线程只能有一个，线程号
         pid_t m_pid;
-        // 唤醒epoll wait的wake up fd
-        int m_wakeup_fd{0};
         // wake up event
-        WakeUpFDEvent::wake_up_fd_event_sptr_t_ m_wakeup_fd_event{nullptr};
+        WakeUpFDEvent::ptr m_wakeup_fd_event{nullptr};
         // epoll的fd
         int m_epoll_fd{0};
         // 当前epoll监听的所有fds
@@ -95,9 +81,7 @@ namespace mrpc {
         // 需要加锁
         Mutex m_mutex;
         // time定时任务
-        TimerFDEvent::ptr m_timer{nullptr};
-
-        TimerQueue::ptr m_timer2;
+        TimerQueue::ptr m_timer;
     };
 
 }

@@ -103,12 +103,9 @@ namespace mrpc {
         // 没来得及运行定时任务进行输出就结束进程了，造成日志出问题 已经完成
         // ================================================NEW=======================================================
         m_event_loop = EventLoop::GetCurrentEventLoop(); // 这里也是避免上面出现的相互依赖的问题
-        Timestamp timestamp1(addTime(Timestamp::now(), 2));
+        Timestamp timestamp(addTime(Timestamp::now(), 2));
+        auto new_timer_id = m_event_loop->addTimerEvent(std::bind(&Logger::syncLoop, this), timestamp, 2);
 
-        auto id1 = m_event_loop->addTimerEvent2(std::bind(&Logger::syncLoop, this), timestamp1,
-                                                2);
-
-//        m_event_loop->addTimerEvent(m_timer_event);
         // signal 函数允许程序定义当某些信号（如 SIGINT，由按下 Ctrl+C 产生）到达时要执行的处理程序。
         signal(SIGSEGV, CoreDumpHandler);
         signal(SIGABRT, CoreDumpHandler);

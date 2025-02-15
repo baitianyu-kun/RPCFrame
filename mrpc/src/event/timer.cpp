@@ -1,17 +1,23 @@
 //
 // Created by baitianyu on 2/15/25.
 //
+#include <unistd.h>
 #include "event/timer.h"
+#include "common/log.h"
 
 namespace mrpc {
-    AtomicInt64 Timer::s_numCreated_;
+    AtomicInt64 Timer::m_s_numCreated;
 
     void Timer::restart(Timestamp now) {
-        if (repeat_) {
+        if (m_repeat) {
             // 如果是重复定时事件，则继续添加定时事件，得到新事件到期事件
-            expiration_ = addTime(now, interval_);
+            m_expiration = addTime(now, m_interval);
         } else {
-            expiration_ = Timestamp();
+            m_expiration = Timestamp();
         }
+    }
+
+    Timer::~Timer() {
+        DEBUGLOG("~Timer");
     }
 }

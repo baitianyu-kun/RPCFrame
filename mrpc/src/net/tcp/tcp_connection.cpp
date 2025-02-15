@@ -6,6 +6,7 @@
 #include "common/log.h"
 #include "common/string_util.h"
 #include "event/fd_event_pool.h"
+#include "common/util.h"
 
 namespace mrpc {
 
@@ -38,10 +39,6 @@ namespace mrpc {
         if (m_state != Connected) {
             ERRORLOG("onRead error, client has already disconnected, addr [%s], clientfd [%d]",
                      m_peer_addr->toString().c_str(), m_client_fd);
-//            clear();
-//            if (m_connection_type == TCPConnectionByClient) {
-//                m_client_error_done(); // 作为客户端，就直接停止执行eventloop，断开client与server的连接
-//            }
             return;
         }
         // 是否从socket上读取并全部写入到in buffer中
@@ -79,11 +76,7 @@ namespace mrpc {
                 }
             }
         }
-        // 读取完成后取消监听，否则会触发两次回调函数
-        if (is_read_and_write_all) {
-            m_fd_event->cancel_listen(FDEvent::IN_EVENT);
-            m_event_loop->addEpollEvent(m_fd_event);
-        }
+        // 读取完成后不需要取消监听，否则无法判断什么时候ret == 0，即判断关闭
         if (is_close) {
             INFOLOG("peer closed, peer addr [%s], clientfd [%d]", m_peer_addr->toString().c_str(), m_client_fd);
             clear(); // 取消各种读写监听以及删除当前的m_fd_event
@@ -234,6 +227,9 @@ namespace mrpc {
     void TCPConnection::listenRead() {
         m_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPConnection::onRead, this));
         m_event_loop->addEpollEvent(m_fd_event);
+        // 在TCPServer接受连接后，TCPServer的main eventloop构造TCPConnection，并设置listenRead，此时这个IO线程还在epoll
+        // 因此需要wakeupIO线程，即主线程通过向eventfd写入事件来唤醒这个线程，并写入到这个线程的pending events中，线程被唤醒后
+        // 执行pending events，随后执行将m_fd_event添加到自己的epoll中的事件
     }
 
     NetAddr::ptr TCPConnection::getLocalAddr() {

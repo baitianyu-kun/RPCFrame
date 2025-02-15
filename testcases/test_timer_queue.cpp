@@ -27,21 +27,21 @@ namespace mrpc {
         auto cb1 = []() {
             DEBUGLOG("hello");
         };
-        Timestamp timestamp1(addTime(Timestamp::now(), 5));
-        auto id1 = loop->addTimerEvent2(std::move(cb1), timestamp1, 0);
-
-
-        Timestamp timestamp2(addTime(Timestamp::now(), 1));
-        int i = 0;
-        loop->addTimerEvent2([loop, id1, &i]() {
-            if (i <= 20) {
-                loop->resettimer(id1); // 小于10秒时候，每隔1秒重设一下timer1，使得其一直不可以触发，大于10秒后timer正常触发
-                i++;
-                DEBUGLOG("resets")
-            }
-        }, timestamp2, 1);
-
-        loop->loop();
+//        Timestamp timestamp1(addTime(Timestamp::now(), 5));
+//        auto id1 = loop->addTimerEvent(std::move(cb1), timestamp1, 0);
+//
+//
+//        Timestamp timestamp2(addTime(Timestamp::now(), 1));
+//        int i = 0;
+//        loop->addTimerEvent([loop, id1, &i]() {
+//            if (i <= 20) {
+//                loop->resettimer(id1); // 小于10秒时候，每隔1秒重设一下timer1，使得其一直不可以触发，大于10秒后timer正常触发
+//                i++;
+//                DEBUGLOG("resets")
+//            }
+//        }, timestamp2, 1);
+//
+//        loop->loop();
     }
 }
 

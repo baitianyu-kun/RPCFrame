@@ -5,7 +5,6 @@
 #include <sys/epoll.h>
 #include <cstring>
 #include <utility>
-#include <sys/eventfd.h>
 #include "event/eventloop.h"
 #include "common/log.h"
 #include "common/util.h"
@@ -63,18 +62,14 @@ namespace mrpc {
             exit(0);
         }
         // 初始化唤醒fd
-        initWakeUpFDEevent();
+        initWakeUpFDEvent();
         // 初始化定时任务
         initTimer();
-        initTimer2();
         INFOLOG("succeed create event loop in thread [%d]", m_pid);
     }
 
     mrpc::EventLoop::~EventLoop() {
-        // 需要处理fd的关闭和指针的释放，但是这里都是智能指针所以不用管
         close(m_epoll_fd);
-//        close(m_timer->getFD());
-        close(m_wakeup_fd);
     }
 
     void mrpc::EventLoop::loop() {
@@ -146,7 +141,7 @@ namespace mrpc {
     // 执行完任务队列以后，loop会阻塞在epoll wait中，无法继续执行下一次任务队列
     // 所以需要wake up epoll wait打破阻塞，去完成下一次任务队列
     void mrpc::EventLoop::wakeup() {
-        INFOLOG("WAKE UP");
+        INFOLOG("WAKE UP, %d", getThreadId());
         m_wakeup_fd_event->wakeup();
     }
 
@@ -165,33 +160,8 @@ namespace mrpc {
         }
     }
 
-    // 初始化wakeup fd
-    // eventfd是linux 2.6.22后系统提供的一个轻量级的进程间通信的系统调用，eventfd通过一个进程间共享的64位计数器完成进程间通信，
-    // 这个计数器由在linux内核空间维护，用户可以通过调用write方法向内核空间写入一个64位的值，也可以调用read方法读取这个值。
-    // 例如父进程创建子进程后，父进程休息一秒钟后向eventfd写入，然后子进程接收到变化之后输出
-
-    // 64位，所以只需要写入8个byte就可以，所以在WakeUpFDEvent中wakeup写入8个byte
-    void EventLoop::initWakeUpFDEevent() {
-        // 先创建eventfd来执行唤醒操作
-        m_wakeup_fd = eventfd(0, EFD_NONBLOCK);
-        if (m_wakeup_fd < 0) {
-            ERRORLOG("failed to create event loop, eventfd create error, error info [%d]", errno);
-            exit(0);
-        }
-        INFOLOG("wakeup fd [%d]", m_wakeup_fd);
-        // 创建wake up event事件，确定监听类型，并使用lambda固定回调函数
-        m_wakeup_fd_event = std::make_shared<WakeUpFDEvent>(m_wakeup_fd);
-        // 通过“函数体”后面的‘()’传入参数 auto x = [](int a){cout << a << endl;}(123);
-        // 所以lambda表达式括号内的参数就是这么传入的，即123
-        m_wakeup_fd_event->listen(FDEvent::IN_EVENT, [this]() {
-            char buff[WAKE_UP_BUFF_LEN];
-            // 该错误经常出现在当应用程序进行一些非阻塞(non-blocking)操作(对文件或socket)的时候。
-            // 以O_NONBLOCK的标志打开文件/socket/FIFO，如果你连续做read操作而没有数据可读，此时程序不会阻塞起来等待数据准备就绪返回
-            // read函数会返回一个错误EAGAIN，提示你的应用程序现在没有数据可读请稍后再试。
-            while (read(m_wakeup_fd, buff, 8) != -1 && errno != EAGAIN) {}
-            DEBUGLOG("wake up succeed! read full bytes from wakeup fd[%d]", m_wakeup_fd);
-        });
-        // 添加到epoll event中
+    void EventLoop::initWakeUpFDEvent() {
+        m_wakeup_fd_event = std::make_shared<WakeUpFDEvent>();
         addEpollEvent(m_wakeup_fd_event);
     }
 
@@ -207,29 +177,9 @@ namespace mrpc {
 
     void EventLoop::addEpollEvent(FDEvent::ptr fd_event_s_ptr) {
         auto fd_event = fd_event_s_ptr.get();
-        // 创建epoll event去监听wakeup的读取事件
-        // epoll_event tmp_event;
-        // tmp_event.events = EPOLLIN; // 读取事件
-        // 添加到哪个epollfd里，要添加的fd是什么，要添加还是删除，要添加什么事件
-        // 为了指定要添加的文件描述符以及感兴趣的事件类型，需要构造一个epoll_event结构并传递给epoll_ctl函数。
-        // 在epoll_ctl函数调用期间，它会将tmp_event的内容从用户空间拷贝到内核空间，以便在内核中进行相应的操作。
-        // 确保内核能够访问和使用这个事件结构体的内容，而不依赖于用户空间的内存。
-        // int ret = epoll_ctl(m_epoll_fd, EPOLL_CTL_ADD, m_wakeup_fd, &tmp_event);
         if (isInLoopThread()) {
             ADD_OR_MODIFY_TO_EPOLL();
         } else {
-            // TCP connection是主线程中的建立连接，但是此时eventloop在io thread中
-            // 所以出现主线程和子线程同时访问一个eventloop的情况，所以需要进行处理
-
-            // 当前thread不在当前loop中，是其他线程要往进添加
-            // 因为epoll的操作必须在所属线程中进行，不能直接在当前线程中调用ADD_TO_EPOLL()函数
-            // 通过调用addTask函数将这个lambda表达式封装成任务，并设置is_wake_up参数为true，以确保事件循环在添加任务后被唤醒。
-
-            // 在addTask函数中，将任务（即 lambda 表达式）添加到待执行任务队列中，
-            // 并在需要的时候调用wakeup函数唤醒事件循环线程。这样，在事件循环线程中会执行待执行任务队列中的任务，
-            // 其中就包括了lambda表达式，从而间接地调用了ADD_TO_EPOLL()函数。
-            // 通过这种方式，可以确保在不同线程中调用addEpollEvent时，将任务传递给事件循环所属的线程执行，
-            // 以保证对 epoll 实例的操作在正确的线程中进行。
             auto callback = [this, fd_event]() {
                 ADD_OR_MODIFY_TO_EPOLL();
             };
@@ -249,7 +199,7 @@ namespace mrpc {
         }
     }
 
-    // 判断是否是当前进程在loop中
+    // 判断是否是当前线程在loop中
     bool EventLoop::isInLoopThread() {
         return m_pid == getThreadId();
     }
@@ -262,41 +212,19 @@ namespace mrpc {
         m_stop_flag = false;
     }
 
-
     void EventLoop::initTimer() {
-        m_timer = std::make_shared<TimerFDEvent>();
+        m_timer = std::make_shared<TimerQueue>();
         addEpollEvent(m_timer);
     }
 
-
-//    void EventLoop::addTimerEvent(TimerEventInfo::ptr time_event) {
-//        m_timer->addTimerEvent(std::move(time_event));
-//    }
-
-//    void EventLoop::deleteTimerEvent(TimerEventInfo::ptr time_event) {
-//        m_timer->deleteTimerEvent(std::move(time_event));
-//    }
-//
-//    void EventLoop::resetTimerEvent(TimerEventInfo::ptr time_event) {
-//        m_timer->resetTimerEvent(std::move(time_event));
-//    }
-
-    void EventLoop::initTimer2() {
-        m_timer2 = std::make_shared<TimerQueue>();
-        addEpollEvent(m_timer2);
+    TimerId EventLoop::addTimerEvent(TimerQueue::TimerCallback cb, Timestamp when, double interval) {
+        return m_timer->addTimer(cb, when, interval);
     }
 
-    TimerId EventLoop::addTimerEvent2(TimerQueue::TimerCallback cb, Timestamp when, double interval) {
-        return m_timer2->addTimer(std::move(cb),when,interval);
+    void EventLoop::deleteTimerEvent(TimerId timerId) {
+        m_timer->deleteTimer(timerId);
     }
 
-    void EventLoop::cancel2(TimerId timerId) {
-        m_timer2->cancel(timerId);
-    }
-
-    void EventLoop::resettimer(TimerId timerId) {
-        m_timer2->resettimer(timerId);
-    }
 
 }
 

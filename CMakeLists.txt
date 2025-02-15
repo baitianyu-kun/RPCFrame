@@ -35,7 +35,8 @@ add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_
         mrpc/include/event/timer.h
         mrpc/src/event/timer.cpp
         mrpc/include/event/timer_queue.h
-        mrpc/src/event/timer_queue.cpp)
+        mrpc/src/event/timer_queue.cpp
+        mrpc/include/common/int_util.h)
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib

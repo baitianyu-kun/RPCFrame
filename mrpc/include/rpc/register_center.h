@@ -53,8 +53,6 @@ namespace mrpc {
 
         void serverTimeOut(NetAddr::ptr server_addr);
 
-        TimerEventInfo::ptr m_test_timer_event;
-
     public:
         std::string getAllServiceNamesStr();
         std::string getAllServiceNamesStr2();

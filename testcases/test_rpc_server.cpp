@@ -36,7 +36,7 @@ int main() {
     Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto local_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22227);
+    auto local_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22224);
     auto register_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
     auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr);
 

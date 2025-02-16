@@ -6,7 +6,7 @@
 #include "common/log.h"
 
 namespace mrpc {
-    AtomicInt64 Timer::m_s_numCreated;
+    std::atomic<unsigned int> Timer::m_s_numCreated(0);
 
     void Timer::restart(Timestamp now) {
         if (m_repeat) {

@@ -217,12 +217,6 @@ namespace mrpc {
                 INFOLOG("%s | publish message to peer addr %s", req->m_msg_id.c_str(),
                         client->getPeerAddr()->toString().c_str());
                 client->getEventLoop()->stop();
-                client->recvResponse(request->m_msg_id,
-                                     [client, request, service_name](HTTPResponse::ptr rsp) {
-                                         client->getEventLoop()->stop();
-                                         INFOLOG("%s | success publish peer addr %s", rsp->m_msg_id.c_str(),
-                                                 client->getPeerAddr()->toString().c_str());
-                                     });
             });
         });
         io_thread->start();

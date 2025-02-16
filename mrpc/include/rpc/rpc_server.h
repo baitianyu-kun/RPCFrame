@@ -11,7 +11,7 @@
 #include "net/tcp/tcp_server.h"
 #include "net/tcp/tcp_client.h"
 
-#define HEART_TIMER_EVENT_INTERVAL 5
+#define HEART_TIMER_EVENT_INTERVAL 2
 
 // Servlet执行业务的时候调用这里的函数
 namespace mrpc {

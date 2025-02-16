@@ -12,7 +12,7 @@
 
 //#define HEART_TIMER_EVENT_INTERVAL 10000
 
-#define SERVER_TIME_OUT_INTERVAL 10
+#define SERVER_TIME_OUT_INTERVAL 5
 
 namespace mrpc {
 

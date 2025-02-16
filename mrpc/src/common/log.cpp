@@ -76,33 +76,10 @@ namespace mrpc {
     }
 
     void Logger::init_log_timer() {
-        // 初始化timer event，timer event负责定时同步log到async logger的队尾
-        // timer event info中也有debug的log信息，如果放到构造函数中的话，就会出现此处需要创建timer event info，但是timer event info中
-        // 又需要log创建，二者之间出现了相互依赖的问题，只能先创建logger，然后再去写方法init timer event
         if (m_type == 0) {
             return;
         }
-        m_timer_event = std::make_shared<TimerEventInfo>(Config::GetGlobalConfig()->m_log_sync_interval,
-                                                         true,
-                                                         std::bind(&Logger::syncLoop, this));
-
-        // ================================================OLD=======================================================
-        // TCPServer是主线程，拿了一个event loop的unique ptr，
-        // 然后每个io thread分别又拿了一个新的event loop的unique ptr(因为加了thread local关键字)
-        // 此时再move的话，会导致tcp server中的event loop被move到这里，就出了问题
-        // auto m_main_event_loop = std::move(std::unique_ptr<EventLoop>(EventLoop::GetCurrentEventLoop()));
-        // 在logger创建的时候这个是个裸指针，TCPServer或者TCPClient创建后裸指针被TCPServer或TCPClient接管，
-        // 此时下面的裸指针和TCPServer或TCPClient里面的unique ptr共同进行管理
-        // 这里可能需要改一下，感觉还是有点问题
-        // 同时，有可能在rpc channel中，还没来得及运行定时任务进行输出就结束进程了，造成日志出问题，得在结束的时候把所有日志都进行刷新
-        // 还有就是崩溃了，出现异常退出时候得捕获信号，然后输出日志
-        // ================================================OLD=======================================================
-        // ================================================NEW=======================================================
-        // 把event loop都改为shared ptr吧，因为不仅TCPServer或者TCPClient要用，可能有的其他地方也需要用到，例如log里面
-        // 崩溃日志输出 完成
-        // 没来得及运行定时任务进行输出就结束进程了，造成日志出问题 已经完成
-        // ================================================NEW=======================================================
-        m_event_loop = EventLoop::GetCurrentEventLoop(); // 这里也是避免上面出现的相互依赖的问题
+        m_event_loop = EventLoop::GetCurrentEventLoop();
         Timestamp timestamp(addTime(Timestamp::now(), 2));
         auto new_timer_id = m_event_loop->addTimerEvent(std::bind(&Logger::syncLoop, this), timestamp, 2);
 
@@ -255,11 +232,6 @@ namespace mrpc {
             }
 
             std::stringstream ss;;
-            // <<就是往流里面写入东西，<<就是从流往外面输出东西，可以到int，string等常见类型，并可以互相进行类型转换
-            // stringstream stream;
-            // stream<<t;//向流中传值
-            // out_type result;//这里存储转换结果
-            // stream>>result;//向result中写入值
             ss << logger->m_file_path << logger->m_file_name << "_" << std::string(date) << "_log.";
             std::string log_file_name = ss.str() + std::to_string(logger->m_no);
             if (logger->m_reopen_flag) {

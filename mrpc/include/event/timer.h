@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <functional>
+#include <atomic>
 #include "common/timestamp.h"
 #include "common/int_util.h"
 
@@ -23,7 +24,7 @@ namespace mrpc {
                   m_expiration(when),
                   m_interval(interval),
                   m_repeat(interval > 0.0),// 一次性定时器设置为0
-                  m_sequence(m_s_numCreated.incrementAndGet()) {}
+                  m_sequence(m_s_numCreated++) {}
 
         ~Timer();
 
@@ -43,7 +44,7 @@ namespace mrpc {
         Timestamp m_expiration;          // 下一次的超时时刻
         const double m_interval;         // 超时时间间隔，如果是一次性定时器，该值为0
         const bool m_repeat;             // 是否重复(false 表示是一次性定时器)
-        static AtomicInt64 m_s_numCreated;
+        static std::atomic<unsigned int> m_s_numCreated;
         const int64_t m_sequence;
     };
 

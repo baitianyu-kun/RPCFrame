@@ -20,7 +20,6 @@ namespace mrpc {
     private:
         NetAddr::ptr m_local_addr; // 本地监听地址
         NetAddr::ptr m_register_addr; // 注册中心地址
-        TimerEventInfo::ptr m_heart_timer_event; // 心跳包定时事件
 
     public:
         using ptr = std::unique_ptr<RPCServer>;

@@ -48,7 +48,6 @@ namespace mrpc {
         EventLoop::ptr m_main_event_loop;
         std::unique_ptr<IOThreadPool> m_io_thread_pool;
         FDEvent::ptr m_listen_fd_event;
-        TimerEventInfo::ptr m_clear_client_timer_event;
         std::set<TCPConnection::ptr> m_client_connections;
         RPCDispatcher::ptr m_dispatcher;
     };

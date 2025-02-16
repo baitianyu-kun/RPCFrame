@@ -52,6 +52,6 @@ int main() {
     Order_Stub stub(channel.get());
     while (1) {
         stub.makeOrder(controller.get(), request_msg.get(), response_msg.get(), closure.get());
-        usleep(100000); // 休眠3秒
+        usleep(3000000); // 休眠3秒
     }
 }

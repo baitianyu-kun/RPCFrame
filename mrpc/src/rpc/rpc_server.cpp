@@ -9,8 +9,8 @@ namespace mrpc {
 
     RPCServer::RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr)
             : TCPServer(local_addr), m_local_addr(local_addr), m_register_addr(register_addr) {
-        Timestamp timestamp(addTime(Timestamp::now(), 1));
-        auto new_timer_id = getMainEventLoop()->addTimerEvent(std::bind(&RPCServer::heartToCenter, this), timestamp, 1);
+        Timestamp timestamp(addTime(Timestamp::now(), HEART_TIMER_EVENT_INTERVAL));
+        auto new_timer_id = getMainEventLoop()->addTimerEvent(std::bind(&RPCServer::heartToCenter, this), timestamp, HEART_TIMER_EVENT_INTERVAL);
         initServlet();
     }
 

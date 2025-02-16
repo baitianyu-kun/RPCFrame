@@ -43,18 +43,37 @@ namespace mrpc {
         start();
     }
 
+    // {Order: 192.168.1.1:22222, 192.168.2.3:22222}
     std::string RegisterCenter::getAllServiceNamesStr() {
         std::string tmp = "";
-        for (const auto &item: m_service_servers) {
-            tmp += item.first + ",";
+        for (const auto &service_servers: m_service_servers) {
+            tmp += "{" + service_servers.first + ":";
+            for (const auto &server: service_servers.second) {
+                tmp += server + ",";
+            }
+            tmp = tmp.substr(0, tmp.size() - 1);
+            tmp += "}";
         }
-        return tmp.substr(0, tmp.size() - 1);
+        return tmp;
+    }
+
+    std::string RegisterCenter::getAllServiceNamesStr2() {
+        std::string tmp = "";
+        for (const auto &servers_service: m_servers_service) {
+            tmp += "{" + servers_service.first + ":";
+            for (const auto &service: servers_service.second) {
+                tmp += service + ",";
+            }
+            tmp = tmp.substr(0, tmp.size() - 1);
+            tmp += "}";
+        }
+        return tmp;
     }
 
     void
     RegisterCenter::updateServiceServer(std::vector<std::string> all_services_names_vec, NetAddr::ptr server_addr) {
         for (const auto &service: all_services_names_vec) {
-            m_service_servers[service].emplace(server_addr);
+            m_service_servers[service].emplace(server_addr->toString());
         }
         m_servers_service.emplace(server_addr->toString(), all_services_names_vec);
     }
@@ -72,15 +91,18 @@ namespace mrpc {
         body["add_service_count"] = std::to_string(all_services_names_vec.size());
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_SERVER_REGISTER_RESPONSE, body);
-        INFOLOG("%s | server register success, server addr [%s], services [%s]", request->m_msg_id.c_str(),
+        INFOLOG("%s | server register success, server addr [%s], services and servers [%s]", request->m_msg_id.c_str(),
                 server_addr->toString().c_str(), getAllServiceNamesStr().c_str());
         // 给该服务器设置心跳定时器，每次server创建的client的端口号都不尽相同，所以需要rpc server在请求体中指明具体地址
         if (m_servers_timer_event.find(server_addr->toString()) == m_servers_timer_event.end()) {
-            Timestamp timestamp(addTime(Timestamp::now(), 5));
+            Timestamp timestamp(addTime(Timestamp::now(), SERVER_TIME_OUT_INTERVAL));
             auto new_timer_id = getMainEventLoop()->addTimerEvent([server_addr, this]() {
                 this->serverTimeOut(server_addr);
             }, timestamp, 0);
             m_servers_timer_event.emplace(server_addr->toString(), new_timer_id);
+            for (const auto &item: all_services_names_vec) {
+                notifyClientServiceRegister(item); // 通知客户端这些service已经上线
+            }
         }
     }
 
@@ -96,7 +118,7 @@ namespace mrpc {
             auto server_list = find->second;
             std::string server_list_str;
             for (const auto &item: server_list) {
-                server_list_str += item->toString() + ",";
+                server_list_str += item + ",";
             }
             server_list_str = server_list_str.substr(0, server_list_str.size() - 1);
             body["server_list"] = server_list_str;
@@ -112,7 +134,7 @@ namespace mrpc {
         RWMutex::WriteLock lock(m_mutex);
         // TODO 加入不存在该service name的情况，因为注册中心中可能不包含要注册的service
         auto service_name = request->m_request_body_data_map["service_name"];
-        m_service_clients[service_name].emplace(session->getPeerAddr());
+        m_service_clients[service_name].emplace(session->getPeerAddr()->toString());
         HTTPManager::body_type body;
         body["service_name"] = service_name;
         body["msg_id"] = request->m_msg_id;
@@ -131,7 +153,7 @@ namespace mrpc {
         auto server_addr_str = server_addr->toString();
         getMainEventLoop()->deleteTimerEvent(m_servers_timer_event[server_addr_str]);
 
-        Timestamp timestamp(addTime(Timestamp::now(), 5)); // 表示事件5秒后到达
+        Timestamp timestamp(addTime(Timestamp::now(), SERVER_TIME_OUT_INTERVAL)); // 表示事件5秒后到达
         auto new_timer_id = getMainEventLoop()->addTimerEvent([server_addr, this]() {
             this->serverTimeOut(server_addr);
         }, timestamp, 0.0); // 如果是重复事件则设置间隔
@@ -147,24 +169,49 @@ namespace mrpc {
         RWMutex::WriteLock lock(m_mutex);
         auto server_addr_str = server_addr->toString();
         if (m_servers_timer_event.find(server_addr_str) != m_servers_timer_event.end()) {
-            DEBUGLOG("===== server [%s] time out ======", server_addr_str.c_str());
+            DEBUGLOG("server [%s] time out", server_addr_str.c_str());
             getMainEventLoop()->deleteTimerEvent(m_servers_timer_event[server_addr_str]);
             m_servers_timer_event.erase(server_addr_str);
+            // delete server info
+            DEBUGLOG("delete before service and servers: [%s]", getAllServiceNamesStr().c_str());
+            DEBUGLOG("delete before service and servers2: [%s]", getAllServiceNamesStr2().c_str());
+            auto time_out_services = m_servers_service[server_addr_str];
+            m_servers_service.erase(server_addr_str);
+            for (const auto &service: time_out_services) {
+               m_service_servers[service].erase(server_addr_str); // 如果set中存储智能指针的话，传入的server_addr可能是新make shared的，所以无法选中元素，需要查找一下原因
+                if (m_service_servers[service].empty()) {
+                    m_service_servers.erase(service);
+                }
+                notifyClientServiceUnregister(service); // 通知客户端，该服务器提供的这些服务均已过期
+            }
+            DEBUGLOG("delete after service and servers: [%s]", getAllServiceNamesStr().c_str());
+            DEBUGLOG("delete after service and servers2: [%s]", getAllServiceNamesStr2().c_str());
         }
     }
 
-    void RegisterCenter::notifyClientServerFailed() {
-
+    void RegisterCenter::notifyClientServiceUnregister(const std::string &service_name) {
+        HTTPManager::body_type body;
+        body["service_name"] = service_name;
+        for (const auto &item: m_service_clients[service_name]) {
+            // 通知所有订阅了该service的客户端
+            publishClientMessage(body, std::make_shared<IPNetAddr>(item));
+        }
     }
 
-    void RegisterCenter::publishClientMessage() {
-        auto io_thread = std::make_unique<IOThread>();
-        auto client = std::make_shared<TCPClient>(*m_service_clients["Order"].begin(),
-                                                  io_thread->getEventLoop());
-        auto request = std::make_shared<HTTPRequest>();
+    void RegisterCenter::notifyClientServiceRegister(const std::string &service_name) {
         HTTPManager::body_type body;
-        std::string service_name = "Order";
         body["service_name"] = service_name;
+        for (const auto &item: m_service_clients[service_name]) {
+            // 通知所有订阅了该service的客户端
+            publishClientMessage(body, std::make_shared<IPNetAddr>(item));
+        }
+    }
+
+    void RegisterCenter::publishClientMessage(HTTPManager::body_type body, NetAddr::ptr client_addr) {
+        auto io_thread = std::make_unique<IOThread>();
+        auto client = std::make_shared<TCPClient>(client_addr, io_thread->getEventLoop());
+        auto request = std::make_shared<HTTPRequest>();
+        auto service_name = body["service_name"];
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST, body);
         client->connect([client, request, service_name]() {
             client->sendRequest(request, [client](HTTPRequest::ptr req) {

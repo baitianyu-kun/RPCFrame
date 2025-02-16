@@ -71,7 +71,7 @@ namespace mrpc {
         NetAddr::ptr m_register_center_addr;
         bool m_is_init{false}; // 是否初始化
 
-        std::unordered_map<std::string, std::set<NetAddr::ptr, CompNetAddr>> m_service_servers_cache; // service对应的多少个server
+        std::unordered_map<std::string, std::set<std::string>> m_service_servers_cache; // service对应的多少个server
         std::unordered_map<std::string, ConsistentHash::ptr> m_service_balance; // 一个service对应一个balance
 
     public:

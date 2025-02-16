@@ -36,14 +36,14 @@ namespace mrpc {
     void RPCChannel::updateCache(const std::string &service_name, std::string &server_list) {
         std::vector<std::string> server_list_vec;
         splitStrToVector(server_list, ",", server_list_vec);
-        std::set<NetAddr::ptr, CompNetAddr> server_list_set;
+        std::set<std::string> server_list_set;
         auto find = m_service_servers_cache.find(service_name);
         if (find == m_service_servers_cache.end()) {
             auto con_hash = std::make_shared<ConsistentHash>();
             m_service_balance.emplace(service_name, con_hash);
         }
         for (const auto &server: server_list_vec) {
-            server_list_set.emplace(std::make_shared<IPNetAddr>(server));
+            server_list_set.emplace(server);
             // 插入到负载均衡中
             m_service_balance[service_name]->addNewPhysicalNode(server, VIRTUAL_NODE_NUM);
         }
@@ -82,6 +82,10 @@ namespace mrpc {
     }
 
     void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+        DEBUGLOG("update channel server cache before: [%s]",getAllServerList().c_str());
+        auto service_name = response->m_response_body_data_map["service_name"];
+        serviceDiscovery(service_name); // 收到服务器通知后重新请求服务信息，推拉结合
+
         HTTPManager::body_type body;
         body["msg_id"] = request->m_msg_id;
         HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
@@ -90,7 +94,7 @@ namespace mrpc {
                 session->getPeerAddr()->toString().c_str(),
                 session->getLocalAddr()->toString().c_str(),
                 request->m_request_body.c_str());
-        DEBUGLOG("==== Success get register publish message ==== ")
+        DEBUGLOG("update channel server cache after: [%s]",getAllServerList().c_str());
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {
@@ -109,7 +113,7 @@ namespace mrpc {
                                               // 更新本地缓存
                                               auto server_list_str = rsp->m_response_body_data_map["server_list"];
                                               channel->updateCache(service_name, server_list_str);
-                                              INFOLOG("%s | get server cache from register center, server list %s",
+                                              INFOLOG("%s | get server cache from register center, server list [%s]",
                                                       rsp->m_msg_id.c_str(), channel->getAllServerList().c_str());
                                           });
         });
@@ -121,7 +125,7 @@ namespace mrpc {
         for (const auto &item: m_service_servers_cache) {
             tmp += "{" + item.first + ":";
             for (const auto &item: item.second) {
-                tmp += item->toString() + ",";
+                tmp += item + ",";
             }
             tmp = tmp.substr(0, tmp.size() - 1);
             tmp += "}";

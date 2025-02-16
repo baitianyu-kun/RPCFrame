@@ -32,16 +32,6 @@ namespace mrpc {
         virtual bool checkValid() = 0;
     };
 
-    struct CompNetAddr {
-        bool operator()(const NetAddr::ptr &left, const NetAddr::ptr &right) const {
-            if (left->toString() == right->toString()) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    };
-
     class IPNetAddr : public NetAddr {
 
     public:
@@ -75,6 +65,16 @@ namespace mrpc {
         std::string m_ip;
         uint32_t m_port{0};
         sockaddr_in m_addr;
+    };
+
+    struct CompNetAddr {
+        bool operator()(const NetAddr::ptr &left, const NetAddr::ptr &right) const {
+            if (left->toString() == right->toString()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
     };
 }
 

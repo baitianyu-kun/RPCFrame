@@ -174,18 +174,17 @@ namespace mrpc {
             m_servers_timer_event.erase(server_addr_str);
             // delete server info
             DEBUGLOG("delete before service and servers: [%s]", getAllServiceNamesStr().c_str());
-            DEBUGLOG("delete before service and servers2: [%s]", getAllServiceNamesStr2().c_str());
             auto time_out_services = m_servers_service[server_addr_str];
             m_servers_service.erase(server_addr_str);
             for (const auto &service: time_out_services) {
-               m_service_servers[service].erase(server_addr_str); // 如果set中存储智能指针的话，传入的server_addr可能是新make shared的，所以无法选中元素，需要查找一下原因
+                m_service_servers[service].erase(
+                        server_addr_str); // 如果set中存储智能指针的话，传入的server_addr可能是新make shared的，所以无法选中元素，需要查找一下原因
                 if (m_service_servers[service].empty()) {
                     m_service_servers.erase(service);
                 }
                 notifyClientServiceUnregister(service); // 通知客户端，该服务器提供的这些服务均已过期
             }
             DEBUGLOG("delete after service and servers: [%s]", getAllServiceNamesStr().c_str());
-            DEBUGLOG("delete after service and servers2: [%s]", getAllServiceNamesStr2().c_str());
         }
     }
 
@@ -214,16 +213,17 @@ namespace mrpc {
         auto service_name = body["service_name"];
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST, body);
         client->connect([client, request, service_name]() {
-            client->sendRequest(request, [client](HTTPRequest::ptr req) {
+            client->sendRequest(request, [client, request, service_name](HTTPRequest::ptr req) {
                 INFOLOG("%s | publish message to peer addr %s", req->m_msg_id.c_str(),
                         client->getPeerAddr()->toString().c_str());
+                client->getEventLoop()->stop();
+                client->recvResponse(request->m_msg_id,
+                                     [client, request, service_name](HTTPResponse::ptr rsp) {
+                                         client->getEventLoop()->stop();
+                                         INFOLOG("%s | success publish peer addr %s", rsp->m_msg_id.c_str(),
+                                                 client->getPeerAddr()->toString().c_str());
+                                     });
             });
-            client->recvResponse(request->m_msg_id,
-                                 [client, request, service_name](HTTPResponse::ptr rsp) {
-                                     client->getEventLoop()->stop();
-                                     INFOLOG("%s | success publish peer addr %s", rsp->m_msg_id.c_str(),
-                                             client->getPeerAddr()->toString().c_str());
-                                 });
         });
         io_thread->start();
     }

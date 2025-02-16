@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <string>
 
-#define NETWORK_CARD_NAME "ens33"
+#define NETWORK_CARD_NAME "eth0"
 
 namespace mrpc {
 

@@ -34,6 +34,9 @@ namespace mrpc {
     }
 
     void RPCChannel::updateCache(const std::string &service_name, std::string &server_list) {
+        m_service_servers_cache.clear();
+        m_service_balance.clear();
+
         std::vector<std::string> server_list_vec;
         splitStrToVector(server_list, ",", server_list_vec);
         std::set<std::string> server_list_set;
@@ -82,9 +85,10 @@ namespace mrpc {
     }
 
     void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
-        DEBUGLOG("update channel server cache before: [%s]",getAllServerList().c_str());
-        auto service_name = response->m_response_body_data_map["service_name"];
+        DEBUGLOG("update channel server cache before: [%s]", getAllServerList().c_str());
+        auto service_name = request->m_request_body_data_map["service_name"];
         serviceDiscovery(service_name); // 收到服务器通知后重新请求服务信息，推拉结合
+        DEBUGLOG("update channel server cache after: [%s]", getAllServerList().c_str());
 
         HTTPManager::body_type body;
         body["msg_id"] = request->m_msg_id;
@@ -94,7 +98,6 @@ namespace mrpc {
                 session->getPeerAddr()->toString().c_str(),
                 session->getLocalAddr()->toString().c_str(),
                 request->m_request_body.c_str());
-        DEBUGLOG("update channel server cache after: [%s]",getAllServerList().c_str());
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {
@@ -106,16 +109,17 @@ namespace mrpc {
         auto channel = shared_from_this();
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
         register_client->connect([register_client, request, channel, service_name]() {
-            register_client->sendRequest(request, [](HTTPRequest::ptr req) {});
-            register_client->recvResponse(request->m_msg_id,
-                                          [register_client, request, channel, service_name](HTTPResponse::ptr rsp) {
-                                              register_client->getEventLoop()->stop();
-                                              // 更新本地缓存
-                                              auto server_list_str = rsp->m_response_body_data_map["server_list"];
-                                              channel->updateCache(service_name, server_list_str);
-                                              INFOLOG("%s | get server cache from register center, server list [%s]",
-                                                      rsp->m_msg_id.c_str(), channel->getAllServerList().c_str());
-                                          });
+            register_client->sendRequest(request, [register_client, request, channel, service_name](HTTPRequest::ptr req) {
+                register_client->recvResponse(request->m_msg_id,
+                                              [register_client, request, channel, service_name](HTTPResponse::ptr rsp) {
+                                                  // 更新本地缓存
+                                                  auto server_list_str = rsp->m_response_body_data_map["server_list"];
+                                                  channel->updateCache(service_name, server_list_str);
+                                                  INFOLOG("%s | get server cache from register center, server list [%s]",
+                                                          rsp->m_msg_id.c_str(), channel->getAllServerList().c_str());
+                                                  register_client->getEventLoop()->stop();
+                                              });
+            });
         });
         io_thread->start();
     }
@@ -167,27 +171,23 @@ namespace mrpc {
         auto this_channel = shared_from_this();
         client->connect([this_channel, request_protocol, client]() {
             // 发送请求
-            client->sendRequest(request_protocol, [client](HTTPRequest::ptr req) {
-                if (req->m_request_body == "error")
-                    INFOLOG("===== client->sendRequest failed! =====");
-                client->getEventLoop()->stop();
-                return;
+            client->sendRequest(request_protocol, [this_channel, request_protocol, client](HTTPRequest::ptr req) {
+                client->recvResponse(request_protocol->m_msg_id,
+                                     [this_channel, request_protocol, client](HTTPResponse::ptr rsp) {
+                                         this_channel->getResponse()->ParseFromString(
+                                                 rsp->m_response_body_data_map["pb_data"]);
+                                         INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",
+                                                 rsp->m_msg_id.c_str(),
+                                                 client->getPeerAddr()->toString().c_str(),
+                                                 client->getLocalAddr()->toString().c_str(),
+                                                 this_channel->getResponse()->ShortDebugString().c_str());
+                                         if (this_channel->getClosure()) {
+                                             this_channel->getClosure()->Run();
+                                         }
+                                         client->getEventLoop()->stop();
+                                     });
             });
             // 接收响应
-            client->recvResponse(request_protocol->m_msg_id,
-                                 [this_channel, request_protocol, client](HTTPResponse::ptr rsp) {
-                                     this_channel->getResponse()->ParseFromString(
-                                             rsp->m_response_body_data_map["pb_data"]);
-                                     INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",
-                                             rsp->m_msg_id.c_str(),
-                                             client->getPeerAddr()->toString().c_str(),
-                                             client->getLocalAddr()->toString().c_str(),
-                                             this_channel->getResponse()->ShortDebugString().c_str());
-                                     if (this_channel->getClosure()) {
-                                         this_channel->getClosure()->Run();
-                                     }
-                                     client->getEventLoop()->stop();
-                                 });
         });
     }
 

@@ -16,7 +16,8 @@ int main() {
     Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
+    auto addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_channel_peer_register_ip,
+                                                  Config::GetGlobalConfig()->m_channel_peer_register_port);
     auto channel = std::make_shared<RPCChannel>(addr);
 
     auto request_msg = std::make_shared<makeOrderRequest>();

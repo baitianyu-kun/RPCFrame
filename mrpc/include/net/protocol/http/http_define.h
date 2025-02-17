@@ -10,12 +10,12 @@
 #include <memory>
 #include "net/tcp/net_addr.h"
 
-#define RPC_METHOD_PATH "/method"
-#define RPC_REGISTER_HEART_SERVER_PATH "/heart"
-#define RPC_SERVER_REGISTER_PATH "/register"
-#define RPC_CLIENT_REGISTER_DISCOVERY_PATH "/discovery"
-#define RPC_REGISTER_SUBSCRIBE_PATH "/subscribe"
-#define RPC_REGISTER_PUBLISH_PATH "/publish"
+#define RPC_METHOD_PATH Config::GetGlobalConfig()->m_rpc_method_path
+#define RPC_REGISTER_HEART_SERVER_PATH Config::GetGlobalConfig()->m_rpc_register_heart_server_path
+#define RPC_SERVER_REGISTER_PATH Config::GetGlobalConfig()->m_rpc_server_register_path
+#define RPC_CLIENT_REGISTER_DISCOVERY_PATH Config::GetGlobalConfig()->m_rpc_client_register_discovery_path
+#define RPC_REGISTER_SUBSCRIBE_PATH Config::GetGlobalConfig()->m_register_subscribe_path
+#define RPC_REGISTER_PUBLISH_PATH Config::GetGlobalConfig()->m_register_publish_path
 
 namespace mrpc {
 

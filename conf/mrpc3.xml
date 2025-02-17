@@ -46,7 +46,7 @@
     <rpc_server>
         <heart_pack_interval>5</heart_pack_interval>
         <rpc_server_listen_ip>127.0.0.1</rpc_server_listen_ip>
-        <rpc_server_listen_port>22224</rpc_server_listen_port>
+        <rpc_server_listen_port>22229</rpc_server_listen_port>
         <server_peer_register_ip>127.0.0.1</server_peer_register_ip>
         <server_peer_register_port>22225</server_peer_register_port>
     </rpc_server>

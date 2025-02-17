@@ -10,7 +10,7 @@
 #include <cstring>
 #include "net/tcp/abstract_tcp_buffer.h"
 
-#define MAX_TCP_BUFFER_SIZE 2048
+#define MAX_TCP_BUFFER_SIZE Config::GetGlobalConfig()->m_tcp_buffer_size
 
 namespace mrpc {
 

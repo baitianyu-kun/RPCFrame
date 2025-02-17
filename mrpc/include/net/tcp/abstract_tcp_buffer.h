@@ -8,8 +8,6 @@
 #include <memory>
 #include <vector>
 
-#define MAX_TCP_BUFFER_SIZE 4096
-
 namespace mrpc {
     class TCPBuffer {
     public:

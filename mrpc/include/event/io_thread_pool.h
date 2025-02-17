@@ -9,6 +9,8 @@
 #include "common/log.h"
 #include "event/io_thread.h"
 
+#define MAX_THREAD_POOL_SIZE 4
+
 namespace mrpc {
     class IOThreadPool {
     public:

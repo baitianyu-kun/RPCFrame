@@ -7,7 +7,6 @@
 
 #include <memory>
 #include "net/tcp/net_addr.h"
-#include "net/tcp/abstract_tcp_buffer.h"
 #include "net/tcp/tcp_vector_buffer.h"
 #include "net/protocol/http/http_parse.h"
 #include "event/eventloop.h"

@@ -60,7 +60,7 @@ namespace mrpc {
         for (int i = (ifconf.ifc_len / sizeof(ifreq)); i > 0; i--) {
             if (ifreq->ifr_flags == AF_INET) {
                 // 找到ipv4的设备，并且为网卡，需要设置网卡名称
-                if (ifreq->ifr_name == std::string(NETWORK_CARD_NAME)) {
+                if (ifreq->ifr_name == NETWORK_CARD_NAME) {
                     close(sockfd);
                     return std::string(inet_ntoa(((sockaddr_in *) &(ifreq->ifr_addr))->sin_addr));
                 }

@@ -13,7 +13,7 @@
 #include <unordered_set>
 #include "net/tcp/net_addr.h"
 
-#define VIRTUAL_NODE_NUM 200
+#define VIRTUAL_NODE_NUM Config::GetGlobalConfig()->m_virtual_node_num
 
 namespace mrpc {
     class ConsistentHash {

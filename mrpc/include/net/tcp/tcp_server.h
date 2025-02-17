@@ -11,8 +11,7 @@
 #include "event/io_thread_pool.h"
 #include "net/tcp/tcp_connection.h"
 
-#define MAX_THREAD_POOL_SIZE 4
-#define TIMER_EVENT_INTERVAL 1000
+#define CLEAR_CONNECTIONS_INTERVAL Config::GetGlobalConfig()->m_clear_connections_interval
 
 namespace mrpc {
     class TCPServer {

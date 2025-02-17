@@ -40,81 +40,38 @@ add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
-set(PROTOBUF_LIB /usr/local/lib/libprotobuf.a)
-set(TINYXML_LIB /usr/lib/libtinyxml.a)
+set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
 
 # 总lib
-set(ALL_LIBS mrpc ${PROTOBUF_LIB} ${TINYXML_LIB} pthread)
+set(ALL_LIBS mrpc ${PROTOBUF_LIB} pthread)
 
-# test rpc server
-add_executable(test_eventloop
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_eventloop.cpp)
-target_link_libraries(test_eventloop ${ALL_LIBS})
-
-add_executable(test_http_parse_encode
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_http_parse_encode.cpp
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_http_parse_encode ${ALL_LIBS})
-
-add_executable(test_http_servlet
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_http_servlet.cpp
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_http_servlet ${ALL_LIBS})
 
 add_executable(test_rpc_server
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
+        testcases/order.pb.h)
 target_link_libraries(test_rpc_server ${ALL_LIBS})
 
-add_executable(test_rpc_channel
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel.cpp
+add_executable(test_rpc_server2
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server2.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_rpc_channel ${ALL_LIBS})
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_server2 ${ALL_LIBS})
 
-add_executable(test_rpc_register_center
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register_center.cpp
+add_executable(test_rpc_server3
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server3.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_rpc_register_center ${ALL_LIBS})
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_server3 ${ALL_LIBS})
 
 add_executable(test_rpc_channel_subscribe
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_subscribe.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h
-)
+        testcases/order.pb.h)
 target_link_libraries(test_rpc_channel_subscribe ${ALL_LIBS})
 
 add_executable(test_rpc_register_center_subscribe_publish
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register_center_subscribe_publish.cpp
         testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h
-)
+        testcases/order.pb.h)
 target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})
-
-add_executable(test_rpc_server2
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server2.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_rpc_server2 ${ALL_LIBS})
-
-add_executable(test_timer_queue
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_timer_queue.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_timer_queue ${ALL_LIBS})
-
-add_executable(test_rpc_server3
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server3.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h
-        mrpc/include/rpc/rpc_publish_listener.h)
-target_link_libraries(test_rpc_server3 ${ALL_LIBS})

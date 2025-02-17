@@ -10,9 +10,7 @@
 #include "net/tcp/tcp_client.h"
 #include "common/timestamp.h"
 
-//#define HEART_TIMER_EVENT_INTERVAL 10000
-
-#define SERVER_TIME_OUT_INTERVAL 5
+#define SERVER_TIME_OUT_INTERVAL Config::GetGlobalConfig()->m_server_time_out
 
 namespace mrpc {
 

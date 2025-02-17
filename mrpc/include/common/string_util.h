@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "common/log.h"
 
 #define MAX_MSG_ID_LEN 8
 

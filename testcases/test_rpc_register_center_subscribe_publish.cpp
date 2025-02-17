@@ -8,7 +8,8 @@ using namespace mrpc;
 int main() {
     Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
-    auto local_addr = std::make_shared<IPNetAddr>("127.0.0.1", 22225);
+    auto local_addr = std::make_shared<IPNetAddr>(Config::GetGlobalConfig()->m_register_listen_ip,
+                                                  Config::GetGlobalConfig()->m_register_listen_port);
     auto register_center = std::make_shared<RegisterCenter>(local_addr);
     register_center->startRegisterCenter();
     return 0;

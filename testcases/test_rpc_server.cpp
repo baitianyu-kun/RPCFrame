@@ -36,13 +36,13 @@ int main() {
     Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto local_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22224);
-    auto register_addr = std::make_shared<mrpc::IPNetAddr>("127.0.0.1", 22225);
+    auto local_addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_rpc_server_listen_ip,
+                                                        Config::GetGlobalConfig()->m_rpc_server_listen_port);
+    auto register_addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_server_peer_register_ip,
+                                                           Config::GetGlobalConfig()->m_server_peer_register_port);
     auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr);
-
     auto service = std::make_shared<OrderImpl>();
     rpc_server->addService(service);
-
     rpc_server->startRPC();
     return 0;
 }

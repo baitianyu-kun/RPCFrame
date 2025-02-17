@@ -8,8 +8,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string>
+#include "common/config.h"
 
-#define NETWORK_CARD_NAME "eth0"
+#define NETWORK_CARD_NAME Config::GetGlobalConfig()->m_network_card_name
 
 namespace mrpc {
 

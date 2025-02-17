@@ -21,7 +21,7 @@
 
 #define RING_BUFFER_IS_POWER_OF_TWO(buffer_size) ((buffer_size & (buffer_size - 1)) == 0)
 #define RING_BUFFER_ASSERT(x) assert(x)
-#define MAX_TCP_BUFFER_SIZE 2048
+#define MAX_TCP_BUFFER_SIZE Config::GetGlobalConfig()->m_tcp_buffer_size
 
 namespace mrpc {
     class TCPRingBuffer : public TCPBuffer {

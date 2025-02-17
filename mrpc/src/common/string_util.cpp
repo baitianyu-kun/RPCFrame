@@ -3,9 +3,7 @@
 //
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include "common/string_util.h"
-#include "common/log.h"
 
 namespace mrpc {
 

@@ -9,6 +9,7 @@ namespace mrpc {
     PublishListenerRunner::PublishListenerRunner(NetAddr::ptr local_addr) :
             m_local_addr(local_addr) {
         m_main_event_loop = EventLoop::GetCurrentEventLoop();
+        // TODO 这里的acceptor可能会受到config里面配置的影响
         m_acceptor = std::make_shared<TCPAcceptor>(m_local_addr);
         m_listen_fd_event = std::make_shared<FDEvent>(m_acceptor->getListenFD());
         m_dispatcher = RPCDispatcher::GetCurrentRPCDispatcher();

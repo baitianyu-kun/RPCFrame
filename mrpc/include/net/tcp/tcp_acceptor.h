@@ -8,7 +8,7 @@
 #include <memory>
 #include "net/tcp/net_addr.h"
 
-#define MAX_CONNECTION 1000
+#define MAX_CONNECTION Config::GetGlobalConfig()->m_max_connections
 
 namespace mrpc {
     class TCPAcceptor {

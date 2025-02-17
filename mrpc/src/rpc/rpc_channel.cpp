@@ -61,16 +61,17 @@ namespace mrpc {
         auto io_thread = std::make_unique<IOThread>();
         auto register_client = std::make_shared<TCPClient>(m_register_center_addr, io_thread->getEventLoop());
         register_client->connect([register_client, request, service_name]() {
-            register_client->sendRequest(request, [](HTTPRequest::ptr req) {});
-            register_client->recvResponse(request->m_msg_id,
-                                          [register_client, request, service_name](HTTPResponse::ptr rsp) {
-                                              register_client->getEventLoop()->stop();
-                                              if (rsp->m_response_body_data_map["subscribe_success"] ==
-                                                  std::to_string(true)) {
-                                                  INFOLOG("%s | success subscribe service name %s",
-                                                          rsp->m_msg_id.c_str(), service_name.c_str());
-                                              }
-                                          });
+            register_client->sendRequest(request, [register_client, request, service_name](HTTPRequest::ptr req) {
+                register_client->recvResponse(request->m_msg_id,
+                                              [register_client, request, service_name](HTTPResponse::ptr rsp) {
+                                                  register_client->getEventLoop()->stop();
+                                                  if (rsp->m_response_body_data_map["subscribe_success"] ==
+                                                      std::to_string(true)) {
+                                                      INFOLOG("%s | success subscribe service name %s",
+                                                              rsp->m_msg_id.c_str(), service_name.c_str());
+                                                  }
+                                              });
+            });
         });
         io_thread->start();
 
@@ -109,17 +110,21 @@ namespace mrpc {
         auto channel = shared_from_this();
         HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
         register_client->connect([register_client, request, channel, service_name]() {
-            register_client->sendRequest(request, [register_client, request, channel, service_name](HTTPRequest::ptr req) {
-                register_client->recvResponse(request->m_msg_id,
-                                              [register_client, request, channel, service_name](HTTPResponse::ptr rsp) {
-                                                  // 更新本地缓存
-                                                  auto server_list_str = rsp->m_response_body_data_map["server_list"];
-                                                  channel->updateCache(service_name, server_list_str);
-                                                  INFOLOG("%s | get server cache from register center, server list [%s]",
-                                                          rsp->m_msg_id.c_str(), channel->getAllServerList().c_str());
-                                                  register_client->getEventLoop()->stop();
-                                              });
-            });
+            register_client->sendRequest(request,
+                                         [register_client, request, channel, service_name](HTTPRequest::ptr req) {
+                                             register_client->recvResponse(request->m_msg_id,
+                                                                           [register_client, request, channel, service_name](
+                                                                                   HTTPResponse::ptr rsp) {
+                                                                               // 更新本地缓存
+                                                                               auto server_list_str = rsp->m_response_body_data_map["server_list"];
+                                                                               channel->updateCache(service_name,
+                                                                                                    server_list_str);
+                                                                               INFOLOG("%s | get server cache from register center, server list [%s]",
+                                                                                       rsp->m_msg_id.c_str(),
+                                                                                       channel->getAllServerList().c_str());
+                                                                               register_client->getEventLoop()->stop();
+                                                                           });
+                                         });
         });
         io_thread->start();
     }

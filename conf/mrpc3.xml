@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <log>
+        <log_level>DEBUG</log_level>
+        <log_file_name>rpc_logs</log_file_name>
+        <log_file_path>/home/baitianyu/rpc/RPCFrame/log/</log_file_path>
+        <log_max_file_size>1000000000</log_max_file_size>
+        <log_sync_interval>5</log_sync_interval>
+    </log>
+
+    <balance>
+        <virtual_node_num>200</virtual_node_num>
+        <network_card_name>enp1s0</network_card_name>
+    </balance>
+
+    <channel>
+        <channel_peer_register_ip>127.0.0.1</channel_peer_register_ip>
+        <channel_peer_register_port>22225</channel_peer_register_port>
+    </channel>
+
+    <server>
+        <io_thread_pool_size>4</io_thread_pool_size>
+        <io_fd_event_pool_size>128</io_fd_event_pool_size>
+        <tcp_buffer_size>2048</tcp_buffer_size>
+        <max_connections>5000</max_connections>
+        <clear_connections_interval>2</clear_connections_interval>
+    </server>
+
+    <register_center>
+        <server_time_out>10</server_time_out>
+        <register_center_listen_ip>127.0.0.1</register_center_listen_ip>
+        <register_center_listen_port>22225</register_center_listen_port>
+    </register_center>
+
+    <path>
+        <rpc_method_path>/method</rpc_method_path>
+        <rpc_register_heart_server_path>/heart</rpc_register_heart_server_path>
+        <rpc_server_register_path>/register</rpc_server_register_path>
+        <rpc_client_register_discovery_path>/discovery</rpc_client_register_discovery_path>
+        <register_subscribe_path>/subscribe</register_subscribe_path>
+        <register_publish_path>/publish</register_publish_path>
+    </path>
+
+    <rpc_server>
+        <heart_pack_interval>5</heart_pack_interval>
+        <rpc_server_listen_ip>127.0.0.1</rpc_server_listen_ip>
+        <rpc_server_listen_port>22229</rpc_server_listen_port>
+        <server_peer_register_ip>127.0.0.1</server_peer_register_ip>
+        <server_peer_register_port>22225</server_peer_register_port>
+    </rpc_server>
+
+</root>

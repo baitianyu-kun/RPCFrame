@@ -9,7 +9,7 @@
 #include "common/mutex.h"
 #include "event/fd_event.h"
 
-#define MAX_FD_EVENT_POOL_SIZE 128
+#define MAX_FD_EVENT_POOL_SIZE Config::GetGlobalConfig()->m_io_fd_event_pool_size
 
 namespace mrpc {
     class FDEventPool {

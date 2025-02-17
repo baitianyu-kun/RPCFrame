@@ -6,9 +6,12 @@
 
 namespace mrpc {
 
-    std::unique_ptr<FDEventPool> FDEventPool::g_fd_event_pool = std::make_unique<FDEventPool>(MAX_FD_EVENT_POOL_SIZE);
+    std::unique_ptr<FDEventPool> FDEventPool::g_fd_event_pool = nullptr;
 
     std::unique_ptr<FDEventPool> &FDEventPool::GetFDEventPool() {
+        if (g_fd_event_pool == nullptr) {
+            g_fd_event_pool = std::make_unique<FDEventPool>(MAX_FD_EVENT_POOL_SIZE);
+        }
         return g_fd_event_pool;
     }
 

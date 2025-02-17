@@ -9,7 +9,7 @@
 #include "common/log.h"
 #include "event/io_thread.h"
 
-#define MAX_THREAD_POOL_SIZE 4
+#define MAX_THREAD_POOL_SIZE Config::GetGlobalConfig()->m_io_thread_pool_size
 
 namespace mrpc {
     class IOThreadPool {

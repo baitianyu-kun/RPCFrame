@@ -33,11 +33,9 @@ namespace mrpc {
         int m_log_sync_interval{0};   // 日志同步间隔，s
 
         // server
-        int m_port{0};
         int m_io_thread_pool_size{0};
         int m_io_fd_event_pool_size{0};
         int m_clear_connections_interval{0}; // 定时清理连接
-        int m_message_id_len{0}; // 发送请求时生成的message id长度
         int m_tcp_buffer_size{0}; // tcp buffer大小
         int m_max_connections{0};
 

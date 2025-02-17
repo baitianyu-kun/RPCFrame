@@ -68,18 +68,14 @@ namespace mrpc {
 
     void Config::initServer() {
         READ_XML_NODE(server, root_node);
-        READ_STR_FROM_XML_NODE(port, server_node);
         READ_STR_FROM_XML_NODE(io_thread_pool_size, server_node);
         READ_STR_FROM_XML_NODE(io_fd_event_pool_size, server_node);
         READ_STR_FROM_XML_NODE(clear_connections_interval, server_node);
-        READ_STR_FROM_XML_NODE(message_id_len, server_node);
         READ_STR_FROM_XML_NODE(tcp_buffer_size, server_node);
         READ_STR_FROM_XML_NODE(max_connections, server_node);
-        m_port = std::stoi(port_str);
         m_io_thread_pool_size = std::stoi(io_thread_pool_size_str);
         m_io_fd_event_pool_size = std::stoi(io_fd_event_pool_size_str);
         m_clear_connections_interval = std::stoi(clear_connections_interval_str);
-        m_message_id_len = std::stoi(message_id_len_str);
         m_tcp_buffer_size = std::stoi(tcp_buffer_size_str);
         m_max_connections = std::stoi(max_connections_str);
     }

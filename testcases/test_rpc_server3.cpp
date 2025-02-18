@@ -40,7 +40,13 @@ int main() {
                                                         Config::GetGlobalConfig()->m_rpc_server_listen_port);
     auto register_addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_server_peer_register_ip,
                                                            Config::GetGlobalConfig()->m_server_peer_register_port);
-    auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr);
+    ProtocolType protocol;
+    if (Config::GetGlobalConfig()->m_protocol=="MPB"){
+        protocol = ProtocolType::MPb_Protocol;
+    }else{
+        protocol = ProtocolType::HTTP_Protocol;
+    }
+    auto rpc_server = std::make_unique<RPCServer>(local_addr, register_addr,protocol);
 
     auto service = std::make_shared<OrderImpl>();
     rpc_server->addService(service);

@@ -18,7 +18,13 @@ int main() {
 
     auto addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_channel_peer_register_ip,
                                                   Config::GetGlobalConfig()->m_channel_peer_register_port);
-    auto channel = std::make_shared<RPCChannel>(addr);
+    ProtocolType protocol;
+    if (Config::GetGlobalConfig()->m_protocol=="MPB"){
+        protocol = ProtocolType::MPb_Protocol;
+    }else{
+        protocol = ProtocolType::HTTP_Protocol;
+    }
+    auto channel = std::make_shared<RPCChannel>(addr,protocol);
 
     auto request_msg = std::make_shared<makeOrderRequest>();
     request_msg->set_price(100);

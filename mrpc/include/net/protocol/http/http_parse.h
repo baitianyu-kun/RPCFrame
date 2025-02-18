@@ -7,53 +7,43 @@
 
 #include <memory>
 #include "net/protocol/http/http_define.h"
+#include "net/protocol/parse.h"
 
 namespace mrpc {
-    class HTTPRequestParser {
+    class HTTPRequestParser : public ProtocolParser {
     public:
         using ptr = std::shared_ptr<HTTPRequestParser>;
 
         HTTPRequestParser() = default;
 
-        ~HTTPRequestParser() = default;
+        ~HTTPRequestParser() override = default;
 
-        bool parse(std::string &str);
-
-        HTTPRequest::ptr getRequest() { return m_request; }
+        bool parse(std::string &str) override;
 
     private:
-        bool parseHTTPRequestLine(const std::string &tmp);
+        bool parseHTTPRequestLine(const std::string &tmp,HTTPRequest::ptr m_request);
 
-        bool parseHTTPRequestHeader(const std::string &tmp);
+        bool parseHTTPRequestHeader(const std::string &tmp,HTTPRequest::ptr m_request);
 
-        bool parseHTTPRequestContent(const std::string &tmp);
-
-    private:
-        HTTPRequest::ptr m_request;
-
+        bool parseHTTPRequestContent(const std::string &tmp,HTTPRequest::ptr m_request);
     };
 
-    class HTTPResponseParser {
+    class HTTPResponseParser : public ProtocolParser {
     public:
         using ptr = std::shared_ptr<HTTPResponseParser>;
 
         HTTPResponseParser() = default;
 
-        ~HTTPResponseParser() = default;
+        ~HTTPResponseParser() override = default;
 
-        bool parse(std::string &str);
-
-        HTTPResponse::ptr getResponse() { return m_response; }
+        bool parse(std::string &str)override;
 
     private:
-        bool parseHTTPResponseLine(const std::string &tmp);
+        bool parseHTTPResponseLine(const std::string &tmp,HTTPResponse::ptr m_response);
 
-        bool parseHTTPResponseHeader(const std::string &tmp);
+        bool parseHTTPResponseHeader(const std::string &tmp,HTTPResponse::ptr m_response);
 
-        bool parseHTTPResponseContent(const std::string &tmp);
-
-    private:
-        HTTPResponse::ptr m_response;
+        bool parseHTTPResponseContent(const std::string &tmp,HTTPResponse::ptr m_response);
     };
 }
 

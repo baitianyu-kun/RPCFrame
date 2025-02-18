@@ -6,8 +6,8 @@
 
 namespace mrpc {
 
-    TCPServer::TCPServer(NetAddr::ptr local_addr) :
-            m_local_addr(local_addr) {
+    TCPServer::TCPServer(NetAddr::ptr local_addr, ProtocolType protocol_type) :
+            m_local_addr(local_addr), m_protocol_type(protocol_type) {
         m_main_event_loop = EventLoop::GetCurrentEventLoop();
         m_acceptor = std::make_shared<TCPAcceptor>(m_local_addr);
         m_io_thread_pool = std::make_unique<IOThreadPool>(MAX_THREAD_POOL_SIZE);
@@ -36,7 +36,7 @@ namespace mrpc {
     void TCPServer::init() {
         Timestamp timestamp(addTime(Timestamp::now(), CLEAR_CONNECTIONS_INTERVAL));
         auto new_timer_id = m_main_event_loop->addTimerEvent(std::bind(&TCPServer::clearClientTimerFunc,
-                                                               this), timestamp, CLEAR_CONNECTIONS_INTERVAL);
+                                                                       this), timestamp, CLEAR_CONNECTIONS_INTERVAL);
         m_listen_fd_event->listen(FDEvent::IN_EVENT, std::bind(&TCPServer::onAccept, this));
         m_main_event_loop->addEpollEvent(m_listen_fd_event);
     }
@@ -53,7 +53,8 @@ namespace mrpc {
                 client_fd,
                 MAX_TCP_BUFFER_SIZE,
                 m_dispatcher,
-                TCPConnectionType::TCPConnectionByServer
+                TCPConnectionType::TCPConnectionByServer,
+                m_protocol_type
         );
         connection->setState(Connected);
         m_client_connections.insert(connection);

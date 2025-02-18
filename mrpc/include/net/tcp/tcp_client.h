@@ -17,15 +17,15 @@ namespace mrpc {
 
         // 默认获取当前线程的eventloop
         // 也可以指定获取哪个线程的eventloop
-        TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop = EventLoop::GetCurrentEventLoop());
+        TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop = EventLoop::GetCurrentEventLoop(), ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~TCPClient();
 
         void connect(std::function<void()> done);
 
-        void sendRequest(const HTTPRequest::ptr &request, const std::function<void(HTTPRequest::ptr)> &done);
+        void sendRequest(const Protocol::ptr &request, const std::function<void(Protocol::ptr)> &done);
 
-        void recvResponse(const std::string &msg_id, const std::function<void(HTTPResponse::ptr)> &done);
+        void recvResponse(const std::string &msg_id, const std::function<void(Protocol::ptr)> &done);
 
         void onConnectionError();
 
@@ -61,7 +61,7 @@ namespace mrpc {
         TCPConnection::ptr m_connection;
         int m_connect_err_code{0};
         std::string m_connect_err_info;
-
+        ProtocolType m_protocol_type;
     };
 
 }

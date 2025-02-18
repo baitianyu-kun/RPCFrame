@@ -1,14 +1,15 @@
 //
-// Created by baitianyu on 2/8/25.
+// Created by baitianyu on 2/18/25.
 //
 
-#ifndef RPCFRAME_HTTP_SERVLET_H
-#define RPCFRAME_HTTP_SERVLET_H
+#ifndef RPCFRAME_SERVLET_H
+#define RPCFRAME_SERVLET_H
 
 #include <memory>
 #include <functional>
 #include <map>
 #include "net/protocol/http/http_define.h"
+#include "net/protocol/protocol.h"
 #include "common/mutex.h"
 
 namespace mrpc {
@@ -21,7 +22,7 @@ namespace mrpc {
 
         virtual ~Servlet() {};
 
-        virtual void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) = 0;
+        virtual void handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) = 0;
 
         const std::string &getName() const { return m_name; }
 
@@ -32,11 +33,11 @@ namespace mrpc {
     class CallBacksServlet : public Servlet {
     public:
         using ptr = std::shared_ptr<CallBacksServlet>;
-        using callback = std::function<void(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session)>;
+        using callback = std::function<void(Protocol::ptr request, Protocol::ptr response, Session::ptr session)>;
 
         explicit CallBacksServlet(callback cb) : Servlet("CallBacksServlet"), m_callback(cb) {};
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
+        void handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) override;
 
     private:
         callback m_callback;
@@ -51,7 +52,7 @@ namespace mrpc {
 
         DispatchServlet();
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
+        void handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) override;
 
         void addServlet(const std::string &uri, Servlet::ptr slt);
 
@@ -76,7 +77,7 @@ namespace mrpc {
 
         explicit NotFoundServlet(const std::string &name);
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) override;
+        void handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) override;
 
     private:
         std::string m_name;
@@ -84,4 +85,4 @@ namespace mrpc {
     };
 }
 
-#endif //RPCFRAME_HTTP_SERVLET_H
+#endif //RPCFRAME_SERVLET_H

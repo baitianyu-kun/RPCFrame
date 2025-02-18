@@ -11,7 +11,9 @@ bool mrpc::HTTPRequestParser::parse(std::string &str) {
     bool is_parse_request_header = false;
     bool is_parse_request_content = false;
 
-    m_request = std::make_shared<HTTPRequest>();
+    m_protocol = std::make_shared<HTTPRequest>();
+
+    auto m_request = std::static_pointer_cast<HTTPRequest>(m_protocol);
 
     std::string tmp = str;
     // ================request line================
@@ -20,7 +22,7 @@ bool mrpc::HTTPRequestParser::parse(std::string &str) {
         ERRORLOG("not found CRLF in buffer");
         return false;
     }
-    is_parse_request_line = parseHTTPRequestLine(tmp.substr(0, i_crlf));
+    is_parse_request_line = parseHTTPRequestLine(tmp.substr(0, i_crlf), m_request);
     if (!is_parse_request_line) {
         return false;
     }
@@ -32,7 +34,7 @@ bool mrpc::HTTPRequestParser::parse(std::string &str) {
         ERRORLOG("not found last double CRLF in buffer");
         return false;
     }
-    is_parse_request_header = parseHTTPRequestHeader(tmp.substr(0, i_crlf_double));
+    is_parse_request_header = parseHTTPRequestHeader(tmp.substr(0, i_crlf_double), m_request);
     if (!is_parse_request_line) {
         return false;
     }
@@ -45,7 +47,7 @@ bool mrpc::HTTPRequestParser::parse(std::string &str) {
     }
 
     if (m_request->m_request_method == HTTPMethod::POST && content_len != 0) {
-        is_parse_request_content = parseHTTPRequestContent(tmp.substr(0, content_len));
+        is_parse_request_content = parseHTTPRequestContent(tmp.substr(0, content_len), m_request);
     } else {
         is_parse_request_content = true; // get的时候没有请求体，请求的东西都在url上，所以直接设置为true
     }
@@ -53,14 +55,16 @@ bool mrpc::HTTPRequestParser::parse(std::string &str) {
         return false;
     }
 
-    splitStrToMap(m_request->m_request_body, g_CRLF, ":", m_request->m_request_body_data_map);
-    m_request->m_msg_id = m_request->m_request_body_data_map["msg_id"];
+    splitStrToMap(m_request->m_request_body, g_CRLF, ":", m_request->m_body_data_map);
+    m_request->m_msg_id = m_request->m_body_data_map["msg_id"];
+
+    m_request->m_type = requestPathToMSGType(m_request->m_request_path);
 
     DEBUGLOG("HTTP request decode success");
     return true;
 }
 
-bool mrpc::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp) {
+bool mrpc::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp, HTTPRequest::ptr m_request) {
     DEBUGLOG("request str: %s", tmp.c_str());
     // 请求行：请求方法，空格，URL，空格，HTTP版本，gCRLF
     auto space1 = tmp.find_first_of(" ");
@@ -128,7 +132,7 @@ bool mrpc::HTTPRequestParser::parseHTTPRequestLine(const std::string &tmp) {
     return true;
 }
 
-bool mrpc::HTTPRequestParser::parseHTTPRequestHeader(const std::string &tmp) {
+bool mrpc::HTTPRequestParser::parseHTTPRequestHeader(const std::string &tmp, HTTPRequest::ptr m_request) {
     if (tmp.empty() || tmp == g_CRLF_DOUBLE) {
         return true;
     }
@@ -138,7 +142,7 @@ bool mrpc::HTTPRequestParser::parseHTTPRequestHeader(const std::string &tmp) {
     return true;
 }
 
-bool mrpc::HTTPRequestParser::parseHTTPRequestContent(const std::string &tmp) {
+bool mrpc::HTTPRequestParser::parseHTTPRequestContent(const std::string &tmp, HTTPRequest::ptr m_request) {
     m_request->m_request_body = tmp;
     return true;
 }
@@ -149,7 +153,8 @@ bool mrpc::HTTPResponseParser::parse(std::string &str) {
     bool is_parse_response_header = false;
     bool is_parse_response_content = false;
 
-    m_response = std::make_shared<HTTPResponse>();
+    m_protocol = std::make_shared<HTTPResponse>();
+    auto m_response = std::static_pointer_cast<HTTPResponse>(m_protocol);
 
     std::string tmp = str;
     // ================request line================
@@ -158,7 +163,7 @@ bool mrpc::HTTPResponseParser::parse(std::string &str) {
         ERRORLOG("not found CRLF in buffer");
         return false;
     }
-    is_parse_response_line = parseHTTPResponseLine(tmp.substr(0, i_crlf));
+    is_parse_response_line = parseHTTPResponseLine(tmp.substr(0, i_crlf), m_response);
     if (!is_parse_response_line) {
         return false;
     }
@@ -170,7 +175,7 @@ bool mrpc::HTTPResponseParser::parse(std::string &str) {
         ERRORLOG("not found last double CRLF in buffer");
         return false;
     }
-    is_parse_response_header = parseHTTPResponseHeader(tmp.substr(0, i_crlf_double));
+    is_parse_response_header = parseHTTPResponseHeader(tmp.substr(0, i_crlf_double), m_response);
     if (!is_parse_response_header) {
         return false;
     }
@@ -181,19 +186,19 @@ bool mrpc::HTTPResponseParser::parse(std::string &str) {
         m_response->m_response_properties.m_map_properties.end()) {
         content_len = std::stoi(m_response->m_response_properties.m_map_properties["Content-Length"]);
     }
-    is_parse_response_content = parseHTTPResponseContent(tmp.substr(0, content_len));
+    is_parse_response_content = parseHTTPResponseContent(tmp.substr(0, content_len), m_response);
     if (!is_parse_response_content) {
         return false;
     }
 
-    splitStrToMap(m_response->m_response_body, g_CRLF, ":", m_response->m_response_body_data_map);
-    m_response->m_msg_id = m_response->m_response_body_data_map["msg_id"];
+    splitStrToMap(m_response->m_response_body, g_CRLF, ":", m_response->m_body_data_map);
+    m_response->m_msg_id = m_response->m_body_data_map["msg_id"];
 
     DEBUGLOG("HTTP response decode success");
     return true;
 }
 
-bool mrpc::HTTPResponseParser::parseHTTPResponseLine(const std::string &tmp) {
+bool mrpc::HTTPResponseParser::parseHTTPResponseLine(const std::string &tmp, HTTPResponse::ptr m_response) {
     DEBUGLOG("response str: %s", tmp.c_str());
     // 响应行：HTTP版本，空格，状态码，空格，状态码描述，gCRLF
     auto space1 = tmp.find_first_of(" ");
@@ -224,7 +229,7 @@ bool mrpc::HTTPResponseParser::parseHTTPResponseLine(const std::string &tmp) {
     return true;
 }
 
-bool mrpc::HTTPResponseParser::parseHTTPResponseHeader(const std::string &tmp) {
+bool mrpc::HTTPResponseParser::parseHTTPResponseHeader(const std::string &tmp, HTTPResponse::ptr m_response) {
     if (tmp.empty() || tmp == g_CRLF_DOUBLE) {
         return true;
     }
@@ -234,7 +239,7 @@ bool mrpc::HTTPResponseParser::parseHTTPResponseHeader(const std::string &tmp) {
     return true;
 }
 
-bool mrpc::HTTPResponseParser::parseHTTPResponseContent(const std::string &tmp) {
+bool mrpc::HTTPResponseParser::parseHTTPResponseContent(const std::string &tmp, HTTPResponse::ptr m_response) {
     m_response->m_response_body = tmp;
     return true;
 }

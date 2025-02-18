@@ -142,6 +142,8 @@ namespace mrpc {
             printf("Start mrpc server error, failed to read node root\n");
             exit(0);
         }
+        READ_STR_FROM_XML_NODE(protocol, root_node);
+        m_protocol = protocol_str;
         initLog();
         initBalance();
         initChannel();

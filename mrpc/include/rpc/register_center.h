@@ -5,7 +5,6 @@
 #ifndef RPCFRAME_REGISTER_CENTER_H
 #define RPCFRAME_REGISTER_CENTER_H
 
-#include <unordered_set>
 #include "net/tcp/tcp_server.h"
 #include "net/tcp/tcp_client.h"
 #include "common/timestamp.h"
@@ -22,7 +21,7 @@ namespace mrpc {
     public:
         using ptr = std::unique_ptr<RegisterCenter>;
 
-        explicit RegisterCenter(NetAddr::ptr local_addr);
+        explicit RegisterCenter(NetAddr::ptr local_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~RegisterCenter();
 
@@ -53,15 +52,16 @@ namespace mrpc {
 
     public:
         std::string getAllServiceNamesStr();
+
         std::string getAllServiceNamesStr2();
 
-        void handleServerRegister(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleServerRegister(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
-        void handleClientDiscovery(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleClientDiscovery(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
-        void handleClientSubscribe(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleClientSubscribe(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
-        void handleServerHeart(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleServerHeart(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
     public:
         // ZooKeeper 采用的是推拉相结合的方式：客户端向服务端注册自己需要关注的节点，一旦该节点的数据发生变更，
@@ -70,7 +70,7 @@ namespace mrpc {
 
         void notifyClientServiceRegister(const std::string &service_name); // 主动通知客户端有服务上线
 
-        static void publishClientMessage(HTTPManager::body_type body,NetAddr::ptr client_addr);
+        void publishClientMessage(body_type body,NetAddr::ptr client_addr);
     };
 
 }

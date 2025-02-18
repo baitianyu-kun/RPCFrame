@@ -13,7 +13,9 @@
 namespace mrpc {
 
     // subscribe方法就发送一个请求，用这个请求的地址当作服务端进行监听服务器的publish
-    RPCChannel::RPCChannel(NetAddr::ptr register_center_addr) : m_register_center_addr(register_center_addr) {
+    RPCChannel::RPCChannel(NetAddr::ptr register_center_addr, ProtocolType protocol_type) :
+            m_register_center_addr(register_center_addr),
+            m_protocol_type(protocol_type) {
 
     }
 
@@ -54,18 +56,28 @@ namespace mrpc {
     }
 
     void RPCChannel::subscribe(const std::string &service_name) {
-        auto request = std::make_shared<HTTPRequest>();
-        HTTPManager::body_type body;
+        body_type body;
         body["service_name"] = service_name;
-        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST, body);
+        Protocol::ptr request = nullptr;
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            request = std::make_shared<HTTPRequest>();
+            HTTPManager::createRequest(std::static_pointer_cast<HTTPRequest>(request),
+                                       MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST, body);
+        } else {
+            request = std::make_shared<MPbProtocol>();
+            MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
+                                      MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST, body);
+        }
         auto io_thread = std::make_unique<IOThread>();
-        auto register_client = std::make_shared<TCPClient>(m_register_center_addr, io_thread->getEventLoop());
+        auto register_client = std::make_shared<TCPClient>(m_register_center_addr,
+                                                           io_thread->getEventLoop(),
+                                                           m_protocol_type);
         register_client->connect([register_client, request, service_name]() {
-            register_client->sendRequest(request, [register_client, request, service_name](HTTPRequest::ptr req) {
+            register_client->sendRequest(request, [register_client, request, service_name](Protocol::ptr req) {
                 register_client->recvResponse(request->m_msg_id,
-                                              [register_client, request, service_name](HTTPResponse::ptr rsp) {
+                                              [register_client, request, service_name](Protocol::ptr rsp) {
                                                   register_client->getEventLoop()->stop();
-                                                  if (rsp->m_response_body_data_map["subscribe_success"] ==
+                                                  if (rsp->m_body_data_map["subscribe_success"] ==
                                                       std::to_string(true)) {
                                                       INFOLOG("%s | success subscribe service name %s",
                                                               rsp->m_msg_id.c_str(), service_name.c_str());
@@ -82,41 +94,56 @@ namespace mrpc {
                                                                          this,
                                                                          std::placeholders::_1,
                                                                          std::placeholders::_2,
-                                                                         std::placeholders::_3));
+                                                                         std::placeholders::_3),
+                                                               m_protocol_type);
     }
 
-    void RPCChannel::handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+    void RPCChannel::handlePublish(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
         DEBUGLOG("update channel server cache before: [%s]", getAllServerList().c_str());
-        auto service_name = request->m_request_body_data_map["service_name"];
+        auto service_name = request->m_body_data_map["service_name"];
         serviceDiscovery(service_name); // 收到服务器通知后重新请求服务信息，推拉结合
         DEBUGLOG("update channel server cache after: [%s]", getAllServerList().c_str());
 
-        HTTPManager::body_type body;
+        body_type body;
         body["msg_id"] = request->m_msg_id;
-        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
-        INFOLOG(" %s | success get publish message from register center, register center addr: [%s], local addr: [%s] request body: [%s]",
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            HTTPManager::createResponse(std::static_pointer_cast<HTTPResponse>(response),
+                                        MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
+        } else {
+            MPbManager::createResponse(std::static_pointer_cast<MPbProtocol>(response),
+                                       MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, body);
+        }
+        INFOLOG(" %s | success get publish message from register center, register center addr: [%s], local addr: [%s]",
                 request->m_msg_id.c_str(),
                 session->getPeerAddr()->toString().c_str(),
-                session->getLocalAddr()->toString().c_str(),
-                request->m_request_body.c_str());
+                session->getLocalAddr()->toString().c_str());
     }
 
     void RPCChannel::serviceDiscovery(const std::string &service_name) {
         auto io_thread = std::make_unique<IOThread>();
-        auto register_client = std::make_shared<TCPClient>(m_register_center_addr, io_thread->getEventLoop());
-        HTTPManager::body_type body;
-        body["service_name"] = service_name;
-        auto request = std::make_shared<HTTPRequest>();
+        auto register_client = std::make_shared<TCPClient>(m_register_center_addr, io_thread->getEventLoop(),
+                                                           m_protocol_type);
         auto channel = shared_from_this();
-        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
+        body_type body;
+        body["service_name"] = service_name;
+        Protocol::ptr request = nullptr;
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            request = std::make_shared<HTTPRequest>();
+            HTTPManager::createRequest(std::static_pointer_cast<HTTPRequest>(request),
+                                       MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
+        } else {
+            request = std::make_shared<MPbProtocol>();
+            MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
+                                      MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
+        }
         register_client->connect([register_client, request, channel, service_name]() {
             register_client->sendRequest(request,
-                                         [register_client, request, channel, service_name](HTTPRequest::ptr req) {
+                                         [register_client, request, channel, service_name](Protocol::ptr req) {
                                              register_client->recvResponse(request->m_msg_id,
                                                                            [register_client, request, channel, service_name](
-                                                                                   HTTPResponse::ptr rsp) {
+                                                                                   Protocol::ptr rsp) {
                                                                                // 更新本地缓存
-                                                                               auto server_list_str = rsp->m_response_body_data_map["server_list"];
+                                                                               auto server_list_str = rsp->m_body_data_map["server_list"];
                                                                                channel->updateCache(service_name,
                                                                                                     server_list_str);
                                                                                INFOLOG("%s | get server cache from register center, server list [%s]",
@@ -153,9 +180,8 @@ namespace mrpc {
         auto local_ip = getLocalIP();
         auto server_addr = m_service_balance[method->service()->full_name()]->getServer(local_ip);
         DEBUGLOG("local ip [%s], choosing server [%s]", local_ip.c_str(), server_addr->toString().c_str());
-        auto client = std::make_shared<TCPClient>(server_addr);
+        auto client = std::make_shared<TCPClient>(server_addr, EventLoop::GetCurrentEventLoop(), m_protocol_type);
 
-        auto request_protocol = std::make_shared<HTTPRequest>();
         auto rpc_controller = dynamic_cast<RPCController *>(controller);
         if (rpc_controller == nullptr) {
             ERRORLOG("failed call method, RpcController convert error");
@@ -166,21 +192,30 @@ namespace mrpc {
         std::string req_pb_data;
         request->SerializeToString(&req_pb_data);
 
-        HTTPManager::body_type body;
+        body_type body;
         body["method_full_name"] = method_full_name;
         body["pb_data"] = req_pb_data;
-        HTTPManager::createRequest(request_protocol, HTTPManager::MSGType::RPC_METHOD_REQUEST, body);
+        Protocol::ptr request_protocol = nullptr;
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            request_protocol = std::make_shared<HTTPRequest>();
+            HTTPManager::createRequest(std::static_pointer_cast<HTTPRequest>(request_protocol),
+                                       MSGType::RPC_METHOD_REQUEST, body);
+        } else {
+            request_protocol = std::make_shared<MPbProtocol>();
+            MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request_protocol),
+                                      MSGType::RPC_METHOD_REQUEST, body);
+        }
         rpc_controller->SetMsgId(request_protocol->m_msg_id);
         INFOLOG("%s | call method name [%s]", request_protocol->m_msg_id.c_str(), method_full_name.c_str());
 
         auto this_channel = shared_from_this();
         client->connect([this_channel, request_protocol, client]() {
             // 发送请求
-            client->sendRequest(request_protocol, [this_channel, request_protocol, client](HTTPRequest::ptr req) {
+            client->sendRequest(request_protocol, [this_channel, request_protocol, client](Protocol::ptr req) {
                 client->recvResponse(request_protocol->m_msg_id,
-                                     [this_channel, request_protocol, client](HTTPResponse::ptr rsp) {
+                                     [this_channel, request_protocol, client](Protocol::ptr rsp) {
                                          this_channel->getResponse()->ParseFromString(
-                                                 rsp->m_response_body_data_map["pb_data"]);
+                                                 rsp->m_body_data_map["pb_data"]);
                                          INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",
                                                  rsp->m_msg_id.c_str(),
                                                  client->getPeerAddr()->toString().c_str(),

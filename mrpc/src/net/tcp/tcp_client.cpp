@@ -9,8 +9,8 @@
 
 namespace mrpc {
 
-    TCPClient::TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop)
-            : m_peer_addr(peer_addr), m_event_loop(specific_eventloop) {
+    TCPClient::TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop, ProtocolType protocol_type)
+            : m_peer_addr(peer_addr), m_event_loop(specific_eventloop),m_protocol_type(protocol_type) {
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         int val = 1;
         setSocketOption(SOL_SOCKET, SO_REUSEADDR, &val); // reuse addr
@@ -28,7 +28,8 @@ namespace mrpc {
                 m_client_fd,
                 MAX_TCP_BUFFER_SIZE,
                 nullptr,
-                TCPConnectionType::TCPConnectionByClient
+                TCPConnectionType::TCPConnectionByClient,
+                m_protocol_type
         );
         // 设置连接出错后关闭该TCPClient与connection的连接
         m_connection->setClientErrorCallback(std::bind(&TCPClient::onConnectionError, this));
@@ -101,13 +102,13 @@ namespace mrpc {
         }
     }
 
-    void TCPClient::sendRequest(const HTTPRequest::ptr &request, const std::function<void(HTTPRequest::ptr)> &done) {
+    void TCPClient::sendRequest(const Protocol::ptr &request, const std::function<void(Protocol::ptr)> &done) {
         m_connection->pushSendMessage(request, done);
         m_connection->listenWrite(); // 监听可写的时候写入就行了
     }
 
     void
-    TCPClient::recvResponse(const std::string &msg_id, const std::function<void(HTTPResponse::ptr)> &done) {
+    TCPClient::recvResponse(const std::string &msg_id, const std::function<void(Protocol::ptr)> &done) {
         m_connection->pushReadMessage(msg_id, done);
         m_connection->listenRead(); // 去监听可读事件
     }

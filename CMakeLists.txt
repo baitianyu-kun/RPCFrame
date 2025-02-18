@@ -22,25 +22,13 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/rpc SRC_RPC_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net SRC_NET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/protocol SRC_NET_PROTOCOL_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/protocol/http SRC_NET_HTTP_LIST)
-aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/protocol/tinypb SRC_NET_TINYPB_LIST)
+aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/protocol/mpb SRC_NET_MPB_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/tcp SRC_NET_TCP_LIST)
-aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/socket SRC_NET_SOCKET_LIST)
 aux_source_directory(${PROJECT_SOURCE_DIR}/mrpc/src/net/balance SRC_NET_BALANCE_LIST)
 
 # 本项目的lib
 add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_LIST} ${SRC_NET_PROTOCOL_LIST}
-        ${SRC_NET_HTTP_LIST} ${SRC_NET_TINYPB_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_SOCKET_LIST} ${SRC_NET_BALANCE_LIST}
-        mrpc/include/common/timestamp.h
-        mrpc/src/common/timestamp.cpp
-        mrpc/include/event/timer.h
-        mrpc/src/event/timer.cpp
-        mrpc/include/event/timer_queue.h
-        mrpc/src/event/timer_queue.cpp
-        mrpc/include/net/protocol/mpb/mpb_define.h
-        mrpc/include/net/protocol/mpb/mpb_parse.h
-        mrpc/src/net/protocol/mpb/mpb_define.cpp
-        mrpc/src/net/protocol/mpb/mpb_parse.cpp
-)
+        ${SRC_NET_HTTP_LIST} ${SRC_NET_MPB_LIST} ${SRC_NET_TCP_LIST} ${SRC_NET_BALANCE_LIST})
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
@@ -79,9 +67,3 @@ add_executable(test_rpc_register_center_subscribe_publish
         testcases/order.pb.cc
         testcases/order.pb.h)
 target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})
-
-add_executable(test_mpb_parse
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_mpb_parse.cpp
-        testcases/order.pb.cc
-        testcases/order.pb.h)
-target_link_libraries(test_mpb_parse ${ALL_LIBS})

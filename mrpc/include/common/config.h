@@ -67,6 +67,8 @@ namespace mrpc {
         std::string m_register_subscribe_path;
         std::string m_register_publish_path;
 
+        std::string m_protocol;
+
     private:
         std::unique_ptr<tinyxml2::XMLDocument> m_xml_document{nullptr};
 

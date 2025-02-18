@@ -10,12 +10,6 @@
 
 namespace mrpc {
 
-    std::string g_CRLF = "\r\n";
-    std::string g_CRLF_DOUBLE = "\r\n\r\n";
-
-    std::string content_type_text = "text/html;charset=utf-8";
-    const char *default_html_template = "<html><body><h1>hello</h1><p>rpc</p></body></html>";
-
     const char *HTTPCodeToString(const int code) {
         switch (code) {
             case HTTP_OK:
@@ -98,7 +92,7 @@ namespace mrpc {
         return ss.str();
     }
 
-    void HTTPManager::createRequest(HTTPRequest::ptr request, HTTPManager::MSGType type, HTTPManager::body_type &body) {
+    void HTTPManager::createRequest(HTTPRequest::ptr request, MSGType type, body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_REQUEST:
                 createMethodRequest(request, body);
@@ -122,7 +116,7 @@ namespace mrpc {
     }
 
     void
-    HTTPManager::createResponse(HTTPResponse::ptr response, HTTPManager::MSGType type, HTTPManager::body_type &body) {
+    HTTPManager::createResponse(HTTPResponse::ptr response, MSGType type, body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_RESPONSE:
                 createMethodResponse(response, body);
@@ -155,7 +149,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Length"] = std::to_string(body_str.length());
     }
 
-    void HTTPManager::createMethodRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createMethodRequest(HTTPRequest::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
@@ -168,7 +162,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createHeartRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createHeartRequest(HTTPRequest::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
                                + "server_ip:" + body["server_ip"] + g_CRLF
@@ -181,7 +175,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createRegisterRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createRegisterRequest(HTTPRequest::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"] + g_CRLF
@@ -195,7 +189,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createDiscoveryRequest(HTTPRequest::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
                                + "service_name:" + body["service_name"];
@@ -207,7 +201,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createSubscribeRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createSubscribeRequest(HTTPRequest::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "msg_id:" + request->m_msg_id + g_CRLF
                                + "service_name:" + body["service_name"];
@@ -219,7 +213,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createPublishRequest(HTTPRequest::ptr request, HTTPManager::body_type &body) {
+    void HTTPManager::createPublishRequest(HTTPRequest::ptr request, body_type &body) {
         // 注册中心告诉客户端哪个service name有变化，证明已经有服务器掉线，然后客户端去重新拉，推拉结合
         // 后期可以订阅其他东西，实现自定义推送内容
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
@@ -233,7 +227,7 @@ namespace mrpc {
         request->m_request_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createMethodResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createMethodResponse(HTTPResponse::ptr response, body_type &body) {
         std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
@@ -245,7 +239,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createHeartResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createHeartResponse(HTTPResponse::ptr response, body_type &body) {
         std::string body_str = "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
         response->m_response_version = "HTTP/1.1";
@@ -255,7 +249,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createRegisterResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createRegisterResponse(HTTPResponse::ptr response, body_type &body) {
         std::string body_str = "add_service_count:" + body["add_service_count"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
@@ -266,7 +260,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createDiscoveryResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createDiscoveryResponse(HTTPResponse::ptr response, body_type &body) {
         std::string body_str = "server_list:" + body["server_list"] + g_CRLF
                                + "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;
@@ -277,7 +271,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createSubscribeResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createSubscribeResponse(HTTPResponse::ptr response, body_type &body) {
         std::string body_str = "msg_id:" + body["msg_id"] + g_CRLF
                                + "service_name:" + body["service_name"] + g_CRLF
                                + "subscribe_success:" + body["subscribe_success"];
@@ -289,7 +283,7 @@ namespace mrpc {
         response->m_response_properties.m_map_properties["Content-Type"] = content_type_text;
     }
 
-    void HTTPManager::createPublishResponse(HTTPResponse::ptr response, HTTPManager::body_type &body) {
+    void HTTPManager::createPublishResponse(HTTPResponse::ptr response, body_type &body) {
         // 客户端告诉注册中心已经收到
         std::string body_str = "msg_id:" + body["msg_id"];
         response->m_response_body = body_str;

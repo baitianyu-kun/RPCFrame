@@ -18,10 +18,9 @@ namespace mrpc {
     public:
         using ptr = std::shared_ptr<PublishListenerRunner>;
 
-        using callback = std::function<void(HTTPRequest::ptr request, HTTPResponse::ptr response,
-                                            HTTPSession::ptr session)>;
+        using callback = std::function<void(Protocol::ptr request, Protocol::ptr response, Session::ptr session)>;
 
-        explicit PublishListenerRunner(NetAddr::ptr local_addr);
+        explicit PublishListenerRunner(NetAddr::ptr local_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~PublishListenerRunner();
 
@@ -43,16 +42,16 @@ namespace mrpc {
         FDEvent::ptr m_listen_fd_event;
         RPCDispatcher::ptr m_dispatcher;
         TCPConnection::ptr m_connection; // onAccept之后必须存一下，否则局部变量connection被销毁了
+        ProtocolType m_protocol_type;
     };
 
     class PublishListener {
     public:
         using ptr = std::shared_ptr<PublishListener>;
 
-        using callback = std::function<void(HTTPRequest::ptr request, HTTPResponse::ptr response,
-                                            HTTPSession::ptr session)>;
+        using callback = std::function<void(Protocol::ptr request, Protocol::ptr response, Session::ptr session)>;
 
-        PublishListener(NetAddr::ptr local_addr, callback call_back);
+        PublishListener(NetAddr::ptr local_addr, callback call_back, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~PublishListener();
 
@@ -67,6 +66,7 @@ namespace mrpc {
         NetAddr::ptr m_local_addr;
         callback m_callback; // 接收到注册中心的推送后需要执行的方法，由channel进行绑定
         PublishListenerRunner::ptr m_runner;
+        ProtocolType m_protocol_type;
     };
 }
 

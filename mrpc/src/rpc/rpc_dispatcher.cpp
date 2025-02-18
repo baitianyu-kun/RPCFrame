@@ -31,7 +31,7 @@ namespace mrpc {
 
     }
 
-    void RPCDispatcher::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+    void RPCDispatcher::handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
         m_dispatch_servlet->handle(request, response, session);
     }
 

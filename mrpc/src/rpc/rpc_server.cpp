@@ -7,10 +7,13 @@
 
 namespace mrpc {
 
-    RPCServer::RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr)
-            : TCPServer(local_addr), m_local_addr(local_addr), m_register_addr(register_addr) {
+    RPCServer::RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr, ProtocolType protocol_type)
+            : TCPServer(local_addr, protocol_type),
+              m_local_addr(local_addr),
+              m_register_addr(register_addr){
         Timestamp timestamp(addTime(Timestamp::now(), HEART_TIMER_EVENT_INTERVAL));
-        auto new_timer_id = getMainEventLoop()->addTimerEvent(std::bind(&RPCServer::heartToCenter, this), timestamp, HEART_TIMER_EVENT_INTERVAL);
+        auto new_timer_id = getMainEventLoop()->addTimerEvent(std::bind(&RPCServer::heartToCenter, this), timestamp,
+                                                              HEART_TIMER_EVENT_INTERVAL);
         initServlet();
     }
 
@@ -28,15 +31,23 @@ namespace mrpc {
 
     void RPCServer::heartToCenter() {
         auto io_thread = std::make_unique<IOThread>();
-        auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop());
-        auto request = std::make_shared<HTTPRequest>();
-        HTTPManager::body_type body;
+        auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop(), m_protocol_type);
+        body_type body;
         body["server_ip"] = m_local_addr->getStringIP();
         body["server_port"] = m_local_addr->getStringPort();
-        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_REGISTER_HEART_SERVER_REQUEST, body);
+        Protocol::ptr request = nullptr;
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            request = std::make_shared<HTTPRequest>();
+            HTTPManager::createRequest(std::static_pointer_cast<HTTPRequest>(request),
+                                       MSGType::RPC_REGISTER_HEART_SERVER_REQUEST, body);
+        } else {
+            request = std::make_shared<MPbProtocol>();
+            MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
+                                      MSGType::RPC_REGISTER_HEART_SERVER_REQUEST, body);
+        }
         client->connect([client, request]() {
-            client->sendRequest(request, [](HTTPRequest::ptr req) {});
-            client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr rsp) {
+            client->sendRequest(request, [](Protocol::ptr req) {});
+            client->recvResponse(request->m_msg_id, [client, request](Protocol::ptr rsp) {
                 client->getEventLoop()->stop();
                 INFOLOG("%s | success heart to center, peer addr [%s], local addr[%s]",
                         rsp->m_msg_id.c_str(),
@@ -51,22 +62,30 @@ namespace mrpc {
         auto io_thread = std::make_unique<IOThread>();
         // 放到线程里执行，因为TCPClient里面的TCPConnection用的eventloop和当前RPCServer是一个(因为都是主线程)，所以把这个
         // 函数放到子线程中去执行，就不是一个eventloop了，防止造成影响
-        auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop());
-        HTTPManager::body_type body;
+        auto client = std::make_shared<TCPClient>(m_register_addr, io_thread->getEventLoop(), m_protocol_type);
+        body_type body;
         body["server_ip"] = m_local_addr->getStringIP();
         body["server_port"] = m_local_addr->getStringPort();
         body["all_services_names"] = getAllServiceNamesStr();
-        auto request = std::make_shared<HTTPRequest>();
-        HTTPManager::createRequest(request, HTTPManager::MSGType::RPC_SERVER_REGISTER_REQUEST, body);
+        Protocol::ptr request = nullptr;
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            request = std::make_shared<HTTPRequest>();
+            HTTPManager::createRequest(std::static_pointer_cast<HTTPRequest>(request),
+                                       MSGType::RPC_SERVER_REGISTER_REQUEST, body);
+        } else {
+            request = std::make_shared<MPbProtocol>();
+            MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
+                                      MSGType::RPC_SERVER_REGISTER_REQUEST, body);
+        }
         client->connect([client, request]() {
-            client->sendRequest(request, [](HTTPRequest::ptr req) {});
-            client->recvResponse(request->m_msg_id, [client, request](HTTPResponse::ptr rsp) {
+            client->sendRequest(request, [](Protocol::ptr req) {});
+            client->recvResponse(request->m_msg_id, [client, request](Protocol::ptr rsp) {
                 client->getEventLoop()->stop();
                 INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], add_service_count [%s]",
                         rsp->m_msg_id.c_str(),
                         client->getPeerAddr()->toString().c_str(),
                         client->getLocalAddr()->toString().c_str(),
-                        rsp->m_response_body_data_map["add_service_count"].c_str());
+                        rsp->m_body_data_map["add_service_count"].c_str());
             });
         });
         io_thread->start();
@@ -77,15 +96,14 @@ namespace mrpc {
         start();
     }
 
-    void RPCServer::handleService(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
+    void RPCServer::handleService(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
         // 处理具体业务
-        auto method_full_name = request->m_request_body_data_map["method_full_name"];
-        auto pb_data = request->m_request_body_data_map["pb_data"];
+        auto method_full_name = request->m_body_data_map["method_full_name"];
+        auto pb_data = request->m_body_data_map["pb_data"];
         std::string service_name;
         std::string method_name;
         if (!parseServiceFullName(method_full_name, service_name, method_name)) {
-            // 做测试返回空网页用
-            HTTPManager::createDefaultResponse(response);
+            ERRORLOG("no such service like %s.", method_full_name.c_str());
             return;
         }
 
@@ -126,11 +144,16 @@ namespace mrpc {
         std::string res_pb_data;
         response_rpc_message->SerializeToString(&res_pb_data);
 
-        HTTPManager::body_type body;
+        body_type body;
         body["method_full_name"] = method_full_name;
         body["pb_data"] = res_pb_data;
         body["msg_id"] = request->m_msg_id;
-        HTTPManager::createResponse(response, HTTPManager::MSGType::RPC_METHOD_RESPONSE, body);
+
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+            HTTPManager::createResponse(std::static_pointer_cast<HTTPResponse>(response),MSGType::RPC_METHOD_RESPONSE,body);
+        } else {
+            MPbManager::createResponse(std::static_pointer_cast<MPbProtocol>(response),MSGType::RPC_METHOD_RESPONSE,body);
+        }
 
         INFOLOG("%s | http dispatch success, request [%s], response [%s]",
                 request->m_msg_id.c_str(), request_rpc_message->ShortDebugString().c_str(),

@@ -24,7 +24,7 @@ namespace mrpc {
     public:
         using ptr = std::unique_ptr<RPCServer>;
 
-        RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr);
+        RPCServer(NetAddr::ptr local_addr, NetAddr::ptr register_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~RPCServer();
 
@@ -44,7 +44,7 @@ namespace mrpc {
         parseServiceFullName(const std::string &full_name, std::string &service_name, std::string &method_name);
 
     public:
-        void handleService(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handleService(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
         void addService(const protobuf_service_ptr &service);
 

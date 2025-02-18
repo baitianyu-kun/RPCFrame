@@ -6,8 +6,8 @@
 
 namespace mrpc {
 
-    PublishListenerRunner::PublishListenerRunner(NetAddr::ptr local_addr) :
-            m_local_addr(local_addr) {
+    PublishListenerRunner::PublishListenerRunner(NetAddr::ptr local_addr, ProtocolType protocol_type) :
+            m_local_addr(local_addr), m_protocol_type(protocol_type) {
         m_main_event_loop = EventLoop::GetCurrentEventLoop();
         // TODO 这里的acceptor可能会受到config里面配置的影响
         m_acceptor = std::make_shared<TCPAcceptor>(m_local_addr);
@@ -49,13 +49,15 @@ namespace mrpc {
                 client_fd,
                 MAX_TCP_BUFFER_SIZE,
                 m_dispatcher,
-                TCPConnectionType::TCPConnectionByServer
+                TCPConnectionType::TCPConnectionByServer,
+                m_protocol_type
         );
         m_connection->setState(Connected);
     }
 
-    PublishListener::PublishListener(NetAddr::ptr local_addr, PublishListener::callback call_back) {
-        m_runner = std::make_shared<PublishListenerRunner>(local_addr);
+    PublishListener::PublishListener(NetAddr::ptr local_addr, PublishListener::callback call_back,
+                                     ProtocolType protocol_type) : m_protocol_type(protocol_type) {
+        m_runner = std::make_shared<PublishListenerRunner>(local_addr, m_protocol_type);
         m_runner->addServlet(RPC_REGISTER_PUBLISH_PATH, call_back);
         pthread_create(&m_thread, nullptr, PublishListener::runner, m_runner.get());
     }

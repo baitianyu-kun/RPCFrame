@@ -2,7 +2,7 @@
 // Created by baitianyu on 2/8/25.
 //
 #include <unordered_map>
-#include "net/protocol/http/http_servlet.h"
+#include "net/protocol/servlet.h"
 
 namespace mrpc {
 
@@ -14,7 +14,7 @@ namespace mrpc {
 
         ~RPCDispatcher();
 
-        void handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
         static ptr t_current_rpc_dispatcher;
 

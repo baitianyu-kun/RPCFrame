@@ -18,7 +18,7 @@ namespace mrpc {
     public:
         using ptr = std::shared_ptr<TCPServer>;
 
-        TCPServer(NetAddr::ptr local_addr);
+        TCPServer(NetAddr::ptr local_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~TCPServer();
 
@@ -49,6 +49,9 @@ namespace mrpc {
         FDEvent::ptr m_listen_fd_event;
         std::set<TCPConnection::ptr> m_client_connections;
         RPCDispatcher::ptr m_dispatcher;
+
+    protected:
+        ProtocolType m_protocol_type;
     };
 }
 

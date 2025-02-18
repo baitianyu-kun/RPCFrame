@@ -1,23 +1,19 @@
 //
-// Created by baitianyu on 2/8/25.
+// Created by baitianyu on 2/18/25.
 //
-#include "net/protocol/http/http_servlet.h"
-
-#include <memory>
-
+#include "net/protocol/servlet.h"
 
 namespace mrpc {
-
-    void CallBacksServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
-        m_callback(request, response,session);
+    void CallBacksServlet::handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
+        m_callback(request, response, session);
     }
 
     DispatchServlet::DispatchServlet() : Servlet("DispatchServlet") {
         m_default.reset(new NotFoundServlet("404 not found"));
     }
 
-    void DispatchServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
-        auto servlet = getServlet(request->m_request_path);
+    void DispatchServlet::handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
+        auto servlet = getServlet(msgTypeToPath(request->m_type));
         if (servlet) {
             servlet->handle(request, response, session);
         }
@@ -59,10 +55,7 @@ namespace mrpc {
                                               "</html>";
     }
 
-    void NotFoundServlet::handle(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session) {
-        response->m_response_code = HTTP_NOTFOUND;
-        response->m_response_body = m_content;
-        response->m_response_properties.setKeyValue("Content-Type", "text/html");
-        response->m_response_properties.setKeyValue("Content-Type", "text/html");
+    void NotFoundServlet::handle(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
+
     }
 }

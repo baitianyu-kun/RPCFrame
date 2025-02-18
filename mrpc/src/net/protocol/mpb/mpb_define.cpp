@@ -7,11 +7,6 @@
 
 namespace mrpc {
 
-    std::string g_CRLF2 = "\r\n";
-    std::string g_CRLF_DOUBLE2 = "\r\n\r\n";
-    std::string content_type_text2 = "text/html;charset=utf-8";
-    const char *default_html_template2 = "<html><body><h1>hello</h1><p>rpc</p></body></html>";
-
     std::string MPbProtocol::toString() {
         size_t all_len =
                 sizeof(m_magic) + sizeof(m_type) + 2 * sizeof(uint32_t) + m_msg_id.length() + m_body.length();
@@ -46,7 +41,7 @@ namespace mrpc {
         return {buf.data(), all_len};
     }
 
-    void MPbManager::createRequest(MPbProtocol::ptr request, MSGType type, MPbManager::body_type &body) {
+    void MPbManager::createRequest(MPbProtocol::ptr request, MSGType type, body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_REQUEST:
                 createMethodRequest(request, body);
@@ -69,7 +64,7 @@ namespace mrpc {
         }
     }
 
-    void MPbManager::createResponse(MPbProtocol::ptr response, MSGType type, MPbManager::body_type &body) {
+    void MPbManager::createResponse(MPbProtocol::ptr response, MSGType type, body_type &body) {
         switch (type) {
             case MSGType::RPC_METHOD_RESPONSE:
                 createMethodResponse(response, body);
@@ -92,89 +87,89 @@ namespace mrpc {
         }
     }
 
-    void MPbManager::createMethodRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createMethodRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
-        std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF2
+        std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_METHOD_REQUEST);
+        request->m_type = MSGType::RPC_METHOD_REQUEST;
     }
 
-    void MPbManager::createHeartRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createHeartRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
-        std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF2
+        std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
                                + "server_port:" + body["server_port"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_REGISTER_HEART_SERVER_REQUEST);
+        request->m_type = MSGType::RPC_REGISTER_HEART_SERVER_REQUEST;
     }
 
-    void MPbManager::createRegisterRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createRegisterRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
-        std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF2
-                               + "server_port:" + body["server_port"] + g_CRLF2
+        std::string body_str = "server_ip:" + body["server_ip"] + g_CRLF
+                               + "server_port:" + body["server_port"] + g_CRLF
                                + "all_services_names:" + body["all_services_names"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_SERVER_REGISTER_REQUEST);
+        request->m_type = MSGType::RPC_SERVER_REGISTER_REQUEST;
     }
 
-    void MPbManager::createDiscoveryRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createDiscoveryRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "service_name:" + body["service_name"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST);
+        request->m_type = MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST;
     }
 
-    void MPbManager::createSubscribeRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createSubscribeRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "service_name:" + body["service_name"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST);
+        request->m_type = MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_REQUEST;
     }
 
-    void MPbManager::createPublishRequest(MPbProtocol::ptr request, MPbManager::body_type &body) {
+    void MPbManager::createPublishRequest(MPbProtocol::ptr request, body_type &body) {
         request->m_msg_id = MSGIDUtil::GenerateMSGID();
         std::string body_str = "service_name:" + body["service_name"];
         request->m_body = body_str;
-        request->m_type = static_cast<uint8_t>(MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST);
+        request->m_type = MSGType::RPC_REGISTER_CLIENT_PUBLISH_REQUEST;
     }
 
-    void MPbManager::createMethodResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
+    void MPbManager::createMethodResponse(MPbProtocol::ptr response, body_type &body) {
         response->m_msg_id = body["msg_id"];
-        std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF2
+        std::string body_str = "method_full_name:" + body["method_full_name"] + g_CRLF
                                + "pb_data:" + body["pb_data"];
         response->m_body = body_str;
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_METHOD_RESPONSE);
+        response->m_type = MSGType::RPC_METHOD_RESPONSE;
     }
 
-    void MPbManager::createHeartResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
+    void MPbManager::createHeartResponse(MPbProtocol::ptr response, body_type &body) {
         response->m_msg_id = body["msg_id"];
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE);
+        response->m_type = MSGType::RPC_REGISTER_HEART_SERVER_RESPONSE;
     }
 
-    void MPbManager::createRegisterResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
+    void MPbManager::createRegisterResponse(MPbProtocol::ptr response, body_type &body) {
         std::string body_str = "add_service_count:" + body["add_service_count"];
         response->m_body = body_str;
         response->m_msg_id = body["msg_id"];
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_SERVER_REGISTER_RESPONSE);
+        response->m_type = MSGType::RPC_SERVER_REGISTER_RESPONSE;
     }
 
-    void MPbManager::createDiscoveryResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
+    void MPbManager::createDiscoveryResponse(MPbProtocol::ptr response, body_type &body) {
         std::string body_str = "server_list:" + body["server_list"];
         response->m_body = body_str;
         response->m_msg_id = body["msg_id"];
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE);
+        response->m_type = MSGType::RPC_CLIENT_REGISTER_DISCOVERY_RESPONSE;
     }
 
-    void MPbManager::createSubscribeResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
-        std::string body_str = "service_name:" + body["service_name"] + g_CRLF2
+    void MPbManager::createSubscribeResponse(MPbProtocol::ptr response, body_type &body) {
+        std::string body_str = "service_name:" + body["service_name"] + g_CRLF
                                + "subscribe_success:" + body["subscribe_success"];
         response->m_body = body_str;
         response->m_msg_id = body["msg_id"];
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_RESPONSE);
+        response->m_type = MSGType::RPC_CLIENT_REGISTER_SUBSCRIBE_RESPONSE;
     }
 
-    void MPbManager::createPublishResponse(MPbProtocol::ptr response, MPbManager::body_type &body) {
+    void MPbManager::createPublishResponse(MPbProtocol::ptr response, body_type &body) {
         response->m_msg_id = body["msg_id"];
-        response->m_type = static_cast<uint8_t>(MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE);
+        response->m_type = MSGType::RPC_REGISTER_CLIENT_PUBLISH_RESPONSE;
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
+    <protocol>MPB</protocol>
     <log>
         <log_level>DEBUG</log_level>
         <log_file_name>rpc_logs</log_file_name>

@@ -36,7 +36,7 @@ namespace mrpc {
         using google_message_ptr = std::shared_ptr<google::protobuf::Message>;
         using google_closure_ptr = std::shared_ptr<google::protobuf::Closure>;
 
-        explicit RPCChannel(NetAddr::ptr register_center_addr);
+        explicit RPCChannel(NetAddr::ptr register_center_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~RPCChannel() override;
 
@@ -70,6 +70,7 @@ namespace mrpc {
 
         NetAddr::ptr m_register_center_addr;
         bool m_is_init{false}; // 是否初始化
+        ProtocolType m_protocol_type;
 
         std::unordered_map<std::string, std::set<std::string>> m_service_servers_cache; // service对应的多少个server
         std::unordered_map<std::string, ConsistentHash::ptr> m_service_balance; // 一个service对应一个balance
@@ -77,7 +78,7 @@ namespace mrpc {
     public:
         void subscribe(const std::string &service_name);
 
-        void handlePublish(HTTPRequest::ptr request, HTTPResponse::ptr response, HTTPSession::ptr session);
+        void handlePublish(Protocol::ptr request, Protocol::ptr response, Session::ptr session);
 
     private:
         PublishListener::ptr m_publish_listener;

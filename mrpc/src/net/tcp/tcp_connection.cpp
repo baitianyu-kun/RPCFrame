@@ -12,16 +12,22 @@ namespace mrpc {
 
     TCPConnection::TCPConnection(EventLoop::ptr event_loop, NetAddr::ptr local_addr, NetAddr::ptr peer_addr,
                                  int client_fd, int buffer_size, RPCDispatcher::ptr dispatcher,
-                                 TCPConnectionType type)
+                                 TCPConnectionType type, ProtocolType protocol_type)
             : m_event_loop(event_loop),
               m_local_addr(local_addr),
               m_peer_addr(peer_addr),
               m_client_fd(client_fd),
               m_state(NotConnected),
               m_dispatcher(dispatcher),
-              m_connection_type(type) {
-        m_request_parser = std::make_shared<HTTPRequestParser>();
-        m_response_parser = std::make_shared<HTTPResponseParser>();
+              m_connection_type(type),
+              m_protocol_type(protocol_type) {
+        if (m_protocol_type==ProtocolType::HTTP_Protocol){
+            m_request_parser = std::make_shared<HTTPRequestParser>();
+            m_response_parser = std::make_shared<HTTPResponseParser>();
+        }else{
+            m_request_parser = std::make_shared<MPbProtocolParser>();
+            m_response_parser = std::make_shared<MPbProtocolParser>();
+        }
         m_in_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
         m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
@@ -97,10 +103,17 @@ namespace mrpc {
             // 服务器端
             // 解析请求
             m_request_parser->parse(tmp_str);
-            auto response = std::make_shared<HTTPResponse>();
-            auto session = std::make_shared<HTTPSession>(m_local_addr, m_peer_addr);
+
+            Protocol::ptr response = nullptr;
+            if (m_protocol_type == ProtocolType::HTTP_Protocol) {
+                response = std::make_shared<HTTPResponse>();
+            } else {
+                response = std::make_shared<MPbProtocol>();
+            }
+            auto session = std::make_shared<Session>(m_local_addr, m_peer_addr);
             // 执行业务并写入response
-            m_dispatcher->handle(m_request_parser->getRequest(), response, session);
+            m_dispatcher->handle(m_request_parser->getProtocol(), response, session);
+
             // 编码结果并监听可写
             auto response_str = response->toString();
             m_out_buffer->writeToBuffer(response_str.c_str(), response_str.size());
@@ -109,13 +122,13 @@ namespace mrpc {
             // 客户端
             // 接收response，并调用相应的回调函数
             m_response_parser->parse(tmp_str);
-            auto iter = m_read_dones.find(m_response_parser->getResponse()->m_msg_id);
+            auto iter = m_read_dones.find(m_response_parser->getProtocol()->m_msg_id);
             if (iter != m_read_dones.end()) {
                 auto done = iter->second;
                 m_read_dones.erase(iter);
-                done(m_response_parser->getResponse());
+                done(m_response_parser->getProtocol());
             } else {
-                DEBUGLOG("not found response_msg_id: %s", m_response_parser->getResponse()->m_msg_id.c_str());
+                DEBUGLOG("not found response_msg_id: %s", m_response_parser->getProtocol()->m_msg_id.c_str());
             }
         }
     }
@@ -177,11 +190,11 @@ namespace mrpc {
     }
 
     void
-    TCPConnection::pushSendMessage(const HTTPRequest::ptr &request, const std::function<void(HTTPRequest::ptr)> &done) {
+    TCPConnection::pushSendMessage(const Protocol::ptr &request, const std::function<void(Protocol::ptr)> &done) {
         m_write_dones.emplace_back(request, done);
     }
 
-    void TCPConnection::pushReadMessage(const std::string &msg_id, const std::function<void(HTTPResponse::ptr)> &done) {
+    void TCPConnection::pushReadMessage(const std::string &msg_id, const std::function<void(Protocol::ptr)> &done) {
         m_read_dones.emplace(msg_id, done);
     }
 

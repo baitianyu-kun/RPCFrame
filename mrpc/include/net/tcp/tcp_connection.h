@@ -8,7 +8,9 @@
 #include <memory>
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_vector_buffer.h"
+#include "net/protocol/parse.h"
 #include "net/protocol/http/http_parse.h"
+#include "net/protocol/mpb/mpb_parse.h"
 #include "event/eventloop.h"
 #include "rpc/rpc_dispatcher.h"
 
@@ -35,7 +37,8 @@ namespace mrpc {
                       int client_fd,
                       int buffer_size,
                       RPCDispatcher::ptr dispatcher,
-                      TCPConnectionType type = TCPConnectionByServer);
+                      TCPConnectionType type = TCPConnectionByServer,
+                      ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
 
         ~TCPConnection();
 
@@ -45,11 +48,11 @@ namespace mrpc {
 
         void onWrite();
 
-        void pushSendMessage(const HTTPRequest::ptr &request,
-                             const std::function<void(HTTPRequest::ptr)> &done);
+        void pushSendMessage(const Protocol::ptr &request,
+                             const std::function<void(Protocol::ptr)> &done);
 
         void pushReadMessage(const std::string &msg_id,
-                             const std::function<void(HTTPResponse::ptr)> &done);
+                             const std::function<void(Protocol::ptr)> &done);
 
         void setState(TCPState new_state);
 
@@ -67,7 +70,8 @@ namespace mrpc {
 
         void listenRead();
 
-        void setClientErrorCallback(const std::function<void()> &client_error_done) { m_client_error_done = client_error_done; }
+        void setClientErrorCallback(
+                const std::function<void()> &client_error_done) { m_client_error_done = client_error_done; }
 
         NetAddr::ptr getLocalAddr();
 
@@ -84,14 +88,16 @@ namespace mrpc {
         int m_client_fd{0};
         TCPConnectionType m_connection_type{TCPConnectionByServer};
         RPCDispatcher::ptr m_dispatcher{nullptr};
-        HTTPRequestParser::ptr m_request_parser;
-        HTTPResponseParser::ptr m_response_parser;
+
+        ProtocolParser::ptr m_request_parser;
+        ProtocolParser::ptr m_response_parser;
+        ProtocolType m_protocol_type;
 
         // 客户端收到信息后，根据msg id找到对应的response的回调函数，在回调函数里可以判断response的一些状态，比如是否成功，是否获取到相应数据
-        std::unordered_map<std::string, std::function<void(HTTPResponse::ptr)>> m_read_dones;
+        std::unordered_map<std::string, std::function<void(Protocol::ptr)>> m_read_dones;
 
         // key是request，value是该request对应的回调函数
-        std::vector<std::pair<HTTPRequest::ptr, std::function<void(HTTPRequest::ptr)>>> m_write_dones;
+        std::vector<std::pair<Protocol::ptr, std::function<void(Protocol::ptr)>>> m_write_dones;
 
         // 客户端收发数据过程中出现错误需要进行处理的函数
         std::function<void()> m_client_error_done;

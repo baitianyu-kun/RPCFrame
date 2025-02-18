@@ -36,11 +36,15 @@ add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_
         mrpc/src/event/timer.cpp
         mrpc/include/event/timer_queue.h
         mrpc/src/event/timer_queue.cpp
-        mrpc/include/common/int_util.h)
+        mrpc/include/net/protocol/mpb/mpb_define.h
+        mrpc/include/net/protocol/mpb/mpb_parse.h
+        mrpc/src/net/protocol/mpb/mpb_define.cpp
+        mrpc/src/net/protocol/mpb/mpb_parse.cpp
+)
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
-set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
+set(PROTOBUF_LIB /usr/local/lib/libprotobuf.a)
 
 # 总lib
 set(ALL_LIBS mrpc ${PROTOBUF_LIB} pthread)
@@ -75,3 +79,9 @@ add_executable(test_rpc_register_center_subscribe_publish
         testcases/order.pb.cc
         testcases/order.pb.h)
 target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})
+
+add_executable(test_mpb_parse
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_mpb_parse.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_link_libraries(test_mpb_parse ${ALL_LIBS})

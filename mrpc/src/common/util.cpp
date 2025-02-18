@@ -37,12 +37,6 @@ namespace mrpc {
         return val.tv_sec * 1000 + val.tv_usec / 1000;
     }
 
-    int32_t getInt32FromNetByte(const char *buff) {
-        int32_t ret;
-        memcpy(&ret, buff, sizeof(ret));
-        return ntohl(ret); // net to host long
-    }
-
     std::string getLocalIP() {
         int sockfd;
         ifconf ifconf;

@@ -9,7 +9,6 @@
 #include <functional>
 #include <atomic>
 #include "common/timestamp.h"
-#include "common/int_util.h"
 
 namespace mrpc {
 

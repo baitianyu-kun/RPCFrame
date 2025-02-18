@@ -77,7 +77,6 @@ namespace mrpc {
         std::string m_request_body;
         std::string m_msg_id;
         std::unordered_map<std::string, std::string> m_request_body_data_map;
-        bool parse_success{false};
     };
 
     class HTTPResponse {

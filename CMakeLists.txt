@@ -32,7 +32,7 @@ add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
-set(PROTOBUF_LIB /usr/local/lib/libprotobuf.a)
+set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
 
 # 总lib
 set(ALL_LIBS mrpc ${PROTOBUF_LIB} pthread)
@@ -56,11 +56,17 @@ add_executable(test_rpc_server3
         testcases/order.pb.h)
 target_link_libraries(test_rpc_server3 ${ALL_LIBS})
 
-add_executable(test_rpc_channel_subscribe
-        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_subscribe.cpp
+add_executable(test_rpc_channel_calling_mode
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_calling_mode.cpp
         testcases/order.pb.cc
         testcases/order.pb.h)
-target_link_libraries(test_rpc_channel_subscribe ${ALL_LIBS})
+target_link_libraries(test_rpc_channel_calling_mode ${ALL_LIBS})
+
+add_executable(test_rpc_channel_loop
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_loop.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_channel_loop ${ALL_LIBS})
 
 add_executable(test_rpc_register_center_subscribe_publish
         ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_register_center_subscribe_publish.cpp

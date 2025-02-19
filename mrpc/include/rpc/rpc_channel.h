@@ -6,10 +6,14 @@
 #define RPCFRAME_RPC_CHANNEL_H
 
 #include <google/protobuf/service.h>
+#include <future>
 #include "net/tcp/net_addr.h"
 #include "net/tcp/tcp_client.h"
 #include "net/balance/hash_balance.h"
 #include "rpc/rpc_publish_listener.h"
+#include "rpc/rpc_controller.h"
+#include "rpc/rpc_closure.h"
+#include "common/log.h"
 
 #define NEW_MESSAGE(type, var_name) \
         std::shared_ptr<type> var_name = std::make_shared<type>(); \
@@ -36,7 +40,7 @@ namespace mrpc {
         using google_message_ptr = std::shared_ptr<google::protobuf::Message>;
         using google_closure_ptr = std::shared_ptr<google::protobuf::Closure>;
 
-        explicit RPCChannel(NetAddr::ptr register_center_addr, ProtocolType protocol_type = ProtocolType::HTTP_Protocol);
+        explicit RPCChannel();
 
         ~RPCChannel() override;
 
@@ -50,6 +54,53 @@ namespace mrpc {
         void CallMethod(const google::protobuf::MethodDescriptor *method,
                         google::protobuf::RpcController *controller, const google::protobuf::Message *request,
                         google::protobuf::Message *response, google::protobuf::Closure *done) override;
+
+        template<typename RequestMsgType, typename ResponseMsgType>
+        void callRPCAsync(
+                std::function<void(RPCController *, RequestMsgType *, ResponseMsgType *, RPCClosure *)> call_method,
+                std::shared_ptr<RequestMsgType> request_msg,
+                std::function<void(std::shared_ptr<ResponseMsgType>)> response_msg_call_back) {
+            auto response_msg = std::make_shared<ResponseMsgType>();
+            auto controller = std::make_shared<RPCController>();
+            auto closure = std::make_shared<RPCClosure>(
+                    [request_msg, response_msg, controller, response_msg_call_back]() mutable {
+                        if (controller->GetErrorCode() == 0) {
+                            INFOLOG("call rpc success, request [%s], response [%s]",
+                                    request_msg->ShortDebugString().c_str(),
+                                    response_msg->ShortDebugString().c_str());
+                            if (response_msg_call_back) {
+                                response_msg_call_back(response_msg);
+                            }
+                        } else {
+                            ERRORLOG("call rpc failed, request [%s], error code [%d], error info [%s]",
+                                     response_msg->ShortDebugString().c_str(),
+                                     controller->GetErrorCode(),
+                                     controller->GetErrorInfo().c_str());
+                            if (response_msg_call_back) {
+                                response_msg_call_back(nullptr);
+                            }
+                        }
+                    });
+            controller->SetTimeout(2000); // 设置超时时间
+            init(controller, request_msg, response_msg, closure);
+            call_method(controller.get(), request_msg.get(), response_msg.get(), closure.get());
+        }
+
+        template<typename RequestMsgType, typename ResponseMsgType>
+        std::future<std::shared_ptr<ResponseMsgType>> callRPCFuture(
+                std::function<void(RPCController *, RequestMsgType *, ResponseMsgType *, RPCClosure *)> call_method,
+                std::shared_ptr<RequestMsgType> request_msg) {
+            auto promise = std::make_shared<std::promise<std::shared_ptr<ResponseMsgType>>>();
+            auto future = promise->get_future();
+            callRPCAsync<RequestMsgType,ResponseMsgType>(call_method, request_msg, [promise](std::shared_ptr<ResponseMsgType> response_msg) {
+                if (response_msg) {
+                    promise->set_value(response_msg);
+                } else {
+                    promise->set_exception(std::make_exception_ptr(std::runtime_error("error response_msg")));
+                }
+            });
+            return future;
+        }
 
         google::protobuf::RpcController *getController();
 

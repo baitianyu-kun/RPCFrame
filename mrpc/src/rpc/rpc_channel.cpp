@@ -9,14 +9,20 @@
 #include "common/string_util.h"
 #include "event/io_thread.h"
 #include "common/util.h"
+#include "rpc/rpc_closure.h"
 
 namespace mrpc {
 
     // subscribe方法就发送一个请求，用这个请求的地址当作服务端进行监听服务器的publish
-    RPCChannel::RPCChannel(NetAddr::ptr register_center_addr, ProtocolType protocol_type) :
-            m_register_center_addr(register_center_addr),
-            m_protocol_type(protocol_type) {
-
+    RPCChannel::RPCChannel() {
+        m_register_center_addr = std::make_shared<mrpc::IPNetAddr>(
+                Config::GetGlobalConfig()->m_channel_peer_register_ip,
+                Config::GetGlobalConfig()->m_channel_peer_register_port);
+        if (Config::GetGlobalConfig()->m_protocol == "MPB") {
+            m_protocol_type = ProtocolType::MPb_Protocol;
+        } else {
+            m_protocol_type = ProtocolType::HTTP_Protocol;
+        }
     }
 
     RPCChannel::~RPCChannel() {
@@ -25,14 +31,10 @@ namespace mrpc {
 
     void RPCChannel::init(RPCChannel::google_rpc_controller_ptr controller, RPCChannel::google_message_ptr request,
                           RPCChannel::google_message_ptr response, RPCChannel::google_closure_ptr done) {
-        if (m_is_init) {
-            return;
-        }
         m_controller = controller;
         m_request = request;
         m_response = response;
         m_closure = done;
-        m_is_init = true;
     }
 
     void RPCChannel::updateCache(const std::string &service_name, std::string &server_list) {
@@ -227,7 +229,6 @@ namespace mrpc {
                                          client->getEventLoop()->stop();
                                      });
             });
-            // 接收响应
         });
     }
 

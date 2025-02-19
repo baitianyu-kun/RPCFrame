@@ -16,15 +16,7 @@ int main() {
     Config::SetGlobalConfig("../conf/mrpc.xml");
     Logger::InitGlobalLogger(0);
 
-    auto addr = std::make_shared<mrpc::IPNetAddr>(Config::GetGlobalConfig()->m_channel_peer_register_ip,
-                                                  Config::GetGlobalConfig()->m_channel_peer_register_port);
-    ProtocolType protocol;
-    if (Config::GetGlobalConfig()->m_protocol=="MPB"){
-        protocol = ProtocolType::MPb_Protocol;
-    }else{
-        protocol = ProtocolType::HTTP_Protocol;
-    }
-    auto channel = std::make_shared<RPCChannel>(addr,protocol);
+    auto channel = std::make_shared<RPCChannel>();
 
     auto request_msg = std::make_shared<makeOrderRequest>();
     request_msg->set_price(100);

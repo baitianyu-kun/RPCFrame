@@ -30,7 +30,7 @@ namespace mrpc {
         }
         m_in_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
         m_out_buffer = std::make_shared<TCPVectorBuffer>(buffer_size);
-        m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(client_fd);
+        m_fd_event = std::make_shared<FDEvent>(client_fd);
         m_fd_event->setNonBlock();
         if (m_connection_type == TCPConnectionByServer) {
             listenRead(); // 本方是服务器的话，监听读

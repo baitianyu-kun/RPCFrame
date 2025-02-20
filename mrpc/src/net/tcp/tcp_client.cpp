@@ -18,7 +18,7 @@ namespace mrpc {
             ERRORLOG("TCPClient::TCPClient() error, failed to create fd");
             return;
         }
-        m_fd_event = FDEventPool::GetFDEventPool()->getFDEvent(m_client_fd);
+        m_fd_event = std::make_shared<FDEvent>(m_client_fd);
         m_fd_event->setNonBlock();
         // 作为client的情况没有本地监听地址local addr
         m_connection = std::make_shared<TCPConnection>(

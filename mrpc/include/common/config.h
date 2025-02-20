@@ -35,7 +35,7 @@ namespace mrpc {
         // server
         int m_io_thread_pool_size{0};
         int m_io_fd_event_pool_size{0};
-        int m_clear_connections_interval{0}; // 定时清理连接
+        double m_clear_connections_interval{0}; // 定时清理连接
         int m_tcp_buffer_size{0}; // tcp buffer大小
         int m_max_connections{0};
 

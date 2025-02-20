@@ -32,7 +32,7 @@ add_library(mrpc ${SRC_COMMON_LIST} ${SRC_EVENT_LIST} ${SRC_RPC_LIST} ${SRC_NET_
 install(TARGETS mrpc DESTINATION ${PATH_LIB})
 
 # 第三方lib
-set(PROTOBUF_LIB /usr/lib/libprotobuf.a)
+set(PROTOBUF_LIB /usr/local/lib/libprotobuf.a)
 
 # 总lib
 set(ALL_LIBS mrpc ${PROTOBUF_LIB} pthread)

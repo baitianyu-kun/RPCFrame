@@ -75,7 +75,7 @@ namespace mrpc {
         READ_STR_FROM_XML_NODE(max_connections, server_node);
         m_io_thread_pool_size = std::stoi(io_thread_pool_size_str);
         m_io_fd_event_pool_size = std::stoi(io_fd_event_pool_size_str);
-        m_clear_connections_interval = std::stoi(clear_connections_interval_str);
+        m_clear_connections_interval = std::stod(clear_connections_interval_str);
         m_tcp_buffer_size = std::stoi(tcp_buffer_size_str);
         m_max_connections = std::stoi(max_connections_str);
     }

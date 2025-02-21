@@ -1,13 +1,15 @@
 <div align="center">
 <picture>
-    <img src="assets/logouse.png" width="128px">
+    <img src="assets/logouse.png" width="300px">
 </picture>
 </div>
 <h1 align="center">
 MRPC: Mini-RPC
 </h1>
 
+<div style="text-align: center;">
 | [项目介绍](#项目介绍) | [安装](#安装) | [编译运行](#编译运行) | [性能测试](#性能测试) | [具体介绍](#具体介绍) | [Ref](#Ref) |
+</div>
 
 ## 项目介绍
 

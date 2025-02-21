@@ -52,6 +52,11 @@ cmake .. && make -j16
 ./test_rpc_server // 服务器
 ./test_rpc_channel // 客户端
 ```
+如果要添加新的业务, 则首先编写Service.proto(例order.proto), 随后执行:  
+```shell
+protoc --cpp_out=./ Service.proto
+```
+生成Service.pb.cc和Service.pb.h文件, 随后参照示例编写业务代码即可。
 ## 性能测试
 ### 1. 使用[wrk](https://github.com/wg/wrk)测试工具
 系统配置: Ubuntu-20.04, 4核4G

@@ -224,6 +224,40 @@ addServlet(RPC_METHOD_PATH, std::bind(&RPCServer::handleService, this, _1, _2, _
 // 客户端访问注册中心
 addServlet(RPC_CLIENT_REGISTER_DISCOVERY_PATH, std::bind(&RegisterCenter::handleClientDiscovery, this, _1, _2, _3));
 ```
+如果服务器和客户端部署在同一台机器, 则可以使用Unix协议簇通信, UNIX域套接字仅负责数据复制, 而不进行协议处理, 无需添加或删除网络报头, 也无需计算校验和、生成序列号或发送确认报文。和TCP协议簇不同, Unix协议簇不使用IP+端口的形式, 而是绑定一个本地文件路径。
+```C++
+unlink("/tmp/mysock12"); // 使用前删除旧文件
+
+auto local_addr = std::make_shared<mrpc::UnixDomainSocketAddr>("/tmp/mysock12"); // 注册本地地址
+
+class UnixDomainSocketAddr : public NetAddr {
+    public:
+        using ptr = std::shared_ptr<UnixDomainSocketAddr>;
+
+        explicit UnixDomainSocketAddr(const std::string &path); // 构造函数，接受一个文件系统路径作为参数
+
+        explicit UnixDomainSocketAddr(sockaddr_un addr);
+
+        sockaddr *getSockAddr() override; // 返回 sockaddr 结构体指针
+
+        socklen_t getSockAddrLen() override; // 返回 sockaddr 结构体的长度
+
+        int getFamily() override; // 返回地址族（对于 Unix Domain Socket 是 AF_UNIX）
+
+        std::string toString() override; // 返回地址的字符串表示形式
+
+        std::string getStringIP() override; // Unix Domain Socket 没有 IP 地址，返回m_path
+
+        std::string getStringPort() override; // Unix Domain Socket 没有端口号，返回空字符串
+
+        bool checkValid() override;
+
+    private:
+        std::string m_path;
+        sockaddr_un m_addr;  // Unix Domain Socket 地址结构体
+    };
+```
+
 ### 3. 服务注册
 每台服务器在启动时均会向注册中心注册提供的服务名以及地址端口等, 注册中心维护一个服务名到服务器列表的映射, 同时还需要维护服务器在线状态, 将在心跳检测部分提到:
 ```C++

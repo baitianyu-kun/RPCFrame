@@ -94,7 +94,7 @@ namespace mrpc {
 
         std::string toString() override; // 返回地址的字符串表示形式
 
-        std::string getStringIP() override; // Unix Domain Socket 没有 IP 地址，返回空字符串
+        std::string getStringIP() override; // Unix Domain Socket 没有 IP 地址，返回m_path
 
         std::string getStringPort() override; // Unix Domain Socket 没有端口号，返回空字符串
 

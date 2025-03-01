@@ -73,3 +73,16 @@ add_executable(test_rpc_register_center_subscribe_publish
         testcases/order.pb.cc
         testcases/order.pb.h)
 target_link_libraries(test_rpc_register_center_subscribe_publish ${ALL_LIBS})
+
+add_executable(test_rpc_server_unix
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_server_unix.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_server_unix ${ALL_LIBS})
+
+add_executable(test_rpc_channel_loop_unix
+        ${PROJECT_SOURCE_DIR}/${PATH_TESTCASES}/test_rpc_channel_loop_unix.cpp
+        testcases/order.pb.cc
+        testcases/order.pb.h)
+target_link_libraries(test_rpc_channel_loop_unix ${ALL_LIBS})
+

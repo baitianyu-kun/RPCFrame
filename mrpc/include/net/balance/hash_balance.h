@@ -38,7 +38,7 @@ namespace mrpc {
         std::string printAllServerNodes();
 
     public:
-        static NetAddr::ptr toIPNetAddr(std::string &ip_and_port);
+        static NetAddr::ptr toNetAddr(std::string &ip_and_port);
 
     private:
         // 只存储虚拟节点，key 是哈希值，value 是机器的 ip 地址

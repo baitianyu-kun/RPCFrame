@@ -54,6 +54,16 @@ namespace mrpc {
             auto peer_addr = std::make_shared<IPNetAddr>(client_addr);
             INFOLOG("A client have accpeted succ, client addr [%s]", peer_addr->toString().c_str());
             return std::make_pair(client_fd, peer_addr);
+        } else if (m_family == AF_UNIX) {
+            sockaddr_un client_addr;
+            socklen_t client_addr_len = sizeof(client_addr);
+            int client_fd = ::accept(m_listenfd, (sockaddr *) (&client_addr), &client_addr_len);
+            if (client_fd < 0) {
+                ERRORLOG("accept error, errno=%d, error=%s", errno, strerror(errno));
+            }
+            auto peer_addr = std::make_shared<UnixDomainSocketAddr>(client_addr);
+            INFOLOG("A client have accepted success, client addr [%s]", peer_addr->toString().c_str());
+            return std::make_pair(client_fd, peer_addr);
         } else {
             // 其他协议，先设置个默认值
             return std::make_pair(-1, nullptr);

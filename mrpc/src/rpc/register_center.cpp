@@ -85,8 +85,13 @@ namespace mrpc {
         auto all_services_names = request->m_body_data_map["all_services_names"];
         std::vector<std::string> all_services_names_vec;
         splitStrToVector(all_services_names, ",", all_services_names_vec);
-        auto server_addr = std::make_shared<IPNetAddr>(request->m_body_data_map["server_ip"],
-                                                       std::stoi(request->m_body_data_map["server_port"]));
+        NetAddr::ptr server_addr = nullptr;
+        if (request->m_body_data_map["server_port"].empty()) {
+            server_addr = std::make_shared<UnixDomainSocketAddr>(request->m_body_data_map["server_ip"]);
+        } else {
+            server_addr = std::make_shared<IPNetAddr>(request->m_body_data_map["server_ip"],
+                                                      std::stoi(request->m_body_data_map["server_port"]));
+        }
         updateServiceServer(all_services_names_vec, server_addr);
 
         body_type body;
@@ -170,8 +175,13 @@ namespace mrpc {
     RegisterCenter::handleServerHeart(Protocol::ptr request, Protocol::ptr response, Session::ptr session) {
         RWMutex::WriteLock lock(m_mutex);
         // 收到心跳包后重置这个server的定时器，然后回一个心跳包
-        auto server_addr = std::make_shared<IPNetAddr>(request->m_body_data_map["server_ip"],
-                                                       std::stoi(request->m_body_data_map["server_port"]));
+        NetAddr::ptr server_addr = nullptr;
+        if (request->m_body_data_map["server_port"].empty()) {
+            server_addr = std::make_shared<UnixDomainSocketAddr>(request->m_body_data_map["server_ip"]);
+        } else {
+            server_addr = std::make_shared<IPNetAddr>(request->m_body_data_map["server_ip"],
+                                                      std::stoi(request->m_body_data_map["server_port"]));
+        }
         auto server_addr_str = server_addr->toString();
         getMainEventLoop()->deleteTimerEvent(m_servers_timer_event[server_addr_str]);
 

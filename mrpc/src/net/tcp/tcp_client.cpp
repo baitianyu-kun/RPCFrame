@@ -10,7 +10,7 @@
 namespace mrpc {
 
     TCPClient::TCPClient(NetAddr::ptr peer_addr, EventLoop::ptr specific_eventloop, ProtocolType protocol_type)
-            : m_peer_addr(peer_addr), m_event_loop(specific_eventloop),m_protocol_type(protocol_type) {
+            : m_peer_addr(peer_addr), m_event_loop(specific_eventloop), m_protocol_type(protocol_type) {
         m_client_fd = socket(peer_addr->getFamily(), SOCK_STREAM, 0);
         int val = 1;
         setSocketOption(SOL_SOCKET, SO_REUSEADDR, &val); // reuse addr
@@ -55,6 +55,10 @@ namespace mrpc {
             if (done) {
                 done();
             }
+            if (m_event_loop->LoopStopFlag()) {
+                m_event_loop->setLoopStopFlag();
+            }
+            m_event_loop->loop();
         } else if (ret == -1) {
             if (errno == EINPROGRESS) {
                 m_fd_event->listen(FDEvent::OUT_EVENT, [this, done]() {
@@ -83,12 +87,10 @@ namespace mrpc {
                     }
                 });
                 m_event_loop->addEpollEvent(m_fd_event);
-                if (!m_event_loop->LoopStopFlag()) {
-                    m_event_loop->loop();
-                } else {
+                if (m_event_loop->LoopStopFlag()) {
                     m_event_loop->setLoopStopFlag();
-                    m_event_loop->loop();
                 }
+                m_event_loop->loop();
             } else {
                 ERRORLOG("connect error, errno = %d, error = %s", errno, strerror(errno));
                 // 需要返回具体的错误码

@@ -96,6 +96,48 @@ namespace mrpc {
         return std::to_string(m_port);
     }
 
+    UnixDomainSocketAddr::UnixDomainSocketAddr(const std::string &path) {
+        if (path.size() >= sizeof(m_addr.sun_path)) {
+            throw std::invalid_argument("Path too long for Unix Domain Socket");
+        }
+        memset(&m_addr, 0, sizeof(m_addr));
+        m_addr.sun_family = AF_UNIX;
+        strncpy(m_addr.sun_path, path.c_str(), sizeof(m_addr.sun_path) - 1);
+        m_path = path;
+    }
+
+    UnixDomainSocketAddr::UnixDomainSocketAddr(sockaddr_un addr) : m_addr(addr) {
+        m_path = std::string(addr.sun_path);
+    }
+
+    sockaddr *UnixDomainSocketAddr::getSockAddr() {
+        return (sockaddr *) &m_addr;
+    }
+
+    socklen_t UnixDomainSocketAddr::getSockAddrLen() {
+        return sizeof(m_addr);
+    }
+
+    int UnixDomainSocketAddr::getFamily() {
+        return AF_UNIX;
+    }
+
+    std::string UnixDomainSocketAddr::toString() {
+        return m_addr.sun_path;
+    }
+
+    std::string UnixDomainSocketAddr::getStringIP() {
+        return m_path;
+    }
+
+    std::string UnixDomainSocketAddr::getStringPort() {
+        return "";
+    }
+
+    bool UnixDomainSocketAddr::checkValid() {
+        return m_addr.sun_path[0] != '\0';
+    }
+
 }
 
 

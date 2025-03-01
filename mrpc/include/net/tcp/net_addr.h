@@ -7,6 +7,7 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sys/un.h>
 #include <string>
 #include <cstring>
 #include <memory>
@@ -30,6 +31,16 @@ namespace mrpc {
         virtual std::string getStringPort() = 0;
 
         virtual bool checkValid() = 0;
+    };
+
+    struct CompNetAddr {
+        bool operator()(const NetAddr::ptr &left, const NetAddr::ptr &right) const {
+            if (left->toString() == right->toString()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
     };
 
     class IPNetAddr : public NetAddr {
@@ -67,14 +78,31 @@ namespace mrpc {
         sockaddr_in m_addr;
     };
 
-    struct CompNetAddr {
-        bool operator()(const NetAddr::ptr &left, const NetAddr::ptr &right) const {
-            if (left->toString() == right->toString()) {
-                return false;
-            } else {
-                return true;
-            }
-        }
+    class UnixDomainSocketAddr : public NetAddr {
+    public:
+        using ptr = std::shared_ptr<UnixDomainSocketAddr>;
+
+        explicit UnixDomainSocketAddr(const std::string &path); // 构造函数，接受一个文件系统路径作为参数
+
+        explicit UnixDomainSocketAddr(sockaddr_un addr);
+
+        sockaddr *getSockAddr() override; // 返回 sockaddr 结构体指针
+
+        socklen_t getSockAddrLen() override; // 返回 sockaddr 结构体的长度
+
+        int getFamily() override; // 返回地址族（对于 Unix Domain Socket 是 AF_UNIX）
+
+        std::string toString() override; // 返回地址的字符串表示形式
+
+        std::string getStringIP() override; // Unix Domain Socket 没有 IP 地址，返回空字符串
+
+        std::string getStringPort() override; // Unix Domain Socket 没有端口号，返回空字符串
+
+        bool checkValid() override;
+
+    private:
+        std::string m_path;
+        sockaddr_un m_addr;  // Unix Domain Socket 地址结构体
     };
 }
 

@@ -54,7 +54,11 @@ namespace mrpc {
         return it->second;
     }
 
-    NetAddr::ptr ConsistentHash::toIPNetAddr(std::string &ip_and_port) {
+    NetAddr::ptr ConsistentHash::toNetAddr(std::string &ip_and_port) {
+        if (ip_and_port.find('/') != ip_and_port.npos) {
+            // unix domain
+            return std::make_shared<UnixDomainSocketAddr>(ip_and_port);
+        }
         auto find_res = ip_and_port.find(':');
         std::string ip, port;
         if (find_res != ip_and_port.npos) {
@@ -67,7 +71,7 @@ namespace mrpc {
     NetAddr::ptr ConsistentHash::getServer(const std::string &key) {
         auto ip = getServerIP(key);
         DEBUGLOG("Hash Balance to server: %s", ip.c_str());
-        return toIPNetAddr(ip);
+        return toNetAddr(ip);
     }
 
     std::string ConsistentHash::printAllServerNodes() {

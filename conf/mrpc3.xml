@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
-    <protocol>MPB</protocol>
+    <protocol>HTTP</protocol>
     <log>
         <log_level>DEBUG</log_level>
         <log_file_name>rpc_logs</log_file_name>
@@ -11,7 +11,7 @@
 
     <balance>
         <virtual_node_num>200</virtual_node_num>
-        <network_card_name>enp1s0</network_card_name>
+        <network_card_name>eth0</network_card_name>
     </balance>
 
     <channel>

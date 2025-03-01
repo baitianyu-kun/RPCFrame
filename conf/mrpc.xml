@@ -11,7 +11,7 @@
 
     <balance>
         <virtual_node_num>200</virtual_node_num>
-        <network_card_name>enp1s0</network_card_name>
+        <network_card_name>eth0</network_card_name>
     </balance>
 
     <channel>
@@ -24,7 +24,7 @@
         <io_fd_event_pool_size>2048</io_fd_event_pool_size>
         <tcp_buffer_size>2048</tcp_buffer_size>
         <max_connections>1000000</max_connections>
-        <clear_connections_interval>0.1</clear_connections_interval>
+        <clear_connections_interval>2</clear_connections_interval>
     </server>
 
     <register_center>

@@ -45,14 +45,15 @@ namespace mrpc {
             MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
                                       MSGType::RPC_REGISTER_HEART_SERVER_REQUEST, body);
         }
-        client->connect([client, request]() {
-            client->sendRequest(request, [](Protocol::ptr req) {});
-            client->recvResponse(request->m_msg_id, [client, request](Protocol::ptr rsp) {
-                client->getEventLoop()->stop();
-                INFOLOG("%s | success heart to center, peer addr [%s], local addr[%s]",
-                        rsp->m_msg_id.c_str(),
-                        client->getPeerAddr()->toString().c_str(),
-                        client->getLocalAddr()->toString().c_str());
+        client->connect([&client, request]() {
+            client->sendRequest(request, [&client, request](Protocol::ptr req) {
+                client->recvResponse(request->m_msg_id, [&client, request](Protocol::ptr rsp) {
+                    INFOLOG("%s | success heart to center, peer addr [%s], local addr[%s]",
+                            rsp->m_msg_id.c_str(),
+                            client->getPeerAddr()->toString().c_str(),
+                            client->getLocalAddr()->toString().c_str());
+                    client->getEventLoop()->stop();
+                });
             });
         });
         io_thread->start();
@@ -77,15 +78,16 @@ namespace mrpc {
             MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
                                       MSGType::RPC_SERVER_REGISTER_REQUEST, body);
         }
-        client->connect([client, request]() {
-            client->sendRequest(request, [](Protocol::ptr req) {});
-            client->recvResponse(request->m_msg_id, [client, request](Protocol::ptr rsp) {
-                client->getEventLoop()->stop();
-                INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], add_service_count [%s]",
-                        rsp->m_msg_id.c_str(),
-                        client->getPeerAddr()->toString().c_str(),
-                        client->getLocalAddr()->toString().c_str(),
-                        rsp->m_body_data_map["add_service_count"].c_str());
+        client->connect([&client, request]() {
+            client->sendRequest(request, [&client, request](Protocol::ptr req) {
+                client->recvResponse(request->m_msg_id, [&client, request](Protocol::ptr rsp) {
+                    client->getEventLoop()->stop();
+                    INFOLOG("%s | success register to center, peer addr [%s], local addr[%s], add_service_count [%s]",
+                            rsp->m_msg_id.c_str(),
+                            client->getPeerAddr()->toString().c_str(),
+                            client->getLocalAddr()->toString().c_str(),
+                            rsp->m_body_data_map["add_service_count"].c_str());
+                });
             });
         });
         io_thread->start();

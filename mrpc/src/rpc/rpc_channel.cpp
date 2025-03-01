@@ -74,10 +74,10 @@ namespace mrpc {
         auto register_client = std::make_shared<TCPClient>(m_register_center_addr,
                                                            io_thread->getEventLoop(),
                                                            m_protocol_type);
-        register_client->connect([register_client, request, service_name]() {
-            register_client->sendRequest(request, [register_client, request, service_name](Protocol::ptr req) {
+        register_client->connect([&register_client, request, service_name]() {
+            register_client->sendRequest(request, [&register_client, request, service_name](Protocol::ptr req) {
                 register_client->recvResponse(request->m_msg_id,
-                                              [register_client, request, service_name](Protocol::ptr rsp) {
+                                              [&register_client, request, service_name](Protocol::ptr rsp) {
                                                   register_client->getEventLoop()->stop();
                                                   if (rsp->m_body_data_map["subscribe_success"] ==
                                                       std::to_string(true)) {
@@ -138,11 +138,11 @@ namespace mrpc {
             MPbManager::createRequest(std::static_pointer_cast<MPbProtocol>(request),
                                       MSGType::RPC_CLIENT_REGISTER_DISCOVERY_REQUEST, body);
         }
-        register_client->connect([register_client, request, channel, service_name]() {
+        register_client->connect([&register_client, request, channel, service_name]() {
             register_client->sendRequest(request,
-                                         [register_client, request, channel, service_name](Protocol::ptr req) {
+                                         [&register_client, request, channel, service_name](Protocol::ptr req) {
                                              register_client->recvResponse(request->m_msg_id,
-                                                                           [register_client, request, channel, service_name](
+                                                                           [&register_client, request, channel, service_name](
                                                                                    Protocol::ptr rsp) {
                                                                                // 更新本地缓存
                                                                                auto server_list_str = rsp->m_body_data_map["server_list"];
@@ -211,11 +211,11 @@ namespace mrpc {
         INFOLOG("%s | call method name [%s]", request_protocol->m_msg_id.c_str(), method_full_name.c_str());
 
         auto this_channel = shared_from_this();
-        client->connect([this_channel, request_protocol, client]() {
+        client->connect([this_channel, request_protocol, &client]() {
             // 发送请求
-            client->sendRequest(request_protocol, [this_channel, request_protocol, client](Protocol::ptr req) {
+            client->sendRequest(request_protocol, [this_channel, request_protocol, &client](Protocol::ptr req) {
                 client->recvResponse(request_protocol->m_msg_id,
-                                     [this_channel, request_protocol, client](Protocol::ptr rsp) {
+                                     [this_channel, request_protocol, &client](Protocol::ptr rsp) {
                                          this_channel->getResponse()->ParseFromString(
                                                  rsp->m_body_data_map["pb_data"]);
                                          INFOLOG("%s | success get rpc response, peer addr [%s], local addr[%s], response [%s]",

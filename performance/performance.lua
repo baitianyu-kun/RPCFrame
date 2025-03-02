@@ -1,5 +1,5 @@
 request= function()
-local file = io.open("/home/baitianyu/projects/RPCFrame/performance/performance_params.txt", "r")
+local file = io.open("/home/baitianyu/projects/MRPC/performance/performance_params.txt", "r")
 local body_data = file:read('*all')
 file:close()
 local data = body_data

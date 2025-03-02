@@ -40,8 +40,9 @@ namespace mrpc {
             m_fd_event->cancel_listen(FDEvent::IN_EVENT);
             m_fd_event->cancel_listen(FDEvent::OUT_EVENT);
             m_event_loop->deleteEpollEvent(m_fd_event);
-            close(m_fd_event->getFD());
-            close(m_client_fd);
+            if (m_connection->getState() == HalfClosing || m_connection->getState() == Closed) {
+                close(m_client_fd);
+            }
             DEBUGLOG("~TCPClient, close: %d", m_client_fd);
         }
     }

@@ -21,10 +21,10 @@ namespace mrpc {
               m_dispatcher(dispatcher),
               m_connection_type(type),
               m_protocol_type(protocol_type) {
-        if (m_protocol_type==ProtocolType::HTTP_Protocol){
+        if (m_protocol_type == ProtocolType::HTTP_Protocol) {
             m_request_parser = std::make_shared<HTTPRequestParser>();
             m_response_parser = std::make_shared<HTTPResponseParser>();
-        }else{
+        } else {
             m_request_parser = std::make_shared<MPbProtocolParser>();
             m_response_parser = std::make_shared<MPbProtocolParser>();
         }
@@ -130,6 +130,13 @@ namespace mrpc {
             } else {
                 DEBUGLOG("not found response_msg_id: %s", m_response_parser->getProtocol()->m_msg_id.c_str());
             }
+            // 对端shutdown写，本端的套接字上触发EPOLLIN+EPOLLRDHUP事件
+            // 对端shutdown读，本端的套接字上不触发任何事件
+            // 本端调用shutdown关闭读，本端的套接字上将触发EPOLLIN+EPOLLRDHUP事件，所以客户端shutdown写，发送FIN，则服务端触发EpollIN和onRead，读取为0，被动关闭。
+            // 对端shutdown读写，本端的套接字上触发EPOLLIN+EPOLLRDHUP事件
+            // 本端shutdown读写，本端的套接字上触发EPOLLIN+EPOLLHUP+EPOLLRDHUP事件
+            ::shutdown(m_client_fd, SHUT_WR);
+            m_state = HalfClosing;
         }
     }
 

@@ -20,7 +20,7 @@ wget  https://github.com/protocolbuffers/protobuf/releases/download/v3.19.4/prot
 
 tar -xzvf protobuf-cpp-3.19.4.tar.gz
 ```
-指定安装目录到/usr/local, 随后库文件将位于/usr/local/lib, 头文件位于/usr/local/include/google:
+指定安装目录到`/usr/local`, 随后库文件将位于`/usr/local/lib`, 头文件位于`/usr/local/include/google`:
 ```shell
 cd protobuf-cpp-3.19.4
 
@@ -52,16 +52,16 @@ cmake .. && make -j16
 ./test_rpc_server // 服务器
 ./test_rpc_channel // 客户端
 ```
-如果要添加新的业务, 则首先编写Service.proto(例order.proto), 随后执行:  
+如果要添加新的业务, 则首先编写`Service.proto`(例`order.proto`), 随后执行:  
 ```shell
 protoc --cpp_out=./ Service.proto
 ```
-生成Service.pb.cc和Service.pb.h文件, 随后参照示例编写业务代码即可。
+生成`Service.pb.cc`和`Service.pb.h`文件, 随后参照示例编写业务代码即可。
 ## 性能测试
 ### 1. 使用[wrk](https://github.com/wg/wrk)测试工具
 系统配置: Ubuntu-20.04, 4核4G
 
-首先将conf/mrpc.xml中protocol更改为HTTP, 设置IO线程数, 进入到wrk目录中执行:
+首先将`conf/mrpc.xml`中`protocol`更改为HTTP, 设置IO线程数, 进入到wrk目录中执行:
 ```shell
 ./wrk -t 8 -c 1000 -d 30 --latency  -s ~/RPCFrame/performance/performance.lua http://192.168.0.108:22224
 
@@ -87,7 +87,7 @@ protoc --cpp_out=./ Service.proto
 - 服务端: RPCServer   
   服务端提供服务接口, 在启动时向注册中心进行注册, 并定期发送心跳包确保其存活状态。
 
-- 服务端和注册中心均采用主从Reactor模型。主Reactor负责接受新连接及处理定时任务, 从Reactor则通过轮询方式负责每个连接的事件读写。主从Reactor模型的优势在于响应速度快, 且可通过增加从Reactor数量来高效利用系统资源。
+- 服务端和注册中心均采用`主从Reactor`模型。`主Reactor`负责接受新连接及处理定时任务, `从Reactor`则通过轮询方式负责每个连接的事件读写。`主从Reactor`模型的优势在于响应速度快, 且可通过增加`从Reactor`数量来高效利用系统资源。
 
 
 ### 2. 通信协议与请求处理
@@ -131,7 +131,7 @@ enum class MSGType : uint8_t {
         RPC_REGISTER_CLIENT_PUBLISH_RESPONSE, // 客户端收到推送
         };
  ```
-上述通信协议实现于抽象类Protocol:
+上述通信协议实现于抽象类`Protocol`:
 ```C++
 class Protocol {
     public:
@@ -154,7 +154,7 @@ class Protocol {
 ```C++
 Protocol::ptr request, Protocol::ptr response, Session::ptr session  
 ```
-其中Session中定义了会话相关信息:
+其中`Session`中定义了会话相关信息:
 ```C++
 class Session {
     public:
@@ -174,7 +174,7 @@ class Session {
         NetAddr::ptr m_peer_addr;
     };
 ```
-参考[acid](https://github.com/zavier-wong/acid)实现请求分发, CallBacksServlet负责存储对应的回调函数, DispatchServlet将请求分发到对应的Servlet中
+参考[acid](https://github.com/zavier-wong/acid)实现请求分发, `CallBacksServlet`负责存储对应的回调函数, `DispatchServlet`将请求分发到对应的`Servlet`中
 ```C++
 class Servlet {
     public:
@@ -217,14 +217,14 @@ class DispatchServlet : public Servlet {
         std::map<std::string, Servlet::ptr> m_all_servlets;
 };
 ```
-在使用中, 仅需要将回调函数进行注册(_1代表std::placeholders::_1):
+在使用中, 仅需要将回调函数进行注册(_1代表`std::placeholders::_1`):
 ```C++
 // 客户端访问服务器
 addServlet(RPC_METHOD_PATH, std::bind(&RPCServer::handleService, this, _1, _2, _3));
 // 客户端访问注册中心
 addServlet(RPC_CLIENT_REGISTER_DISCOVERY_PATH, std::bind(&RegisterCenter::handleClientDiscovery, this, _1, _2, _3));
 ```
-如果服务器和客户端部署在同一台机器, 则可以使用Unix协议簇通信, UNIX域套接字仅负责数据复制, 而不进行协议处理, 无需添加或删除网络报头, 也无需计算校验和、生成序列号或发送确认报文。和TCP协议簇不同, Unix协议簇不使用IP+端口的形式, 而是绑定一个本地文件路径。
+如果服务器和客户端部署在同一台机器, 则可以使用`Unix`协议簇通信, UNIX域套接字仅负责数据复制, 而不进行协议处理, 无需添加或删除网络报头, 也无需计算校验和、生成序列号或发送确认报文。和TCP协议簇不同, Unix协议簇不使用IP+端口的形式, 而是绑定一个本地文件路径。
 ```C++
 unlink("/tmp/mysock12"); // 使用前删除旧文件
 
@@ -300,7 +300,7 @@ class ConsistentHash {
         std::unordered_map<std::string, int> physicalServerAndVirtualNodeNum;
     };
 ```
-客户端为每个服务设置一个哈希环, 在进行选择时, 首先获取自身的IP, 根据自身的IP去计算应当被哈希环上的哪个节点被处理:
+客户端为每个服务设置一个哈希环, 在进行选择时, 首先获取自身的`IP`, 根据自身的`IP`去计算应当被哈希环上的哪个节点被处理:
 ```C++
 auto local_ip = getLocalIP();
 auto server_addr = m_service_balance[method->service()->full_name()]->getServer(local_ip);   
@@ -413,7 +413,7 @@ m_service_servers[service].erase(server_addr_str);
 notifyClientServiceUnregister(service); // 通知客户端, 该服务器提供的这些服务均已过期
 ```
 ### 8. 异步调用方式
-本项目提供了两种异步调用方式, 一种是通过传入回调函数, 另一种是使用future和promise封装异步操作(_1代表std::placeholders::_1):
+本项目提供了两种异步调用方式, 一种是通过传入回调函数, 另一种是使用`future`和`promise`封装异步操作(_1代表`std::placeholders::_1`):
 - 使用回调函数
 ```C++
 channel->callRPCAsync<makeOrderRequest, makeOrderResponse>(
@@ -448,7 +448,7 @@ void callRPCAsync(
             ...
         }
 ```
-- 使用future, 即将上述方法中回调函数部分更改为设置promise的值:
+- 使用`future`, 即将上述方法中回调函数部分更改为设置`promise`的值:
 ```C++
 auto future = channel->callRPCFuture<makeOrderRequest, makeOrderResponse>(
             std::bind(&Order_Stub::makeOrder, &stub, _1, _2, _3, _4),
@@ -481,18 +481,19 @@ std::future<std::shared_ptr<ResponseMsgType>> callRPCFuture(
 <picture>
     <img src="assets/xunhuan.png" width="1000px">
 </picture>
-</div>
+</div>  
 
-如上图所示, 在类TCPClient中有一个成员shared_ptr<FDEvent>, 该类用于设置Epoll所监听的事件。在TCPClient进行::connect过程中, 在非阻塞I/O下::connect函数有可能第一次返回-1, 这时如果errno == EINPROGRESS的话代表连接正在进行中, 随后仅需要在Epoll中监听写, 并使用FDEvent捕获外面的回调函数。如果可写则证明连接成功, 继续在Epoll内执行::connect方法, 随后执行FDEvent中所捕获的回调函数。  
 
-但是由于在回调函数中捕获了TCPClient的智能指针, 引用计数+1, 导致TCPClient中的FDEvent捕获了其自身, 处于相互拥有的状态, 即循环引用。该情况导致TCPClient无法析构, 其无法析构导致TCPClient中的client fd无法被close, 导致客户端文件描述符和内存泄露。同时在服务端, 由于客户端无法close client fd, 使得客户端无法主动关闭连接并发送FIN报文, 造成服务端无法被动关闭连接, 造成服务端描述符和内存泄露。  
+如上图所示, 在类`TCPClient`中有一个成员`shared_ptr<FDEvent>`, 该类用于设置`Epoll`所监听的事件。在`TCPClient`进行`::connect`过程中, 在非阻塞I/O下`::connect`函数有可能第一次返回-1(Unix协议簇下使用`::connect`直接连接成功返回0), 这时如果`errno == EINPROGRESS`的话代表连接正在进行中, 随后仅需要在`Epoll`中监听写, 并使用`FDEvent`捕获外面的回调函数。如果可写则证明连接成功, 继续在`Epoll`内执行`::connect`方法, 随后执行`FDEvent`中所捕获的回调函数。  
+
+但是由于在回调函数中捕获了`TCPClient`的智能指针, 引用计数+1, 导致`TCPClient`中的`FDEvent`捕获了其自身, 处于相互拥有的状态, 即循环引用。该情况导致`TCPClient`无法析构, 其无法析构导致`TCPClient`中的`client fd`无法被`close`, 导致客户端文件描述符和内存泄露。同时在服务端, 由于客户端无法`close client fd`, 使得客户端无法主动关闭连接并发送`FIN`报文, 造成服务端无法被动关闭连接, 造成服务端描述符和内存泄露。  
 
 解决方法: 
-1. 在执行connect方法时仅捕获TCPClient的shared_ptr引用, 无需担心TCPClient指针提前于回调函数析构, 因为只要FDEvent对象存在则TCPClient就不会析构。
+1. 在执行`connect`方法时仅捕获`TCPClient`的`shared_ptr`引用, 无需担心`TCPClient`指针提前于回调函数析构, 因为只要`FDEvent`对象存在则`TCPClient`就不会析构。
 ```C++
 client->connect([this_channel, request_protocol, &client]() {});
 ```
-2. 在执行connect方法时捕获TCPClient的弱引用。
+2. 在执行`connect`方法时捕获`TCPClient`的弱引用。
 ```C++
 auto this_channel = shared_from_this();
 std::weak_ptr<TCPClient> weak_client(client);

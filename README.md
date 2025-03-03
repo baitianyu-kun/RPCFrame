@@ -7,7 +7,7 @@
 MRPC: Mini-RPC
 </h1>
 
-| [项目介绍](#项目介绍) | [安装](#安装) | [编译运行](#编译运行) | [性能测试](#性能测试) | [具体介绍](#具体介绍) | [Ref](#Ref) |
+| [项目介绍](#项目介绍) | [安装](#安装) | [编译运行](#编译运行) | [性能测试](#性能测试) | [具体介绍](#具体介绍) | [项目问题及解决方案](#项目问题及解决方案) | [Ref](#Ref) |
 
 ## 项目介绍
 
@@ -475,6 +475,35 @@ std::future<std::shared_ptr<ResponseMsgType>> callRPCFuture(
             return future;
         }
 ```
+
+## 项目问题及解决方案
+<div align="center">
+<picture>
+    <img src="assets/xunhuan.png" width="300px">
+</picture>
+</div>
+如上图所示, 在类TCPClient中有一个成员shared_ptr<FDEvent>, 该类用于设置Epoll所监听的事件。在TCPClient进行::connect过程中, 在非阻塞I/O下::connect函数有可能第一次返回-1, 这时如果errno == EINPROGRESS的话代表连接正在进行中, 随后仅需要在Epoll中监听写, 并使用FDEvent捕获外面的回调函数。如果可写则证明连接成功, 继续在Epoll内执行::connect方法, 随后执行FDEvent中所捕获的回调函数。
+
+但是由于在回调函数中捕获了TCPClient的智能指针, 引用计数+1, 导致TCPClient中的FDEvent由捕获了其自身, 处于相互拥有的状态, 即循环引用。该情况导致TCPClient无法析构, 其无法析构导致TCPClient中的client fd无法被close, 导致客户端文件描述符和内存泄露。同时在服务端, 由于客户端无法close client fd, 使得客户端无法主动关闭连接并发送FIN报文, 造成服务端无法被动关闭连接, 造成服务端描述符和内存泄露。
+
+解决方法: 
+1. 在执行connect方法时仅捕获TCPClient的shared_ptr引用, 无需担心TCPClient指针提前于回调函数析构, 因为只要FDEvent对象存在则TCPClient就不会析构。
+```C++
+client->connect([this_channel, request_protocol, &client]() {
+
+        });
+```
+2. 在执行connect方法时捕获TCPClient的弱引用。
+```C++
+auto this_channel = shared_from_this();
+std::weak_ptr<TCPClient> weak_client(client);
+client->connect([this_channel, request_protocol, weak_client]() {
+       if (auto client = weak_client.lock()){
+                // do something
+            }
+       });
+```
+
 ## Ref
 由于该项目尚未经过充分的测试, 因此不适合在生产环境中使用。
 | Project        | Link                                                       |

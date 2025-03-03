@@ -482,9 +482,10 @@ std::future<std::shared_ptr<ResponseMsgType>> callRPCFuture(
     <img src="assets/xunhuan.png" width="1000px">
 </picture>
 </div>
+
 如上图所示, 在类TCPClient中有一个成员shared_ptr<FDEvent>, 该类用于设置Epoll所监听的事件。在TCPClient进行::connect过程中, 在非阻塞I/O下::connect函数有可能第一次返回-1, 这时如果errno == EINPROGRESS的话代表连接正在进行中, 随后仅需要在Epoll中监听写, 并使用FDEvent捕获外面的回调函数。如果可写则证明连接成功, 继续在Epoll内执行::connect方法, 随后执行FDEvent中所捕获的回调函数。  
 
-但是由于在回调函数中捕获了TCPClient的智能指针, 引用计数+1, 导致TCPClient中的FDEvent由捕获了其自身, 处于相互拥有的状态, 即循环引用。该情况导致TCPClient无法析构, 其无法析构导致TCPClient中的client fd无法被close, 导致客户端文件描述符和内存泄露。同时在服务端, 由于客户端无法close client fd, 使得客户端无法主动关闭连接并发送FIN报文, 造成服务端无法被动关闭连接, 造成服务端描述符和内存泄露。  
+但是由于在回调函数中捕获了TCPClient的智能指针, 引用计数+1, 导致TCPClient中的FDEvent捕获了其自身, 处于相互拥有的状态, 即循环引用。该情况导致TCPClient无法析构, 其无法析构导致TCPClient中的client fd无法被close, 导致客户端文件描述符和内存泄露。同时在服务端, 由于客户端无法close client fd, 使得客户端无法主动关闭连接并发送FIN报文, 造成服务端无法被动关闭连接, 造成服务端描述符和内存泄露。  
 
 解决方法: 
 1. 在执行connect方法时仅捕获TCPClient的shared_ptr引用, 无需担心TCPClient指针提前于回调函数析构, 因为只要FDEvent对象存在则TCPClient就不会析构。

@@ -224,7 +224,7 @@ addServlet(RPC_METHOD_PATH, std::bind(&RPCServer::handleService, this, _1, _2, _
 // 客户端访问注册中心
 addServlet(RPC_CLIENT_REGISTER_DISCOVERY_PATH, std::bind(&RegisterCenter::handleClientDiscovery, this, _1, _2, _3));
 ```
-如果服务器和客户端部署在同一台机器, 则可以使用`Unix`协议簇通信, UNIX域套接字仅负责数据复制, 而不进行协议处理, 无需添加或删除网络报头, 也无需计算校验和、生成序列号或发送确认报文。和TCP协议簇不同, Unix协议簇不使用IP+端口的形式, 而是绑定一个本地文件路径。
+如果服务器和客户端部署在同一台机器, 则可以使用`Unix`协议簇通信, `Unix`域套接字仅负责数据复制, 而不进行协议处理, 无需添加或删除网络报头, 也无需计算校验和、生成序列号或发送确认报文。和`TCP`协议簇不同, `Unix`协议簇不使用IP+端口的形式, 而是绑定一个本地文件路径。
 ```C++
 unlink("/tmp/mysock12"); // 使用前删除旧文件
 
